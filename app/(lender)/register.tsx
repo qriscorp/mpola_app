@@ -1,0 +1,210 @@
+import React from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Button, Input } from "../../src/components";
+import { useAuthViewModel } from "../../src/viewmodels";
+
+export default function LenderRegisterScreen() {
+  const router = useRouter();
+  const vm = useAuthViewModel();
+
+  const handleRegister = async () => {
+    const success = await vm.register("lender");
+    if (success) router.replace("/(lender)/home");
+  };
+
+  return (
+    <SafeAreaView style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Become a Lender</Text>
+        <Text style={styles.headerSub}>
+          Start earning by lending to verified borrowers
+        </Text>
+      </View>
+
+      <ScrollView
+        style={styles.form}
+        contentContainerStyle={styles.formContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Account Type Toggle */}
+        <View style={styles.toggle}>
+          <TouchableOpacity
+            style={[
+              styles.toggleBtn,
+              vm.accountType === "individual" && styles.toggleActive,
+            ]}
+            onPress={() => vm.setAccountType("individual")}
+          >
+            <Text
+              style={[
+                styles.toggleText,
+                vm.accountType === "individual" && styles.toggleTextActive,
+              ]}
+            >
+              Individual
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.toggleBtn,
+              vm.accountType === "business" && styles.toggleActive,
+            ]}
+            onPress={() => vm.setAccountType("business")}
+          >
+            <Text
+              style={[
+                styles.toggleText,
+                vm.accountType === "business" && styles.toggleTextActive,
+              ]}
+            >
+              Business
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <Input
+          label="Full Name"
+          value={vm.fullName}
+          onChangeText={vm.setFullName}
+          placeholder="Enter your full name"
+          error={vm.errors.fullName}
+        />
+        <Input
+          label="National ID Number (NIN)"
+          value={vm.nin}
+          onChangeText={vm.setNin}
+          placeholder="CM940XXXXXXX"
+          error={vm.errors.nin}
+        />
+        <Input
+          label="Phone Number"
+          value={vm.phone}
+          onChangeText={vm.setPhone}
+          placeholder="7XX XXX XXX"
+          prefix="+256"
+          keyboardType="phone-pad"
+          error={vm.errors.phone}
+        />
+        <Input
+          label="Email Address"
+          value={vm.email}
+          onChangeText={vm.setEmail}
+          placeholder="you@email.com"
+          keyboardType="email-address"
+          error={vm.errors.email}
+        />
+        <Input
+          label="Password"
+          value={vm.password}
+          onChangeText={vm.setPassword}
+          placeholder="Create a strong password"
+          secureTextEntry
+          error={vm.errors.password}
+        />
+
+        {/* Terms */}
+        <TouchableOpacity
+          style={styles.termsRow}
+          onPress={() => vm.setAgreed(!vm.agreed)}
+        >
+          <View style={[styles.checkbox, vm.agreed && styles.checkboxActive]}>
+            {vm.agreed && <Text style={styles.checkmark}>✓</Text>}
+          </View>
+          <Text style={styles.termsText}>
+            I agree to the{" "}
+            <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
+            <Text style={styles.termsLink}>Privacy Policy</Text>
+          </Text>
+        </TouchableOpacity>
+
+        <Button
+          title="Create Lender Account →"
+          onPress={handleRegister}
+          color={Colors.gold}
+          loading={vm.loading}
+          disabled={!vm.canSubmit}
+        />
+
+        <TouchableOpacity
+          onPress={() => router.push("/(lender)/home")}
+          style={styles.signInRow}
+        >
+          <Text style={styles.signInText}>Already have an account? </Text>
+          <Text style={[styles.signInText, styles.signInLink]}>Sign In</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: Colors.white },
+  header: {
+    backgroundColor: Colors.gold,
+    paddingHorizontal: Spacing.xxl,
+    paddingVertical: Spacing.xxl,
+    paddingTop: Spacing.lg,
+  },
+  headerTitle: { ...Typography.h1, color: Colors.white },
+  headerSub: {
+    ...Typography.body,
+    color: Colors.white,
+    opacity: 0.85,
+    marginTop: Spacing.xs,
+  },
+  form: { flex: 1 },
+  formContent: { padding: Spacing.xxl, paddingBottom: 40 },
+  toggle: {
+    flexDirection: "row",
+    backgroundColor: Colors.background,
+    borderRadius: BorderRadius.md,
+    padding: 3,
+    marginBottom: Spacing.xxl,
+  },
+  toggleBtn: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+    borderRadius: BorderRadius.sm,
+  },
+  toggleActive: { backgroundColor: Colors.white },
+  toggleText: { ...Typography.bodyMedium, color: Colors.textSecondary },
+  toggleTextActive: { color: Colors.gold },
+  termsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    marginBottom: Spacing.xxl,
+    gap: Spacing.sm,
+  },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1.5,
+    borderColor: Colors.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  checkboxActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+  checkmark: { color: Colors.white, fontSize: 12, fontWeight: "700" },
+  termsText: { ...Typography.small, color: Colors.textSecondary, flex: 1 },
+  termsLink: { color: Colors.gold, fontWeight: "600" },
+  signInRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: Spacing.xxl,
+  },
+  signInText: { ...Typography.body, color: Colors.textSecondary },
+  signInLink: { color: Colors.gold, fontWeight: "600" },
+});
