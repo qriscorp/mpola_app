@@ -24,7 +24,7 @@ export default function PaymentSuccessScreen() {
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Payment Method</Text>
-            <Text style={styles.value}>LendFlow Wallet</Text>
+            <Text style={styles.value}>Welend Wallet</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Instalment</Text>

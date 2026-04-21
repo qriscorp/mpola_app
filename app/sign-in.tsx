@@ -42,7 +42,7 @@ export default function SignInScreen() {
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>LF</Text>
           </View>
-          <Text style={styles.appName}>LendFlow</Text>
+          <Text style={styles.appName}>Welend</Text>
           <Text style={styles.tagline}>Sign in to your account</Text>
         </View>
 

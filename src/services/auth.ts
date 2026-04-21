@@ -1,5 +1,5 @@
 /**
- * Auth service — connects to real LendFlow API.
+ * Auth service — connects to real Welend API.
  * Handles login, register, token storage (SecureStore), and refresh.
  */
 import * as SecureStore from "expo-secure-store";

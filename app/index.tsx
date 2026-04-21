@@ -16,7 +16,7 @@ export default function WelcomeScreen() {
           <View style={styles.logoCircle}>
             <Text style={styles.logoText}>LF</Text>
           </View>
-          <Text style={styles.appName}>LendFlow</Text>
+          <Text style={styles.appName}>Welend</Text>
           <Text style={styles.tagline}>Fair credit, made simple</Text>
         </View>
 
