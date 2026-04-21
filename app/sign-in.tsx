@@ -76,6 +76,26 @@ export default function SignInScreen() {
 
         <View style={{ height: Spacing.xl }} />
 
+        {/* Forgot password */}
+        <TouchableOpacity
+          style={styles.linkBtn}
+          onPress={() => router.push("/forgot-password")}
+        >
+          <Text style={styles.linkText}>Forgot password?</Text>
+        </TouchableOpacity>
+
+        <View style={{ height: Spacing.md }} />
+
+        {/* Phone OTP sign in */}
+        <TouchableOpacity
+          style={[styles.linkBtn, styles.otpBtn]}
+          onPress={() => router.push("/phone-otp-signin")}
+        >
+          <Text style={styles.otpText}>Sign in with Phone OTP</Text>
+        </TouchableOpacity>
+
+        <View style={{ height: Spacing.xl }} />
+
         <TouchableOpacity onPress={() => router.back()}>
           <Text style={styles.backText}>Back to Welcome</Text>
         </TouchableOpacity>
@@ -127,5 +147,26 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.teal,
     textAlign: "center",
+  },
+  linkBtn: {
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  linkText: {
+    ...Typography.body,
+    color: Colors.teal,
+    textDecorationLine: "underline",
+  },
+  otpBtn: {
+    borderWidth: 1,
+    borderColor: Colors.teal,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.md,
+    paddingHorizontal: Spacing.lg,
+  },
+  otpText: {
+    ...Typography.body,
+    color: Colors.teal,
+    fontWeight: "600",
   },
 });

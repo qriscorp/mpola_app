@@ -154,3 +154,51 @@ export async function apiRefreshToken(): Promise<string | null> {
 export async function apiSignOut() {
   await clearAuth();
 }
+
+// ─── Forgot Password (OTP flow) ───────────────────────────
+
+export async function apiForgotPasswordSend(
+  identifier: string,
+): Promise<{ status: number; message: string }> {
+  return apiPost("/auth/send_password_reset_code", { identifier });
+}
+
+export async function apiForgotPasswordVerify(
+  identifier: string,
+  code: string,
+): Promise<{ access_token: string }> {
+  return apiPost("/auth/verify_password_reset_code", { identifier, code });
+}
+
+export async function apiForgotPasswordReset(
+  newPassword: string,
+  accessToken: string,
+): Promise<{ status: number; message: string }> {
+  return apiPost("/auth/reset_password", {
+    new_password: newPassword,
+    access_token: accessToken,
+  });
+}
+
+// ─── Phone OTP Sign-in ────────────────────────────────────
+
+export async function apiSendLoginPhoneOtp(
+  phoneNumber: string,
+): Promise<{ status: number; message: string }> {
+  return apiPost("/auth/send_login_phone_otp", {
+    phone_number: normalizePhone(phoneNumber),
+  });
+}
+
+export async function apiVerifyLoginPhoneOtp(
+  phoneNumber: string,
+  code: string,
+): Promise<AuthUser> {
+  const res = await apiPost<AuthResponse>("/auth/verify_login_phone_otp", {
+    phone_number: normalizePhone(phoneNumber),
+    code,
+  });
+  await storeTokens(res.access_token, res.refresh_token);
+  await storeUser(res.user);
+  return res.user;
+}

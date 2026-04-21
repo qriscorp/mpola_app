@@ -18,6 +18,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="sign-in" />
+        <Stack.Screen name="forgot-password" />
+        <Stack.Screen name="phone-otp-signin" />
         <Stack.Screen name="(borrower)" />
         <Stack.Screen name="(lender)" />
       </Stack>
