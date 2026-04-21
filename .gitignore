@@ -25,9 +25,9 @@ logs/
 *.log
 *.log.*
 
-# Environment
-.env
-.env.*
+# # Environment
+# .env
+# .env.*
 
 # IDE
 .vscode/
