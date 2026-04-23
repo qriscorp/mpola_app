@@ -15,6 +15,7 @@ import {
   apiSendSignupEmailOtp,
   apiVerifySignupEmailOtp,
   clearSignupDraft,
+  getSignupDraftNextStep,
   getSignupDraft,
   type SignupDraftState,
 } from "../src/services/auth";
@@ -41,10 +42,16 @@ export default function VerifyEmailScreen() {
   useEffect(() => {
     const loadDraft = async () => {
       const existing = await getSignupDraft();
+      if (existing) {
+        if (getSignupDraftNextStep(existing) === "verify-phone") {
+          router.replace(`/verify-phone?portal=${existing.role}`);
+          return;
+        }
+      }
       setDraft(existing);
     };
     void loadDraft();
-  }, []);
+  }, [router]);
 
   const handleOtpChange = (index: number, value: string) => {
     const digit = value.replace(/\D/g, "").slice(-1);

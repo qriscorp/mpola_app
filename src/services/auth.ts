@@ -56,6 +56,14 @@ export interface SignupDraftState {
   phoneVerified: boolean;
 }
 
+export type SignupDraftNextStep = "verify-email" | "verify-phone";
+
+export function getSignupDraftNextStep(
+  draft: SignupDraftState,
+): SignupDraftNextStep {
+  return draft.emailVerified ? "verify-phone" : "verify-email";
+}
+
 async function storeSignupDraft(draft: SignupDraftState) {
   await SecureStore.setItemAsync(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
 }
@@ -249,6 +257,7 @@ export async function apiSendSignupPhoneOtp(
   await updateSignupDraft((draft) => ({
     ...draft,
     phoneNumber: normalized,
+    phoneVerified: false,
   }));
   return res;
 }

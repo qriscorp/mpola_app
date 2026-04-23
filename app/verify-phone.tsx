@@ -16,6 +16,7 @@ import {
   apiSendSignupPhoneOtp,
   apiVerifySignupPhoneOtp,
   clearSignupDraft,
+  getSignupDraftNextStep,
   getSignupDraft,
   type SignupDraftState,
 } from "../src/services/auth";
@@ -48,13 +49,19 @@ export default function VerifyPhoneScreen() {
   useEffect(() => {
     const loadDraft = async () => {
       const existing = await getSignupDraft();
+      if (existing) {
+        if (getSignupDraftNextStep(existing) === "verify-email") {
+          router.replace(`/verify-email?portal=${existing.role}`);
+          return;
+        }
+      }
       setDraft(existing);
       if (existing?.phoneNumber) {
         setPhone(withoutCountryCode(existing.phoneNumber));
       }
     };
     void loadDraft();
-  }, []);
+  }, [router]);
 
   const handleOtpChange = (index: number, value: string) => {
     const digit = value.replace(/\D/g, "").slice(-1);
@@ -145,24 +152,6 @@ export default function VerifyPhoneScreen() {
           <Button
             title="Go to Register"
             onPress={() => router.replace(startOverRoute)}
-            color={accent}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (!draft.emailVerified) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.emptyWrap}>
-          <Text style={styles.emptyTitle}>Verify email first</Text>
-          <Text style={styles.emptyText}>
-            Email verification is required before phone verification.
-          </Text>
-          <Button
-            title="Go to Email Verification"
-            onPress={() => router.replace(`/verify-email?portal=${draft.role}`)}
             color={accent}
           />
         </View>

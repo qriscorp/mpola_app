@@ -13,6 +13,7 @@ import { Button, Input } from "../../src/components";
 import { useAuthViewModel } from "../../src/viewmodels";
 import {
   clearSignupDraft,
+  getSignupDraftNextStep,
   getSignupDraft,
   type SignupDraftState,
 } from "../../src/services/auth";
@@ -23,6 +24,11 @@ export default function LenderRegisterScreen() {
   const [existingDraft, setExistingDraft] = useState<SignupDraftState | null>(
     null,
   );
+
+  const getResumeRoute = (draft: SignupDraftState) =>
+    getSignupDraftNextStep(draft) === "verify-phone"
+      ? "/verify-phone?portal=lender"
+      : "/verify-email?portal=lender";
 
   useEffect(() => {
     const loadDraft = async () => {
@@ -64,7 +70,7 @@ export default function LenderRegisterScreen() {
             </Text>
             <View style={styles.resumeActions}>
               <TouchableOpacity
-                onPress={() => router.replace("/verify-email?portal=lender")}
+                onPress={() => router.replace(getResumeRoute(existingDraft))}
               >
                 <Text style={styles.resumeLink}>Continue</Text>
               </TouchableOpacity>
