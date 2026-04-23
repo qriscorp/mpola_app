@@ -1,9 +1,8 @@
 import React from "react";
-import { View, Text, StyleSheet, Image } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
-import { Button } from "../src/components";
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -11,37 +10,45 @@ export default function WelcomeScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Logo Area */}
+        {/* Logo */}
         <View style={styles.logoArea}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>LF</Text>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoLetter}>L</Text>
           </View>
-          <Text style={styles.appName}>Welend</Text>
+          <Text style={styles.appName}>WeLend</Text>
           <Text style={styles.tagline}>Fair credit, made simple</Text>
         </View>
 
-        {/* Buttons */}
+        {/* Action buttons */}
         <View style={styles.buttons}>
-          <Button
-            title="I'm a Borrower"
+          <TouchableOpacity
+            style={[styles.primaryBtn, { backgroundColor: Colors.teal }]}
             onPress={() => router.push("/(borrower)/register")}
-            color={Colors.teal}
-          />
+            activeOpacity={0.85}
+          >
+            <Text style={styles.primaryBtnText}>I'm a Borrower</Text>
+          </TouchableOpacity>
+
           <View style={{ height: Spacing.md }} />
-          <Button
-            title="I'm a Lender"
+
+          <TouchableOpacity
+            style={[styles.primaryBtn, { backgroundColor: Colors.gold }]}
             onPress={() => router.push("/(lender)/register")}
-            color={Colors.gold}
-          />
-          <View style={{ height: Spacing.xxl }} />
-          <Text style={styles.signInText}>Already have an account?</Text>
-          <View style={{ height: Spacing.sm }} />
-          <Button
-            title="Sign In"
+            activeOpacity={0.85}
+          >
+            <Text style={styles.primaryBtnText}>I'm a Lender</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: Spacing.xxxl }} />
+
+          <TouchableOpacity
+            style={styles.signInBtn}
             onPress={() => router.push("/sign-in")}
-            variant="outline"
-            color={Colors.teal}
-          />
+            activeOpacity={0.7}
+          >
+            <Text style={styles.signInText}>Already have an account?</Text>
+            <Text style={[styles.signInText, styles.signInLink]}> Sign In</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -51,50 +58,45 @@ export default function WelcomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.navy,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
   content: {
     flex: 1,
     justifyContent: "center",
     paddingHorizontal: Spacing.xxl,
   },
-  logoArea: {
-    alignItems: "center",
-    marginBottom: Spacing.section,
-  },
-  logoCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  logoArea: { alignItems: "center", marginBottom: Spacing.section },
+  logoBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 18,
     backgroundColor: Colors.teal,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.lg,
   },
-  logoText: {
-    ...Typography.h1,
-    color: Colors.white,
-  },
+  logoLetter: { fontSize: 36, fontWeight: "700", color: Colors.white },
   appName: {
-    ...Typography.h1,
+    fontSize: 36,
+    fontWeight: "700",
     color: Colors.white,
-    fontSize: 32,
     marginBottom: Spacing.xs,
   },
-  tagline: {
-    ...Typography.body,
-    color: Colors.textMuted,
+  tagline: { ...Typography.body, color: Colors.textMuted },
+  buttons: { width: "100%" },
+  primaryBtn: {
+    height: 54,
+    borderRadius: BorderRadius.full,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  buttons: {
-    width: "100%",
+  primaryBtnText: { ...Typography.button, color: Colors.white },
+  signInBtn: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  signInText: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    textAlign: "center",
-  },
+  signInText: { ...Typography.body, color: Colors.textSecondary },
+  signInLink: { color: Colors.teal, fontWeight: "600" },
   footer: {
     ...Typography.caption,
     color: Colors.textMuted,

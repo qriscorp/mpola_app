@@ -10,14 +10,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
-import { StatCard, Badge, ProgressBar } from "../../src/components";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Badge, ProgressBar } from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
 
 export default function PortfolioScreen() {
@@ -168,11 +162,7 @@ export default function PortfolioScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  title: {
-    ...Typography.h2,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.lg,
-  },
+  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.lg },
   statsRow: { flexDirection: "row", marginBottom: Spacing.sm },
   filterRow: {
     flexDirection: "row",
@@ -184,22 +174,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  filterTabActive: {
-    backgroundColor: Colors.gold,
-    borderColor: Colors.gold,
-  },
+  filterTabActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
   filterText: { ...Typography.smallMedium, color: Colors.textSecondary },
   filterTextActive: { color: Colors.white },
   loanCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
-    ...Shadow.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.gold,
   },
   loanHeader: {
     flexDirection: "row",

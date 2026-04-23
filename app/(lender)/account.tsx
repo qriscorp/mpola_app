@@ -1,49 +1,31 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { lenderUser } from "../../src/services";
 
-export default function LenderAccountScreen() {
-  const router = useRouter();
-  const user = lenderUser;
+const KYC_ITEMS = [
+  { label: "National ID", icon: "document-outline", status: "verified" },
+  { label: "Phone Number", icon: "phone-portrait-outline", status: "verified" },
+  { label: "Bank Statement", icon: "grid-outline", status: "verified" },
+];
 
-  const menuItems = [
-    {
-      icon: "person-outline" as const,
-      label: "Edit Profile",
-      onPress: () => {},
-    },
-    {
-      icon: "notifications-outline" as const,
-      label: "Notifications",
-      onPress: () => router.push("/(lender)/notifications"),
-    },
-    {
-      icon: "settings-outline" as const,
-      label: "Settings",
-      onPress: () => router.push("/(lender)/settings"),
-    },
-    {
-      icon: "trending-up-outline" as const,
-      label: "Earnings",
-      onPress: () => router.push("/(lender)/earnings"),
-    },
-  ];
+export default function LenderAccountScreen() {
+  const user = lenderUser;
+  const initials = user.fullName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("");
+  const [offersNotif, setOffersNotif] = useState(true);
+  const [repayNotif, setRepayNotif] = useState(true);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,79 +33,86 @@ export default function LenderAccountScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        <Text style={styles.title}>Account</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoLetter}>L</Text>
+          </View>
+          <Text style={styles.headerTitle}>Account</Text>
+          <View style={styles.avatarSmall}>
+            <Text style={styles.avatarSmallText}>{initials}</Text>
+          </View>
+        </View>
 
-        {/* Avatar Section */}
+        {/* Avatar */}
         <View style={styles.avatarSection}>
           <View style={styles.avatar}>
-            <Text style={styles.initials}>
-              {user.fullName
-                .split(" ")
-                .map((n) => n[0])
-                .join("")}
-            </Text>
+            <Text style={styles.initials}>{initials}</Text>
           </View>
           <Text style={styles.name}>{user.fullName}</Text>
-          <Text style={styles.email}>{user.email}</Text>
-          {user.kycVerified && (
-            <View style={styles.kycBadge}>
-              <Ionicons name="checkmark-circle" size={14} color={Colors.gold} />
-              <Text style={styles.kycText}>Verified Lender</Text>
-            </View>
-          )}
+          <Text style={styles.sub}>WeLend Lender since Jan 2024</Text>
         </View>
 
-        {/* Info Card */}
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Phone</Text>
-            <Text style={styles.infoValue}>{user.phone}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>NIN</Text>
-            <Text style={styles.infoValue}>{user.nin}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Account Type</Text>
-            <Text style={styles.infoValue}>{user.accountType}</Text>
-          </View>
-          <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.infoLabel}>Member Since</Text>
-            <Text style={styles.infoValue}>January 2024</Text>
-          </View>
-        </View>
-
-        {/* Menu Items */}
-        <View style={styles.menuCard}>
-          {menuItems.map((item, idx) => (
-            <TouchableOpacity
+        {/* KYC */}
+        <Text style={styles.sectionLabel}>KYC STATUS</Text>
+        <View style={styles.card}>
+          {KYC_ITEMS.map((item, i) => (
+            <View
               key={item.label}
               style={[
-                styles.menuRow,
-                idx === menuItems.length - 1 && { borderBottomWidth: 0 },
+                styles.kycRow,
+                i < KYC_ITEMS.length - 1 && styles.kycRowBorder,
               ]}
-              onPress={item.onPress}
             >
-              <View style={styles.menuLeft}>
-                <Ionicons
-                  name={item.icon}
-                  size={20}
-                  color={Colors.textSecondary}
-                />
-                <Text style={styles.menuLabel}>{item.label}</Text>
-              </View>
               <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={Colors.textMuted}
+                name={item.icon as any}
+                size={20}
+                color={Colors.textSecondary}
+                style={{ marginRight: Spacing.sm }}
               />
-            </TouchableOpacity>
+              <Text style={styles.kycLabel}>{item.label}</Text>
+              <View style={styles.kycBadge}>
+                <Text style={styles.kycBadgeText}>Verified</Text>
+              </View>
+            </View>
           ))}
         </View>
 
-        {/* Sign Out */}
+        {/* Notifications */}
+        <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
+        <View style={styles.card}>
+          <View style={styles.toggleRow}>
+            <View>
+              <Text style={styles.toggleTitle}>New Applications</Text>
+              <Text style={styles.toggleSub}>When borrowers apply</Text>
+            </View>
+            <Switch
+              value={offersNotif}
+              onValueChange={setOffersNotif}
+              trackColor={{ true: Colors.gold }}
+            />
+          </View>
+          <View
+            style={[
+              styles.toggleRow,
+              { borderTopWidth: 1, borderTopColor: Colors.border },
+            ]}
+          >
+            <View>
+              <Text style={styles.toggleTitle}>Repayment Received</Text>
+              <Text style={styles.toggleSub}>When borrower pays</Text>
+            </View>
+            <Switch
+              value={repayNotif}
+              onValueChange={setRepayNotif}
+              trackColor={{ true: Colors.gold }}
+            />
+          </View>
+        </View>
+
+        {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn}>
-          <Ionicons name="log-out-outline" size={20} color={Colors.danger} />
+          <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -132,84 +121,100 @@ export default function LenderAccountScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
+  container: { flex: 1, backgroundColor: Colors.background },
+  scroll: { padding: Spacing.lg, paddingBottom: 48 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: Spacing.xl,
+    gap: Spacing.sm,
   },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  title: {
-    ...Typography.h2,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xxl,
+  logoBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: Colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+  headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
+  avatarSmall: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarSmallText: {
+    ...Typography.bodyMedium,
+    color: Colors.white,
+    fontWeight: "700",
   },
   avatarSection: { alignItems: "center", marginBottom: Spacing.xxl },
   avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: Colors.gold,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: Spacing.md,
   },
   initials: { ...Typography.h2, color: Colors.white },
-  name: { ...Typography.h3, color: Colors.textPrimary },
-  email: { ...Typography.body, color: Colors.textSecondary, marginTop: 2 },
-  kycBadge: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginTop: Spacing.sm,
+  name: { ...Typography.h3, color: Colors.white },
+  sub: { ...Typography.small, color: Colors.textMuted, marginTop: 4 },
+  sectionLabel: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: Spacing.sm,
+    marginTop: Spacing.lg,
   },
-  kycText: { ...Typography.smallMedium, color: Colors.gold },
-  infoCard: {
-    backgroundColor: Colors.white,
+  card: {
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-    ...Shadow.sm,
+    marginBottom: Spacing.sm,
   },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  infoLabel: { ...Typography.body, color: Colors.textSecondary },
-  infoValue: {
-    ...Typography.bodyMedium,
-    color: Colors.textPrimary,
-    textTransform: "capitalize",
-  },
-  menuCard: {
-    backgroundColor: Colors.white,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.sm,
-    marginBottom: Spacing.xxl,
-    ...Shadow.sm,
-  },
-  menuRow: {
+  kycRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.lg,
-    paddingHorizontal: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    paddingVertical: Spacing.sm,
   },
-  menuLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
-  menuLabel: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  kycRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+  kycLabel: { ...Typography.body, color: Colors.textPrimary, flex: 1 },
+  kycBadge: {
+    backgroundColor: Colors.successBg,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+  },
+  kycBadgeText: {
+    ...Typography.caption,
+    color: Colors.success,
+    fontWeight: "600",
+  },
+  toggleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+  },
+  toggleTitle: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  toggleSub: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
   signOutBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
-    paddingVertical: Spacing.lg,
-    borderRadius: BorderRadius.md,
+    marginTop: Spacing.xl,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.lg,
     borderWidth: 1,
-    borderColor: Colors.dangerLight,
-    backgroundColor: Colors.white,
+    borderColor: Colors.danger + "50",
   },
   signOutText: { ...Typography.buttonSmall, color: Colors.danger },
 });

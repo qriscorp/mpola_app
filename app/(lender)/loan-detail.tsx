@@ -9,13 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, ProgressBar } from "../../src/components";
 import { portfolioLoans, portfolioBorrowerNames } from "../../src/services";
 
@@ -175,9 +169,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   borrowerSection: {
     flexDirection: "row",
@@ -188,12 +181,12 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: Colors.goldLight,
+    backgroundColor: Colors.gold + "25",
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,
   },
-  avatarText: { ...Typography.h4, color: Colors.goldDark },
+  avatarText: { ...Typography.h4, color: Colors.gold },
   borrowerName: { ...Typography.h4, color: Colors.textPrimary },
   borrowerMeta: {
     ...Typography.small,
@@ -201,18 +194,17 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.lg,
-    ...Shadow.sm,
   },
   cardRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    borderBottomColor: Colors.border,
   },
   cardLabel: { ...Typography.body, color: Colors.textSecondary },
   cardValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
@@ -234,7 +226,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    borderBottomColor: Colors.border,
   },
   scheduleNum: {
     ...Typography.bodyMedium,

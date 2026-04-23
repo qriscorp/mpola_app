@@ -9,13 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Card, Input } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
@@ -242,8 +236,8 @@ export default function ApplyScreen() {
                       {
                         backgroundColor:
                           g.status === "accepted"
-                            ? Colors.successLight
-                            : Colors.warningLight,
+                            ? Colors.successBg
+                            : Colors.warningBg,
                       },
                     ]}
                   >
@@ -425,15 +419,13 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   stepper: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
     borderBottomWidth: 1,
     borderBottomColor: Colors.border,
   },
@@ -442,13 +434,15 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: Colors.borderLight,
+    backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 4,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  stepDone: { backgroundColor: Colors.teal },
-  stepActive: { backgroundColor: Colors.teal },
+  stepDone: { backgroundColor: Colors.teal, borderColor: Colors.teal },
+  stepActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
   stepNum: {
     ...Typography.caption,
     fontWeight: "700",
@@ -459,10 +453,12 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   bodyContent: { padding: Spacing.lg, paddingBottom: 40 },
   sectionLabel: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
+    ...Typography.caption,
+    color: Colors.textMuted,
     marginBottom: Spacing.md,
     marginTop: Spacing.sm,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
   },
   chips: {
     flexDirection: "row",
@@ -474,13 +470,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  chipActive: { backgroundColor: Colors.tealLight, borderColor: Colors.teal },
+  chipActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
   chipText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  chipTextActive: { color: Colors.tealDark },
+  chipTextActive: { color: Colors.teal },
   typeGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -490,23 +485,29 @@ const styles = StyleSheet.create({
   typeCard: {
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.white,
+    borderRadius: BorderRadius.full,
     borderWidth: 1,
     borderColor: Colors.border,
   },
   typeCardActive: {
-    backgroundColor: Colors.tealLight,
+    backgroundColor: Colors.teal + "25",
     borderColor: Colors.teal,
   },
   typeText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  typeTextActive: { color: Colors.tealDark },
+  typeTextActive: { color: Colors.teal },
   estimateCard: {
-    backgroundColor: Colors.tealLight,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.teal + "40",
     marginBottom: Spacing.xxl,
   },
-  estimateLabel: { ...Typography.small, color: Colors.textSecondary },
-  estimateAmount: { ...Typography.h3, color: Colors.tealDark, marginTop: 4 },
+  estimateLabel: {
+    ...Typography.small,
+    color: Colors.teal,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  estimateAmount: { ...Typography.h3, color: Colors.teal, marginTop: 4 },
   estimateTotal: {
     ...Typography.small,
     color: Colors.textSecondary,
@@ -518,18 +519,18 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    borderBottomColor: Colors.border,
   },
   docInfo: { flex: 1 },
   docName: { ...Typography.bodyMedium, color: Colors.textPrimary },
   docStatus: { ...Typography.small, marginTop: 2 },
   uploadBtn: {
-    backgroundColor: Colors.tealLight,
+    backgroundColor: Colors.teal + "25",
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.xs,
     borderRadius: BorderRadius.sm,
   },
-  uploadBtnText: { ...Typography.smallMedium, color: Colors.tealDark },
+  uploadBtnText: { ...Typography.smallMedium, color: Colors.teal },
   guarantorCard: { marginBottom: Spacing.md },
   guarantorHeader: {
     flexDirection: "row",
@@ -574,23 +575,22 @@ const styles = StyleSheet.create({
   infoBox: {
     flexDirection: "row",
     gap: Spacing.sm,
-    backgroundColor: Colors.infoLight,
+    backgroundColor: Colors.surface,
     marginBottom: Spacing.xxl,
     alignItems: "center",
   },
-  infoText: { ...Typography.small, color: Colors.info, flex: 1 },
+  infoText: { ...Typography.small, color: Colors.textSecondary, flex: 1 },
   lenderCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
     borderWidth: 1.5,
     borderColor: Colors.border,
-    ...Shadow.sm,
   },
   lenderCardSelected: {
     borderColor: Colors.teal,
-    backgroundColor: Colors.tealLight,
+    backgroundColor: Colors.teal + "15",
   },
   lenderHeader: {
     flexDirection: "row",
@@ -599,14 +599,14 @@ const styles = StyleSheet.create({
   },
   lenderName: { ...Typography.h4, color: Colors.textPrimary },
   recommendedBadge: {
-    backgroundColor: Colors.goldLight,
+    backgroundColor: Colors.gold + "25",
     paddingHorizontal: 8,
     paddingVertical: 2,
     borderRadius: 10,
   },
   recommendedText: {
     ...Typography.caption,
-    color: Colors.goldDark,
+    color: Colors.gold,
     fontWeight: "600",
   },
   lenderRate: {
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    borderBottomColor: Colors.border,
   },
   reviewLabel: { ...Typography.body, color: Colors.textSecondary },
   reviewValue: { ...Typography.bodyMedium, color: Colors.textPrimary },

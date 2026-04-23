@@ -184,7 +184,7 @@ export default function PhoneOtpSigninScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.navy },
+  container: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.xxl,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
   },
   errorBox: {
-    backgroundColor: Colors.dangerLight,
+    backgroundColor: Colors.dangerBg,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.md,
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 2,
     borderColor: Colors.border,
-    backgroundColor: Colors.navyLight,
+    backgroundColor: Colors.surfaceLift,
     color: Colors.white,
     fontSize: 24,
     fontWeight: "700",

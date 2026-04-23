@@ -1,9 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Colors, Typography, Spacing } from "../../src/theme";
-import { Button, Card } from "../../src/components";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 
 export default function LoanApprovedScreen() {
   const router = useRouter();
@@ -11,43 +11,56 @@ export default function LoanApprovedScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.emoji}>🎉</Text>
-        <Text style={styles.title}>Loan Approved!</Text>
-        <Text style={styles.sub}>Funds will be disbursed within 24 hours</Text>
+        {/* Checkmark */}
+        <View style={styles.checkCircle}>
+          <Ionicons name="checkmark" size={32} color={Colors.teal} />
+        </View>
 
-        <Card style={styles.amountCard}>
-          <Text style={styles.youWillReceive}>YOU WILL RECEIVE</Text>
-          <Text style={styles.amount}>UGX 2,000,000</Text>
-          <Text style={styles.firstPayment}>First payment due May 1, 2025</Text>
-        </Card>
+        <Text style={styles.title}>Offer Accepted!</Text>
+        <Text style={styles.sub}>
+          James Mugisha will disburse within 24 hours.
+        </Text>
 
-        <Card style={styles.summaryCard}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Lender</Text>
-            <Text style={styles.value}>Joseph M.</Text>
-          </View>
-          <View style={styles.row}>
-            <Text style={styles.label}>Rate</Text>
-            <Text style={styles.value}>2.5%/month</Text>
-          </View>
-          <View style={[styles.row, { borderBottomWidth: 0 }]}>
-            <Text style={styles.label}>Monthly</Text>
-            <Text style={styles.value}>UGX 354,000</Text>
-          </View>
-        </Card>
+        {/* Details Card */}
+        <View style={styles.card}>
+          {[
+            {
+              label: "Lender",
+              value: "James Mugisha",
+              color: Colors.textPrimary,
+            },
+            {
+              label: "Amount",
+              value: "UGX 8,000,000",
+              color: Colors.textPrimary,
+            },
+            { label: "Rate", value: "5%/month", color: Colors.teal },
+            { label: "Total", value: "UGX 9,200,000", color: Colors.teal },
+          ].map((row, i, arr) => (
+            <View
+              key={row.label}
+              style={[styles.row, i < arr.length - 1 && styles.rowBorder]}
+            >
+              <Text style={styles.label}>{row.label}</Text>
+              <Text style={[styles.value, { color: row.color }]}>
+                {row.value}
+              </Text>
+            </View>
+          ))}
+        </View>
 
-        <Button
-          title="View Repayment Schedule →"
+        <TouchableOpacity
+          style={styles.primaryBtn}
           onPress={() => router.push("/(borrower)/loans")}
-          color={Colors.teal}
-        />
-        <View style={{ height: Spacing.md }} />
-        <Button
-          title="Dashboard"
+        >
+          <Text style={styles.primaryBtnText}>View Repayment Schedule</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.outlineBtn}
           onPress={() => router.replace("/(borrower)/home")}
-          variant="outline"
-          color={Colors.teal}
-        />
+        >
+          <Text style={styles.outlineBtnText}>Back to Dashboard</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -60,43 +73,56 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: Spacing.xxl,
   },
-  emoji: { fontSize: 48, textAlign: "center", marginBottom: Spacing.md },
-  title: { ...Typography.h1, color: Colors.textPrimary, textAlign: "center" },
+  checkCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: Colors.teal + "25",
+    alignItems: "center",
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: Spacing.xl,
+  },
+  title: {
+    ...Typography.h1,
+    color: Colors.white,
+    textAlign: "center",
+    marginBottom: Spacing.sm,
+  },
   sub: {
     ...Typography.body,
     color: Colors.textSecondary,
     textAlign: "center",
     marginBottom: Spacing.xxl,
   },
-  amountCard: {
-    backgroundColor: Colors.successLight,
-    alignItems: "center",
-    marginBottom: Spacing.lg,
+  card: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.xxl,
   },
-  youWillReceive: {
-    ...Typography.caption,
-    color: Colors.textSecondary,
-    letterSpacing: 1,
-  },
-  amount: {
-    ...Typography.h1,
-    color: Colors.success,
-    fontSize: 28,
-    marginTop: 4,
-  },
-  firstPayment: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  summaryCard: { marginBottom: Spacing.xxl },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",
     paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
   },
+  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
   label: { ...Typography.body, color: Colors.textSecondary },
-  value: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  value: { ...Typography.bodyMedium },
+  primaryBtn: {
+    backgroundColor: Colors.teal,
+    borderRadius: BorderRadius.full,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  primaryBtnText: { ...Typography.button, color: Colors.white },
+  outlineBtn: {
+    borderRadius: BorderRadius.full,
+    paddingVertical: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  outlineBtnText: { ...Typography.button, color: Colors.textSecondary },
 });

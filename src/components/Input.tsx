@@ -54,19 +54,21 @@ export function Input({
 const styles = StyleSheet.create({
   wrapper: { marginBottom: Spacing.lg },
   label: {
-    ...Typography.bodyMedium,
-    color: Colors.textPrimary,
+    ...Typography.small,
+    color: Colors.textMuted,
     marginBottom: Spacing.xs,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
   },
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surfaceLift,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
-    minHeight: 44,
+    minHeight: 50,
   },
   inputError: {
     borderColor: Colors.danger,

@@ -1,10 +1,9 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button } from "../../src/components";
 
 export default function OfferSentScreen() {
   const router = useRouter();
@@ -12,18 +11,15 @@ export default function OfferSentScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        {/* Success Icon */}
         <View style={styles.iconWrap}>
-          <Ionicons name="checkmark-circle" size={80} color={Colors.gold} />
+          <Ionicons name="checkmark" size={40} color={Colors.gold} />
         </View>
-
         <Text style={styles.title}>Offer Sent!</Text>
         <Text style={styles.subtitle}>
           Your lending offer has been submitted. The borrower will review and
           respond shortly.
         </Text>
 
-        {/* Reference */}
         <View style={styles.refCard}>
           <Text style={styles.refLabel}>Reference Number</Text>
           <Text style={styles.refValue}>
@@ -36,42 +32,39 @@ export default function OfferSentScreen() {
           offer.
         </Text>
 
-        <Button
-          title="View Portfolio"
+        <TouchableOpacity
+          style={styles.primaryBtn}
           onPress={() => router.replace("/(lender)/portfolio")}
-          color={Colors.gold}
-          style={{ marginTop: Spacing.xxl }}
-        />
-
-        <Button
-          title="Browse More Borrowers"
+        >
+          <Text style={styles.primaryBtnText}>View Portfolio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.outlineBtn}
           onPress={() => router.replace("/(lender)/browse")}
-          color={Colors.white}
-          style={{
-            marginTop: Spacing.md,
-            borderWidth: 1,
-            borderColor: Colors.border,
-          }}
-        />
+        >
+          <Text style={styles.outlineBtnText}>Browse More Borrowers</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.white },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    padding: Spacing.xxl,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
+  content: { flex: 1, justifyContent: "center", padding: Spacing.xxl },
   iconWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: Colors.gold + "25",
     alignItems: "center",
-    marginBottom: Spacing.xxl,
+    justifyContent: "center",
+    alignSelf: "center",
+    marginBottom: Spacing.xl,
   },
   title: {
     ...Typography.h1,
-    color: Colors.textPrimary,
+    color: Colors.white,
     textAlign: "center",
     marginBottom: Spacing.sm,
   },
@@ -80,28 +73,43 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     textAlign: "center",
     lineHeight: 22,
+    marginBottom: Spacing.xxl,
   },
   refCard: {
-    backgroundColor: Colors.goldLight,
-    borderRadius: BorderRadius.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     alignItems: "center",
-    marginTop: Spacing.xxl,
+    marginBottom: Spacing.lg,
+    borderWidth: 1,
+    borderColor: Colors.gold + "40",
   },
   refLabel: {
     ...Typography.caption,
     color: Colors.textMuted,
     letterSpacing: 1,
   },
-  refValue: {
-    ...Typography.h3,
-    color: Colors.goldDark,
-    marginTop: Spacing.xs,
-  },
+  refValue: { ...Typography.h3, color: Colors.gold, marginTop: Spacing.xs },
   note: {
     ...Typography.small,
     color: Colors.textMuted,
     textAlign: "center",
-    marginTop: Spacing.lg,
+    marginBottom: Spacing.xxl,
   },
+  primaryBtn: {
+    backgroundColor: Colors.gold,
+    borderRadius: BorderRadius.full,
+    paddingVertical: 16,
+    alignItems: "center",
+    marginBottom: Spacing.md,
+  },
+  primaryBtnText: { ...Typography.button, color: Colors.white },
+  outlineBtn: {
+    borderRadius: BorderRadius.full,
+    paddingVertical: 16,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  outlineBtnText: { ...Typography.button, color: Colors.textSecondary },
 });

@@ -17,12 +17,12 @@ interface Props {
 }
 
 const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
-  success: { bg: Colors.successLight, text: "#16A34A" },
-  warning: { bg: Colors.warningLight, text: "#D97706" },
-  danger: { bg: Colors.dangerLight, text: Colors.danger },
-  info: { bg: Colors.infoLight, text: Colors.info },
+  success: { bg: Colors.successBg, text: Colors.success },
+  warning: { bg: Colors.warningBg, text: Colors.warning },
+  danger: { bg: Colors.dangerBg, text: Colors.danger },
+  info: { bg: "#1A2A40", text: Colors.info },
   default: { bg: Colors.borderLight, text: Colors.textSecondary },
-  gold: { bg: "#F5F0E0", text: "#B0923E" },
+  gold: { bg: "#2A2215", text: Colors.gold },
 };
 
 export function Badge({ label, variant = "default", style }: Props) {

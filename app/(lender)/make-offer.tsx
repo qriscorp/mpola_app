@@ -9,13 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Input, Card } from "../../src/components";
 import { useMakeOfferViewModel } from "../../src/viewmodels";
 
@@ -34,7 +28,7 @@ export default function MakeOfferScreen() {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Make an Offer</Text>
         <View style={{ width: 24 }} />
@@ -48,7 +42,6 @@ export default function MakeOfferScreen() {
           <Text style={styles.subtitle}>Offering to {borrowerName}</Text>
         )}
 
-        {/* Amount */}
         <Input
           label="Loan Amount (UGX)"
           value={vm.amount}
@@ -60,7 +53,6 @@ export default function MakeOfferScreen() {
           <Text style={styles.error}>{vm.offerErrors.amount}</Text>
         )}
 
-        {/* Interest Rate */}
         <Input
           label="Interest Rate (%/month)"
           value={vm.rate}
@@ -72,7 +64,6 @@ export default function MakeOfferScreen() {
           <Text style={styles.error}>{vm.offerErrors.interestRate}</Text>
         )}
 
-        {/* Duration */}
         <Input
           label="Duration (months)"
           value={vm.duration}
@@ -87,7 +78,6 @@ export default function MakeOfferScreen() {
         {/* Calculation Preview */}
         <Card style={styles.previewCard}>
           <Text style={styles.previewTitle}>Offer Summary</Text>
-
           <View style={styles.previewRow}>
             <Text style={styles.previewLabel}>Monthly Payment</Text>
             <Text style={styles.previewValue}>
@@ -115,7 +105,6 @@ export default function MakeOfferScreen() {
           loading={vm.loading}
           style={{ marginTop: Spacing.sm }}
         />
-
         <TouchableOpacity
           style={styles.cancelLink}
           onPress={() => router.back()}
@@ -135,9 +124,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   subtitle: {
     ...Typography.body,
@@ -151,7 +139,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
   },
   previewCard: {
-    backgroundColor: Colors.navy,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.gold + "40",
     marginTop: Spacing.md,
     marginBottom: Spacing.md,
   },
@@ -165,13 +155,10 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.md,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.navyLight,
+    borderBottomColor: Colors.border,
   },
   previewLabel: { ...Typography.body, color: Colors.textMuted },
   previewValue: { ...Typography.bodyMedium, color: Colors.white },
-  cancelLink: {
-    alignItems: "center",
-    marginTop: Spacing.xl,
-  },
+  cancelLink: { alignItems: "center", marginTop: Spacing.xl },
   cancelText: { ...Typography.body, color: Colors.textSecondary },
 });

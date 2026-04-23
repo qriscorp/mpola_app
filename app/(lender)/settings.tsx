@@ -10,13 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -161,9 +155,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   sectionLabel: {
     ...Typography.caption,
@@ -173,10 +166,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.lg,
   },
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
-    ...Shadow.sm,
   },
   toggleRow: {
     flexDirection: "row",
@@ -190,14 +182,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   toggleLabel: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  toggleSub: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
+  toggleSub: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
   divider: {
     height: 1,
-    backgroundColor: Colors.borderLight,
+    backgroundColor: Colors.border,
     marginVertical: Spacing.md,
   },
   menuRow: {

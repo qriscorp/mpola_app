@@ -11,13 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge } from "../../src/components";
 import { useBrowseBorrowersViewModel } from "../../src/viewmodels";
 
@@ -150,26 +144,20 @@ export default function BrowseBorrowersScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.lg,
-  },
-  title: { ...Typography.h2, color: Colors.textPrimary },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
+  header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg },
+  title: { ...Typography.h2, color: Colors.white },
+  subtitle: { ...Typography.body, color: Colors.textSecondary, marginTop: 2 },
   searchRow: { paddingHorizontal: Spacing.lg, marginTop: Spacing.lg },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     gap: Spacing.sm,
-    ...Shadow.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   searchInput: {
     flex: 1,
@@ -188,23 +176,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
-    backgroundColor: Colors.white,
     borderWidth: 1,
     borderColor: Colors.border,
   },
-  chipActive: {
-    backgroundColor: Colors.gold,
-    borderColor: Colors.gold,
-  },
+  chipActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
   chipText: { ...Typography.smallMedium, color: Colors.textSecondary },
   chipTextActive: { color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   borrowerCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
-    ...Shadow.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.gold,
   },
   cardTop: {
     flexDirection: "row",
@@ -215,12 +200,12 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: Colors.goldLight,
+    backgroundColor: Colors.gold + "25",
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,
   },
-  avatarText: { ...Typography.bodyMedium, color: Colors.goldDark },
+  avatarText: { ...Typography.bodyMedium, color: Colors.gold },
   cardInfo: { flex: 1 },
   nameRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   borrowerName: { ...Typography.h4, color: Colors.textPrimary },

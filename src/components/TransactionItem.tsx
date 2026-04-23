@@ -30,9 +30,7 @@ export function TransactionItem({
         style={[
           styles.icon,
           {
-            backgroundColor: isCredit
-              ? Colors.successLight
-              : Colors.dangerLight,
+            backgroundColor: isCredit ? Colors.successBg : Colors.dangerBg,
           },
         ]}
       >
@@ -63,9 +61,9 @@ const styles = StyleSheet.create({
     borderBottomColor: Colors.borderLight,
   },
   icon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,

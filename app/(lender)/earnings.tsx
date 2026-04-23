@@ -10,13 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Card, StatCard } from "../../src/components";
 import { useEarningsViewModel } from "../../src/viewmodels";
 
@@ -119,18 +113,14 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   statsRow: { flexDirection: "row", marginBottom: Spacing.lg },
-  chartCard: {
-    backgroundColor: Colors.white,
-    marginBottom: Spacing.lg,
-  },
+  chartCard: { backgroundColor: Colors.surface, marginBottom: Spacing.lg },
   chartTitle: {
     ...Typography.h4,
-    color: Colors.textPrimary,
+    color: Colors.white,
     marginBottom: Spacing.lg,
   },
   chartContainer: {
@@ -141,11 +131,7 @@ const styles = StyleSheet.create({
     paddingTop: Spacing.lg,
   },
   barCol: { alignItems: "center", flex: 1 },
-  bar: {
-    width: 24,
-    borderRadius: 4,
-    minHeight: 4,
-  },
+  bar: { width: 24, borderRadius: 4, minHeight: 4 },
   barLabel: {
     ...Typography.caption,
     color: Colors.textMuted,
@@ -159,22 +145,21 @@ const styles = StyleSheet.create({
   breakdownRow: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
     marginBottom: Spacing.sm,
-    ...Shadow.sm,
   },
   breakdownAvatar: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.goldLight,
+    backgroundColor: Colors.gold + "25",
     alignItems: "center",
     justifyContent: "center",
     marginRight: Spacing.md,
   },
-  breakdownInitial: { ...Typography.bodyMedium, color: Colors.goldDark },
+  breakdownInitial: { ...Typography.bodyMedium, color: Colors.gold },
   breakdownInfo: { flex: 1 },
   breakdownName: { ...Typography.bodyMedium, color: Colors.textPrimary },
   breakdownAmount: { ...Typography.bodySemibold, color: Colors.gold },

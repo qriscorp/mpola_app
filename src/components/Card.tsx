@@ -20,10 +20,9 @@ export function Card({ children, title, style, noPadding }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
-    ...Shadow.md,
   },
   title: {
     ...Typography.h4,

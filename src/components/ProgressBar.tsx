@@ -33,7 +33,7 @@ export function ProgressBar({
 
 const styles = StyleSheet.create({
   track: {
-    backgroundColor: Colors.borderLight,
+    backgroundColor: Colors.border,
     borderRadius: BorderRadius.full,
     overflow: "hidden",
   },

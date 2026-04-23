@@ -10,40 +10,30 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useNotificationsViewModel } from "../../src/viewmodels";
 
 const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   offer_accepted: {
     name: "checkmark-circle",
     color: Colors.gold,
-    bg: Colors.goldLight,
+    bg: Colors.gold + "25",
   },
   repayment: {
     name: "cash-outline",
     color: Colors.teal,
-    bg: Colors.tealLight,
+    bg: Colors.teal + "25",
   },
-  overdue: {
-    name: "alert-circle",
-    color: Colors.danger,
-    bg: Colors.dangerLight,
-  },
+  overdue: { name: "alert-circle", color: Colors.danger, bg: Colors.dangerBg },
   new_matches: {
     name: "people",
-    color: Colors.info,
-    bg: Colors.infoLight,
+    color: Colors.textSecondary,
+    bg: Colors.surface,
   },
   general: {
     name: "information-circle",
     color: Colors.textSecondary,
-    bg: Colors.borderLight,
+    bg: Colors.surface,
   },
 };
 
@@ -136,10 +126,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
   headerCenter: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   unreadBadge: {
     backgroundColor: Colors.danger,
     width: 20,
@@ -152,11 +141,10 @@ const styles = StyleSheet.create({
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   notifCard: {
     flexDirection: "row",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.sm,
-    ...Shadow.sm,
   },
   notifCardUnread: {
     borderLeftWidth: 3,

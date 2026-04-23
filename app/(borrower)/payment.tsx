@@ -28,7 +28,7 @@ export default function PaymentScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Make a Payment</Text>
         <View style={{ width: 24 }} />
@@ -143,21 +143,40 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
+  headerTitle: { ...Typography.h3, color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   amountCard: {
-    backgroundColor: Colors.navy,
+    backgroundColor: Colors.teal,
     alignItems: "center",
     marginBottom: Spacing.xxl,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
   },
-  amountLabel: { ...Typography.small, color: Colors.textMuted },
-  amountValue: { ...Typography.h1, color: Colors.white, marginTop: 4 },
-  amountSub: { ...Typography.small, color: Colors.textMuted, marginTop: 4 },
+  amountLabel: {
+    ...Typography.caption,
+    color: Colors.white,
+    opacity: 0.8,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+  },
+  amountValue: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: Colors.white,
+    marginTop: 4,
+  },
+  amountSub: {
+    ...Typography.small,
+    color: Colors.white,
+    opacity: 0.7,
+    marginTop: 4,
+  },
   sectionLabel: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
+    ...Typography.caption,
+    color: Colors.textMuted,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
     marginBottom: Spacing.md,
   },
   methodRow: {
@@ -172,14 +191,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.border,
     alignItems: "center",
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
   },
   methodTabActive: {
-    backgroundColor: Colors.tealLight,
+    backgroundColor: Colors.teal + "25",
     borderColor: Colors.teal,
   },
   methodText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  methodTextActive: { color: Colors.tealDark },
+  methodTextActive: { color: Colors.teal },
   balanceCard: { marginBottom: Spacing.lg },
   balanceRow: { flexDirection: "row", justifyContent: "space-between" },
   balanceLabel: { ...Typography.body, color: Colors.textSecondary },
@@ -190,7 +209,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: Spacing.sm,
     borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
+    borderBottomColor: Colors.border,
   },
   breakdownLabel: { ...Typography.body, color: Colors.textSecondary },
   breakdownValue: { ...Typography.body, color: Colors.textPrimary },

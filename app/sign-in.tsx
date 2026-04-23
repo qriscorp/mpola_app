@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -20,7 +19,6 @@ export default function SignInScreen() {
   const handleSignIn = async () => {
     const success = await vm.login();
     if (success) {
-      // Route based on user role
       const role = vm.authUser?.role;
       if (role === "lender") {
         router.replace("/(lender)/home");
@@ -37,33 +35,57 @@ export default function SignInScreen() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Logo */}
-        <View style={styles.logoArea}>
-          <View style={styles.logoCircle}>
-            <Text style={styles.logoText}>LF</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoLetter}>L</Text>
           </View>
-          <Text style={styles.appName}>Welend</Text>
-          <Text style={styles.tagline}>Sign in to your account</Text>
+          <Text style={styles.appName}>WeLend</Text>
         </View>
 
-        {/* Form */}
-        <Input
-          label="Email or Phone"
-          value={vm.email}
-          onChangeText={vm.setEmail}
-          placeholder="you@email.com or 772XXXXXX"
-          keyboardType="email-address"
-          error={vm.errors.email}
-        />
+        {/* Title */}
+        <Text style={styles.title}>Welcome back</Text>
+        <Text style={styles.subtitle}>Sign in to your account</Text>
 
+        <View style={{ height: Spacing.xxxl }} />
+
+        {/* Phone Number */}
+        <Text style={styles.fieldLabel}>PHONE NUMBER</Text>
+        <View style={styles.phoneRow}>
+          <View style={styles.countryCode}>
+            <Text style={styles.countryCodeText}>+256</Text>
+          </View>
+          <View style={[styles.phoneInput, { flex: 1 }]}>
+            <Input
+              value={vm.email}
+              onChangeText={vm.setEmail}
+              placeholder="700 000 000"
+              keyboardType="phone-pad"
+              error={vm.errors.email}
+              style={{ marginBottom: 0 }}
+            />
+          </View>
+        </View>
+
+        <View style={{ height: Spacing.lg }} />
+
+        {/* Password */}
         <Input
-          label="Password"
+          label="PASSWORD"
           value={vm.password}
           onChangeText={vm.setPassword}
           placeholder="Enter your password"
           secureTextEntry
           error={vm.errors.password}
         />
+
+        {/* Forgot Password */}
+        <TouchableOpacity
+          style={styles.forgotBtn}
+          onPress={() => router.push("/forgot-password")}
+        >
+          <Text style={styles.forgotText}>Forgot password?</Text>
+        </TouchableOpacity>
 
         <View style={{ height: Spacing.lg }} />
 
@@ -74,30 +96,27 @@ export default function SignInScreen() {
           disabled={vm.loading || !vm.email || !vm.password}
         />
 
-        <View style={{ height: Spacing.xl }} />
+        <View style={{ height: Spacing.xxl }} />
 
-        {/* Forgot password */}
+        {/* Register link */}
         <TouchableOpacity
-          style={styles.linkBtn}
-          onPress={() => router.push("/forgot-password")}
+          style={styles.registerRow}
+          onPress={() => router.push("/(borrower)/register")}
         >
-          <Text style={styles.linkText}>Forgot password?</Text>
+          <Text style={styles.registerText}>No account? </Text>
+          <Text style={[styles.registerText, styles.registerLink]}>
+            Register
+          </Text>
         </TouchableOpacity>
 
-        <View style={{ height: Spacing.md }} />
+        <View style={{ height: Spacing.xl }} />
 
-        {/* Phone OTP sign in */}
+        {/* OTP sign in */}
         <TouchableOpacity
-          style={[styles.linkBtn, styles.otpBtn]}
+          style={styles.otpBtn}
           onPress={() => router.push("/phone-otp-signin")}
         >
           <Text style={styles.otpText}>Sign in with Phone OTP</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: Spacing.xl }} />
-
-        <TouchableOpacity onPress={() => router.back()}>
-          <Text style={styles.backText}>Back to Welcome</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -105,68 +124,66 @@ export default function SignInScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.navy,
-  },
-  scroll: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: Colors.background },
+  scroll: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.xxl,
-    paddingTop: Spacing.section,
+    paddingTop: Spacing.xl,
     paddingBottom: Spacing.section,
   },
-  logoArea: {
+  header: {
+    flexDirection: "row",
     alignItems: "center",
     marginBottom: Spacing.section,
   },
-  logoCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
+  logoBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 9,
     backgroundColor: Colors.teal,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: Spacing.md,
+    marginRight: Spacing.sm,
   },
-  logoText: {
-    ...Typography.h2,
-    color: Colors.white,
-  },
-  appName: {
-    ...Typography.h2,
+  logoLetter: { fontSize: 18, fontWeight: "700", color: Colors.white },
+  appName: { ...Typography.h3, color: Colors.white },
+  title: {
+    fontSize: 28,
+    fontWeight: "700",
     color: Colors.white,
     marginBottom: Spacing.xs,
   },
-  tagline: {
-    ...Typography.body,
+  subtitle: { ...Typography.body, color: Colors.textSecondary },
+  fieldLabel: {
+    ...Typography.small,
     color: Colors.textMuted,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
+    marginBottom: Spacing.xs,
   },
-  backText: {
-    ...Typography.body,
-    color: Colors.teal,
-    textAlign: "center",
+  phoneRow: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.lg },
+  countryCode: {
+    backgroundColor: Colors.surfaceLift,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    justifyContent: "center",
+    minHeight: 50,
   },
-  linkBtn: {
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-  },
-  linkText: {
-    ...Typography.body,
-    color: Colors.teal,
-    textDecorationLine: "underline",
-  },
+  countryCodeText: { ...Typography.bodyMedium, color: Colors.teal },
+  phoneInput: {},
+  forgotBtn: { alignItems: "flex-end", marginTop: -Spacing.sm },
+  forgotText: { ...Typography.bodyMedium, color: Colors.teal },
+  registerRow: { flexDirection: "row", justifyContent: "center" },
+  registerText: { ...Typography.body, color: Colors.textSecondary },
+  registerLink: { color: Colors.teal, fontWeight: "600" },
   otpBtn: {
     borderWidth: 1,
-    borderColor: Colors.teal,
-    borderRadius: BorderRadius.md,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.full,
     paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.lg,
+    alignItems: "center",
   },
-  otpText: {
-    ...Typography.body,
-    color: Colors.teal,
-    fontWeight: "600",
-  },
+  otpText: { ...Typography.bodyMedium, color: Colors.textSecondary },
 });

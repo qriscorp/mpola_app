@@ -294,7 +294,7 @@ export default function ForgotPasswordScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.navy },
+  container: { flex: 1, backgroundColor: Colors.background },
   scroll: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.xxl,
@@ -320,7 +320,7 @@ const styles = StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: Colors.navyLight,
+    backgroundColor: Colors.surface,
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 2,
@@ -353,7 +353,7 @@ const styles = StyleSheet.create({
   stepLineActive: { backgroundColor: Colors.teal },
   // error
   errorBox: {
-    backgroundColor: Colors.dangerLight,
+    backgroundColor: Colors.dangerBg,
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
     marginBottom: Spacing.md,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 2,
     borderColor: Colors.border,
-    backgroundColor: Colors.navyLight,
+    backgroundColor: Colors.surfaceLift,
     color: Colors.white,
     fontSize: 24,
     fontWeight: "700",

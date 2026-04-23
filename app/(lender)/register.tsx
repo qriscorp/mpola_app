@@ -148,9 +148,8 @@ export default function LenderRegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.white },
+  container: { flex: 1, backgroundColor: Colors.background },
   header: {
-    backgroundColor: Colors.gold,
     paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.xxl,
     paddingTop: Spacing.lg,
@@ -158,15 +157,14 @@ const styles = StyleSheet.create({
   headerTitle: { ...Typography.h1, color: Colors.white },
   headerSub: {
     ...Typography.body,
-    color: Colors.white,
-    opacity: 0.85,
+    color: Colors.textSecondary,
     marginTop: Spacing.xs,
   },
   form: { flex: 1 },
   formContent: { padding: Spacing.xxl, paddingBottom: 40 },
   toggle: {
     flexDirection: "row",
-    backgroundColor: Colors.background,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.md,
     padding: 3,
     marginBottom: Spacing.xxl,
@@ -177,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: BorderRadius.sm,
   },
-  toggleActive: { backgroundColor: Colors.white },
+  toggleActive: { backgroundColor: Colors.surfaceLift },
   toggleText: { ...Typography.bodyMedium, color: Colors.textSecondary },
   toggleTextActive: { color: Colors.gold },
   termsRow: {

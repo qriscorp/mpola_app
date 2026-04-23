@@ -1,87 +1,174 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors, Typography, Spacing } from "../../src/theme";
-import { Card, ProgressBar } from "../../src/components";
+import { useRouter } from "expo-router";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { ProgressBar } from "../../src/components";
 import { activeLoan } from "../../src/services";
 
+const TABS = ["All", "Active", "Pending", "Closed"];
+
 export default function LoansScreen() {
+  const router = useRouter();
   const loan = activeLoan;
+  const [activeTab, setActiveTab] = useState("All");
   const progress = loan.paidInstalments / loan.totalInstalments;
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>My Loans</Text>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scroll}
+      >
+        <Text style={styles.title}>My Loans</Text>
 
-      <Card style={styles.card}>
-        <View style={styles.row}>
-          <Text style={styles.label}>Active Loan</Text>
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>{loan.status}</Text>
+        {/* Tabs */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabsScroll}
+          contentContainerStyle={styles.tabsRow}
+        >
+          {TABS.map((t) => (
+            <TouchableOpacity
+              key={t}
+              style={[styles.tab, activeTab === t && styles.tabActive]}
+              onPress={() => setActiveTab(t)}
+            >
+              <Text
+                style={[
+                  styles.tabText,
+                  activeTab === t && styles.tabTextActive,
+                ]}
+              >
+                {t}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+
+        {/* Loan Card */}
+        <View style={styles.loanCard}>
+          <View style={styles.loanCardTop}>
+            <View>
+              <Text style={styles.loanAmount}>
+                UGX {loan.amount.toLocaleString()}
+              </Text>
+              <Text style={styles.loanSub}>
+                {loan.interestRate}%/mo · {loan.duration} months
+              </Text>
+            </View>
+            <View style={styles.activeBadge}>
+              <Text style={styles.activeBadgeText}>{loan.status}</Text>
+            </View>
           </View>
-        </View>
-        <Text style={styles.amount}>UGX {loan.amount.toLocaleString()}</Text>
-        <Text style={styles.sub}>
-          {loan.interestRate}%/mo · {loan.duration} months
-        </Text>
 
-        <View style={{ marginTop: Spacing.lg }}>
-          <View style={styles.row}>
-            <Text style={styles.label}>Payment Progress</Text>
-            <Text style={styles.label}>
-              {loan.paidInstalments}/{loan.totalInstalments}
-            </Text>
+          <View style={styles.progressSection}>
+            <View style={styles.progressLabelRow}>
+              <Text style={styles.progressLabel}>Payment Progress</Text>
+              <Text style={styles.progressLabel}>
+                {loan.paidInstalments}/{loan.totalInstalments}
+              </Text>
+            </View>
+            <ProgressBar progress={progress} color={Colors.teal} height={6} />
           </View>
-          <ProgressBar progress={progress} color={Colors.teal} />
-        </View>
 
-        <View style={[styles.row, { marginTop: Spacing.lg }]}>
-          <Text style={styles.label}>Monthly Payment</Text>
-          <Text style={styles.value}>
-            UGX {loan.monthlyPayment.toLocaleString()}
-          </Text>
+          <View style={styles.detailRows}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Monthly Payment</Text>
+              <Text style={styles.detailValue}>
+                UGX {loan.monthlyPayment.toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Next Payment</Text>
+              <Text style={styles.detailValue}>May 1, 2025</Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.viewOffersBtn}
+            onPress={() => router.push("/(borrower)/offers")}
+          >
+            <Text style={styles.viewOffersText}>View Offers</Text>
+          </TouchableOpacity>
         </View>
-        <View style={styles.row}>
-          <Text style={styles.label}>Next Payment</Text>
-          <Text style={styles.value}>May 1, 2025</Text>
-        </View>
-      </Card>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
+  container: { flex: 1, backgroundColor: Colors.background },
+  scroll: { padding: Spacing.lg, paddingBottom: 40 },
+  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.lg },
+  tabsScroll: { marginBottom: Spacing.lg },
+  tabsRow: { gap: Spacing.sm },
+  tab: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  tabActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
+  tabText: { ...Typography.bodyMedium, color: Colors.textSecondary },
+  tabTextActive: { color: Colors.teal },
+  loanCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  title: {
-    ...Typography.h2,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.lg,
-  },
-  card: { marginBottom: Spacing.lg },
-  row: {
+  loanCardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.xs,
+    alignItems: "flex-start",
+    marginBottom: Spacing.lg,
   },
-  label: { ...Typography.small, color: Colors.textSecondary },
-  amount: { ...Typography.h1, color: Colors.textPrimary, marginBottom: 4 },
-  sub: { ...Typography.body, color: Colors.textSecondary },
-  badge: {
-    backgroundColor: Colors.tealLight,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 10,
+  loanAmount: { ...Typography.h2, color: Colors.white },
+  loanSub: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
+  activeBadge: {
+    backgroundColor: Colors.teal + "25",
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
   },
-  badgeText: {
+  activeBadgeText: {
     ...Typography.caption,
-    color: Colors.tealDark,
+    color: Colors.teal,
     fontWeight: "600",
     textTransform: "capitalize",
   },
-  value: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  progressSection: { marginBottom: Spacing.lg },
+  progressLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: Spacing.xs,
+  },
+  progressLabel: { ...Typography.small, color: Colors.textMuted },
+  detailRows: { marginBottom: Spacing.lg },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.xs,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.border,
+  },
+  detailLabel: { ...Typography.body, color: Colors.textSecondary },
+  detailValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  viewOffersBtn: {
+    borderWidth: 1,
+    borderColor: Colors.teal,
+    borderRadius: BorderRadius.full,
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  viewOffersText: { ...Typography.buttonSmall, color: Colors.teal },
 });

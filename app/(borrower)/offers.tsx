@@ -1,103 +1,135 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
-import { Button, Badge } from "../../src/components";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useOffersViewModel } from "../../src/viewmodels";
+
+const FILTERS = ["All", "Under 5%", "Business", "Emergency"];
 
 export default function OffersScreen() {
   const router = useRouter();
   const { offers, acceptOffer } = useOffersViewModel();
+  const [activeFilter, setActiveFilter] = useState("All");
+  const [search, setSearch] = useState("");
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Offers Received</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.logoBox}>
+          <Text style={styles.logoLetter}>L</Text>
+        </View>
+        <Text style={styles.headerTitle}>Browse Offers</Text>
+        <Text style={styles.liveCount}>{offers.length} live</Text>
       </View>
 
-      <Text style={styles.subtitle}>
-        {offers.length} lenders have responded
-      </Text>
+      {/* Search */}
+      <View style={styles.searchBox}>
+        <Ionicons
+          name="search-outline"
+          size={16}
+          color={Colors.textMuted}
+          style={{ marginRight: Spacing.xs }}
+        />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search by amount, type..."
+          placeholderTextColor={Colors.textMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+
+      {/* Filters */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filtersScroll}
+        contentContainerStyle={styles.filtersRow}
+      >
+        {FILTERS.map((f) => (
+          <TouchableOpacity
+            key={f}
+            style={[
+              styles.filterChip,
+              activeFilter === f && styles.filterChipActive,
+            ]}
+            onPress={() => setActiveFilter(f)}
+          >
+            <Text
+              style={[
+                styles.filterText,
+                activeFilter === f && styles.filterTextActive,
+              ]}
+            >
+              {f}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
       <ScrollView
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
-        {offers.map((offer) => (
+        {offers.map((offer, i) => (
           <View
             key={offer.id}
-            style={[styles.offerCard, offer.bestRate && styles.offerCardBest]}
+            style={[styles.offerCard, i === 0 && styles.offerCardFeatured]}
           >
-            <View style={styles.offerHeader}>
-              <Text style={styles.offerName}>{offer.lenderName}</Text>
-              <View style={styles.badges}>
-                {offer.bestRate && <Badge label="★ Best Rate" variant="gold" />}
-                {offer.recommended && (
-                  <Badge label="Recommended" variant="success" />
-                )}
-                {offer.expiresIn === "24h" && (
-                  <Badge label="Expires Soon" variant="danger" />
-                )}
-              </View>
-            </View>
-
-            <View style={styles.offerDetails}>
-              <View style={styles.offerDetail}>
-                <Text style={styles.detailLabel}>Monthly</Text>
-                <Text style={styles.detailValue}>
-                  UGX {offer.monthlyPayment.toLocaleString()}
-                </Text>
-              </View>
-              <View style={styles.offerDetail}>
-                <Text style={styles.detailLabel}>Rate</Text>
-                <Text style={styles.detailValue}>{offer.interestRate}%/mo</Text>
-              </View>
-              {offer.expiresIn && (
-                <View style={styles.offerDetail}>
-                  <Text style={styles.detailLabel}>Expires</Text>
-                  <Text style={styles.detailValue}>{offer.expiresIn}</Text>
-                </View>
-              )}
-            </View>
-
-            {offer.bestRate ? (
-              <Button
-                title="Accept This Offer ✓"
-                onPress={async () => {
-                  await acceptOffer(offer.id);
-                  router.push("/(borrower)/loan-approved");
-                }}
-                color={Colors.gold}
-                style={{ marginTop: Spacing.md }}
-              />
-            ) : (
-              <View style={styles.offerActions}>
-                <TouchableOpacity style={styles.compareBtn}>
-                  <Text style={styles.compareBtnText}>Compare</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.viewBtn}>
-                  <Text style={styles.viewBtnText}>View Details</Text>
-                </TouchableOpacity>
+            {i === 0 && (
+              <View style={styles.bestRateBadge}>
+                <Text style={styles.bestRateText}>Best Rate</Text>
               </View>
             )}
+            <View style={styles.offerTop}>
+              <View style={styles.offerAvatar}>
+                <Text style={styles.offerAvatarText}>
+                  {(offer.lenderName ?? "?")[0].toUpperCase()}
+                </Text>
+              </View>
+              <View style={styles.offerInfo}>
+                <Text style={styles.offerName}>{offer.lenderName}</Text>
+                <Text style={styles.offerSub}>
+                  Verified · {offer.loansIssued ?? "0"} loans
+                </Text>
+              </View>
+              <Text style={styles.offerRate}>{offer.interestRate}%/mo</Text>
+            </View>
+            <Text style={styles.offerDetails}>
+              UGX {(offer.minAmount ?? 0).toLocaleString()}–
+              {(offer.maxAmount ?? 0).toLocaleString()} · Max{" "}
+              {offer.maxDuration ?? "—"} · {offer.loanTypes ?? ""}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.applyBtn,
+                i === 0 ? styles.applyBtnFilled : styles.applyBtnOutline,
+              ]}
+              onPress={() => {
+                acceptOffer(offer.id).then(() => {
+                  router.push("/(borrower)/loan-approved");
+                });
+              }}
+            >
+              <Text
+                style={[
+                  styles.applyBtnText,
+                  i !== 0 && styles.applyBtnTextOutline,
+                ]}
+              >
+                Apply Now
+              </Text>
+            </TouchableOpacity>
           </View>
         ))}
       </ScrollView>
@@ -110,64 +142,103 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.white,
+    paddingVertical: Spacing.lg,
+    gap: Spacing.sm,
   },
-  headerTitle: { ...Typography.h3, color: Colors.textPrimary },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
+  logoBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: Colors.teal,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+  headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
+  liveCount: { ...Typography.bodyMedium, color: Colors.teal },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.surface,
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    marginBottom: Spacing.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  searchInput: { flex: 1, color: Colors.textPrimary, ...Typography.body },
+  filtersScroll: { marginBottom: Spacing.md },
+  filtersRow: { paddingHorizontal: Spacing.lg, gap: Spacing.sm },
+  filterChip: {
     paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
+  filterChipActive: {
+    backgroundColor: Colors.teal + "30",
+    borderColor: Colors.teal,
+  },
+  filterText: { ...Typography.bodyMedium, color: Colors.textSecondary },
+  filterTextActive: { color: Colors.teal },
+  scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
   offerCard: {
-    backgroundColor: Colors.white,
+    backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,
     padding: Spacing.lg,
     marginBottom: Spacing.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    ...Shadow.sm,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.teal,
   },
-  offerCardBest: { borderColor: Colors.gold },
-  offerHeader: { marginBottom: Spacing.md },
-  offerName: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
+  offerCardFeatured: { borderLeftWidth: 0 },
+  bestRateBadge: {
+    backgroundColor: Colors.teal + "30",
+    alignSelf: "flex-start",
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 3,
+    borderRadius: BorderRadius.full,
+    marginBottom: Spacing.sm,
   },
-  badges: { flexDirection: "row", gap: Spacing.xs },
-  offerDetails: { flexDirection: "row", gap: Spacing.lg },
-  offerDetail: {},
-  detailLabel: { ...Typography.caption, color: Colors.textMuted },
-  detailValue: {
-    ...Typography.bodyMedium,
-    color: Colors.textPrimary,
-    marginTop: 2,
+  bestRateText: {
+    ...Typography.caption,
+    color: Colors.teal,
+    fontWeight: "600",
   },
-  offerActions: {
+  offerTop: {
     flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
+    alignItems: "center",
+    marginBottom: Spacing.sm,
   },
-  compareBtn: {
-    flex: 1,
+  offerAvatar: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: Colors.navy,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.sm,
+  },
+  offerAvatarText: { ...Typography.h4, color: Colors.white },
+  offerInfo: { flex: 1 },
+  offerName: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  offerSub: { ...Typography.small, color: Colors.textMuted },
+  offerRate: { fontSize: 18, fontWeight: "700", color: Colors.textSecondary },
+  offerDetails: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginBottom: Spacing.md,
+  },
+  applyBtn: {
+    borderRadius: BorderRadius.full,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
     alignItems: "center",
   },
-  compareBtnText: { ...Typography.buttonSmall, color: Colors.textSecondary },
-  viewBtn: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.tealLight,
-    alignItems: "center",
-  },
-  viewBtnText: { ...Typography.buttonSmall, color: Colors.tealDark },
+  applyBtnFilled: { backgroundColor: Colors.teal },
+  applyBtnOutline: { borderWidth: 1, borderColor: Colors.teal },
+  applyBtnText: { ...Typography.buttonSmall, color: Colors.white },
+  applyBtnTextOutline: { color: Colors.teal },
 });

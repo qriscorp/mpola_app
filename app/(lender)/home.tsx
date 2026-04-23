@@ -10,14 +10,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
-import { Card, StatCard, Badge } from "../../src/components";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Badge } from "../../src/components";
 import { useLenderDashboardViewModel } from "../../src/viewmodels";
 
 export default function LenderHomeScreen() {
@@ -37,110 +31,76 @@ export default function LenderHomeScreen() {
     );
   }
 
+  const initials =
+    `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase();
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        {/* Greeting */}
-        <View style={styles.greetingRow}>
-          <View>
-            <Text style={styles.greeting}>Welcome back</Text>
-            <Text style={styles.name}>
-              {user.firstName} {user.lastName}
-            </Text>
+        {/* Top Nav */}
+        <View style={styles.topNav}>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoLetter}>L</Text>
           </View>
+          <Text style={styles.logoText}>WeLend</Text>
+          <View style={{ flex: 1 }} />
           <TouchableOpacity
             style={styles.bellBtn}
             onPress={() => router.push("/(lender)/notifications")}
           >
             <Ionicons
               name="notifications-outline"
-              size={22}
+              size={20}
               color={Colors.textPrimary}
             />
+            <View style={styles.bellDot} />
           </TouchableOpacity>
-        </View>
-
-        {/* Stats Grid */}
-        <View style={styles.statsRow}>
-          <StatCard
-            label="Total Deployed"
-            value={`${(stats.totalDeployed / 1000000).toFixed(1)}M`}
-            color={Colors.gold}
-          />
-          <View style={{ width: Spacing.sm }} />
-          <StatCard
-            label="Active Loans"
-            value={String(stats.activeLoans)}
-            color={Colors.teal}
-          />
-        </View>
-        <View style={styles.statsRow}>
-          <StatCard
-            label="Monthly Return"
-            value={`UGX ${stats.monthlyReturn.toLocaleString()}`}
-            color={Colors.gold}
-          />
-          <View style={{ width: Spacing.sm }} />
-          <StatCard
-            label="Repayment Rate"
-            value={`${stats.repaymentRate}%`}
-            color={Colors.teal}
-          />
-        </View>
-
-        {/* Total Earnings Card */}
-        <Card style={styles.earningsCard}>
-          <View style={styles.earningsHeader}>
-            <Text style={styles.earningsLabel}>TOTAL EARNINGS</Text>
-            <TouchableOpacity onPress={() => router.push("/(lender)/earnings")}>
-              <Text style={styles.seeAll}>Details →</Text>
-            </TouchableOpacity>
+          <View style={styles.avatarBtn}>
+            <Text style={styles.avatarText}>{initials}</Text>
           </View>
-          <Text style={styles.earningsAmount}>
-            UGX {stats.totalEarned.toLocaleString()}
+        </View>
+
+        {/* Greeting */}
+        <Text style={styles.greeting}>Good morning,</Text>
+        <Text style={styles.name}>
+          {user.firstName} {user.lastName}
+        </Text>
+
+        {/* Deployed Capital Card */}
+        <View style={styles.capitalCard}>
+          <Text style={styles.capitalLabel}>TOTAL DEPLOYED CAPITAL</Text>
+          <Text style={styles.capitalAmount}>
+            UGX {stats.totalDeployed.toLocaleString()}
           </Text>
-          <View style={styles.earningsSubRow}>
-            <Text style={styles.earningsSub}>
-              This month: UGX {stats.thisMonthEarned.toLocaleString()}
-            </Text>
-          </View>
-        </Card>
-
-        {/* New Matches CTA */}
-        {newMatches > 0 && (
-          <TouchableOpacity
-            style={styles.matchCta}
-            onPress={() => router.push("/(lender)/browse")}
-          >
-            <View style={styles.matchCtaLeft}>
-              <Ionicons name="people" size={20} color={Colors.gold} />
-              <Text style={styles.matchCtaText}>
-                {newMatches} new borrower matches
+          <Text style={styles.capitalGrowth}>+12% this month</Text>
+          <View style={styles.capitalStats}>
+            <View style={styles.capitalStat}>
+              <Text style={styles.capitalStatLabel}>Offers</Text>
+              <Text style={styles.capitalStatValue}>{stats.activeLoans}</Text>
+            </View>
+            <View style={styles.capitalStat}>
+              <Text style={styles.capitalStatLabel}>Applications</Text>
+              <Text style={styles.capitalStatValue}>{newMatches}</Text>
+            </View>
+            <View style={styles.capitalStat}>
+              <Text style={styles.capitalStatLabel}>Earned</Text>
+              <Text style={[styles.capitalStatValue, { color: Colors.teal }]}>
+                {(stats.totalEarned / 1000000).toFixed(1)}M
               </Text>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={Colors.textSecondary}
-            />
-          </TouchableOpacity>
-        )}
-
-        {/* Recent Activity */}
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <TouchableOpacity onPress={() => router.push("/(lender)/portfolio")}>
-            <Text style={styles.seeAll}>See all</Text>
-          </TouchableOpacity>
+          </View>
         </View>
+
+        {/* My Active Offers */}
+        <Text style={styles.sectionTitle}>My Active Offers</Text>
 
         {recentActivity.map((item: any) => (
           <TouchableOpacity
             key={item.id}
-            style={styles.activityCard}
+            style={styles.offerCard}
             onPress={() =>
               router.push({
                 pathname: "/(lender)/loan-detail",
@@ -148,57 +108,49 @@ export default function LenderHomeScreen() {
               })
             }
           >
-            <View style={styles.activityAvatar}>
-              <Text style={styles.activityInitial}>
-                {item.borrowerName?.[0] ?? "?"}
+            <View style={styles.offerCardTop}>
+              <Text style={styles.offerAmount}>
+                UGX {item.amount.toLocaleString()}
               </Text>
+              <Badge
+                label={item.status}
+                variant={
+                  item.status === "active"
+                    ? "success"
+                    : item.status === "overdue"
+                      ? "danger"
+                      : "default"
+                }
+              />
             </View>
-            <View style={styles.activityInfo}>
-              <Text style={styles.activityName}>{item.borrowerName}</Text>
-              <Text style={styles.activityDetail}>
-                UGX {item.amount.toLocaleString()} • {item.interestRate}%/mo
-              </Text>
-            </View>
-            <Badge
-              label={item.status}
-              variant={
-                item.status === "active"
-                  ? "success"
-                  : item.status === "overdue"
-                    ? "danger"
-                    : "default"
-              }
-            />
+            <Text style={styles.offerSub}>
+              {item.interestRate}%/mo · Max {item.duration ?? "—"} months
+            </Text>
+            <Text style={styles.offerMeta}>
+              {item.applicants ?? 0} applicants · {item.approved ?? 0} approved
+            </Text>
           </TouchableOpacity>
         ))}
 
-        {/* Action Buttons */}
+        {/* Actions */}
         <View style={styles.actions}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: Colors.gold }]}
+            style={styles.actionBtnGold}
             onPress={() => router.push("/(lender)/browse")}
           >
-            <Ionicons name="search-outline" size={20} color={Colors.white} />
+            <Ionicons name="search-outline" size={18} color={Colors.white} />
             <Text style={styles.actionText}>Browse Borrowers</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              {
-                backgroundColor: Colors.white,
-                borderWidth: 1,
-                borderColor: Colors.border,
-              },
-            ]}
+            style={styles.actionBtnOutline}
             onPress={() => router.push("/(lender)/wallet")}
           >
             <Ionicons
               name="wallet-outline"
-              size={20}
-              color={Colors.textPrimary}
+              size={18}
+              color={Colors.textSecondary}
             />
-            <Text style={[styles.actionText, { color: Colors.textPrimary }]}>
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
               My Wallet
             </Text>
           </TouchableOpacity>
@@ -211,109 +163,134 @@ export default function LenderHomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  greetingRow: {
+  topNav: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  logoBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: Colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+  logoText: { ...Typography.h3, color: Colors.white },
+  bellBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.surface,
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  bellDot: {
+    position: "absolute",
+    top: 7,
+    right: 7,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.danger,
+  },
+  avatarBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { ...Typography.caption, color: Colors.white, fontWeight: "700" },
+  greeting: { ...Typography.body, color: Colors.textSecondary },
+  name: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: Colors.gold,
     marginBottom: Spacing.xl,
   },
-  greeting: { ...Typography.body, color: Colors.textSecondary },
-  name: { ...Typography.h2, color: Colors.textPrimary },
-  bellBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Shadow.sm,
+  capitalCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
+    marginBottom: Spacing.xl,
   },
-  statsRow: { flexDirection: "row", marginBottom: Spacing.sm },
-  earningsCard: {
-    backgroundColor: Colors.navy,
-    marginBottom: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-  earningsHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  earningsLabel: {
+  capitalLabel: {
     ...Typography.caption,
     color: Colors.textMuted,
-    letterSpacing: 1,
-  },
-  earningsAmount: {
-    ...Typography.h1,
-    color: Colors.white,
+    letterSpacing: 0.8,
+    textTransform: "uppercase",
     marginBottom: Spacing.xs,
   },
-  earningsSubRow: { flexDirection: "row" },
-  earningsSub: { ...Typography.small, color: Colors.textMuted },
-  matchCta: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.goldLight,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
+  capitalAmount: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: Colors.white,
+    lineHeight: 40,
+  },
+  capitalGrowth: {
+    ...Typography.small,
+    color: Colors.gold,
+    marginTop: 4,
     marginBottom: Spacing.lg,
   },
-  matchCtaLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  matchCtaText: { ...Typography.bodyMedium, color: Colors.goldDark },
-  sectionHeader: {
+  capitalStats: { flexDirection: "row", gap: Spacing.md },
+  capitalStat: {
+    flex: 1,
+    backgroundColor: Colors.surfaceLift,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    alignItems: "center",
+  },
+  capitalStatLabel: { ...Typography.caption, color: Colors.textMuted },
+  capitalStatValue: { ...Typography.h3, color: Colors.gold, marginTop: 2 },
+  sectionTitle: {
+    ...Typography.h4,
+    color: Colors.white,
+    marginBottom: Spacing.md,
+  },
+  offerCard: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.md,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.gold,
+  },
+  offerCardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: Spacing.md,
+    marginBottom: 4,
   },
-  sectionTitle: { ...Typography.h4, color: Colors.textPrimary },
-  seeAll: { ...Typography.smallMedium, color: Colors.gold },
-  activityCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.white,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.sm,
-    ...Shadow.sm,
-  },
-  activityAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.goldLight,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
-  activityInitial: {
-    ...Typography.bodyMedium,
-    color: Colors.goldDark,
-  },
-  activityInfo: { flex: 1 },
-  activityName: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  activityDetail: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.lg,
-  },
-  actionBtn: {
+  offerAmount: { ...Typography.h3, color: Colors.white },
+  offerSub: { ...Typography.small, color: Colors.textMuted },
+  offerMeta: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
+  actions: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.lg },
+  actionBtnGold: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     gap: Spacing.sm,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    ...Shadow.sm,
+    borderRadius: BorderRadius.full,
+    backgroundColor: Colors.gold,
+  },
+  actionBtnOutline: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.sm,
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
   },
   actionText: { ...Typography.buttonSmall, color: Colors.white },
 });

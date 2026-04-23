@@ -7,9 +7,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Card, Button, TransactionItem } from "../../src/components";
+import { TransactionItem } from "../../src/components";
 import { useBorrowerWalletViewModel } from "../../src/viewmodels";
 
 export default function WalletScreen() {
@@ -21,19 +20,10 @@ export default function WalletScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        <View style={styles.headerRow}>
-          <Text style={styles.title}>My Wallet</Text>
-          <TouchableOpacity>
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color={Colors.textPrimary}
-            />
-          </TouchableOpacity>
-        </View>
+        <Text style={styles.title}>My Wallet</Text>
 
         {/* Balance Card */}
-        <Card style={styles.balanceCard}>
+        <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>WALLET BALANCE</Text>
           <Text style={styles.balanceAmount}>
             UGX {wallet?.balance.toLocaleString()}
@@ -47,7 +37,7 @@ export default function WalletScreen() {
               <Text style={styles.withdrawText}>Withdraw</Text>
             </TouchableOpacity>
           </View>
-        </Card>
+        </View>
 
         {/* Transactions */}
         <View style={styles.txHeader}>
@@ -74,15 +64,11 @@ export default function WalletScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.lg,
-  },
-  title: { ...Typography.h2, color: Colors.textPrimary },
+  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.lg },
   balanceCard: {
-    backgroundColor: Colors.navy,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
     alignItems: "center",
     marginBottom: Spacing.xxl,
   },
@@ -92,9 +78,9 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   balanceAmount: {
-    ...Typography.h1,
+    fontSize: 34,
+    fontWeight: "800",
     color: Colors.white,
-    fontSize: 32,
     marginTop: 4,
   },
   balanceUsd: {
@@ -108,18 +94,17 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.teal,
     paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
   },
   topUpText: { ...Typography.buttonSmall, color: Colors.white },
   withdrawBtn: {
-    backgroundColor: "transparent",
     borderWidth: 1,
-    borderColor: Colors.textMuted,
+    borderColor: Colors.border,
     paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
+    borderRadius: BorderRadius.full,
   },
-  withdrawText: { ...Typography.buttonSmall, color: Colors.textMuted },
+  withdrawText: { ...Typography.buttonSmall, color: Colors.textSecondary },
   txHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

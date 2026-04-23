@@ -9,20 +9,19 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  Colors,
-  Typography,
-  Spacing,
-  BorderRadius,
-  Shadow,
-} from "../../src/theme";
-import { Card, StatCard, ProgressBar } from "../../src/components";
+import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { ProgressBar } from "../../src/components";
 import { useBorrowerDashboardViewModel } from "../../src/viewmodels";
 
 export default function BorrowerHomeScreen() {
   const router = useRouter();
-  const { user, stats, loan, paymentProgress, remainingPayments, isLoading } =
+  const { user, stats, loan, paymentProgress, walletBalance } =
     useBorrowerDashboardViewModel();
+
+  const initials = [user.firstName?.[0], user.lastName?.[0]]
+    .filter(Boolean)
+    .join("")
+    .toUpperCase();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,148 +29,117 @@ export default function BorrowerHomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        {/* Greeting */}
-        <View style={styles.greetingRow}>
-          <View>
-            <Text style={styles.greeting}>Welcome back</Text>
-            <Text style={styles.name}>
-              {user.firstName} {user.lastName}
-            </Text>
+        {/* Top header */}
+        <View style={styles.header}>
+          <View style={styles.logoBox}>
+            <Text style={styles.logoLetter}>L</Text>
           </View>
-          <TouchableOpacity style={styles.bellBtn}>
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color={Colors.textPrimary}
-            />
-          </TouchableOpacity>
+          <Text style={styles.greeting}>
+            Hi, <Text style={styles.greetingName}>{user.firstName}</Text>
+          </Text>
+          <View style={styles.headerRight}>
+            <TouchableOpacity style={styles.bellBtn}>
+              <Ionicons
+                name="notifications-outline"
+                size={20}
+                color={Colors.textSecondary}
+              />
+              <View style={styles.bellDot} />
+            </TouchableOpacity>
+            <View style={styles.avatarCircle}>
+              <Text style={styles.avatarText}>{initials}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Active Loan Card */}
-        <Card style={styles.loanCard}>
-          <View style={styles.loanHeader}>
-            <Text style={styles.loanLabel}>Active Loan</Text>
-            <View style={styles.activeBadge}>
-              <Text style={styles.activeBadgeText}>Active</Text>
-            </View>
-          </View>
+        <View style={styles.loanCard}>
+          <Text style={styles.loanCardLabel}>ACTIVE LOAN</Text>
           <Text style={styles.loanAmount}>
-            UGX {loan?.amount.toLocaleString()}
+            UGX {(loan?.amount ?? 0).toLocaleString()}
           </Text>
-
-          <View style={styles.loanDetailRow}>
-            <Text style={styles.loanDetailLabel}>
-              Next Payment — {loan?.nextPaymentDate?.split("-").pop()} May 1
-            </Text>
-            <Text style={styles.loanDetailValue}>
-              UGX {(loan?.nextPaymentAmount ?? 0).toLocaleString()}
-            </Text>
-          </View>
-
-          <Text style={styles.paymentsLeft}>
-            {remainingPayments} payments remaining
+          <Text style={styles.loanNext}>
+            Next: UGX {(loan?.nextPaymentAmount ?? 0).toLocaleString()} due{" "}
+            {loan?.nextPaymentDate ?? "—"}
           </Text>
-          <ProgressBar progress={paymentProgress} color={Colors.teal} />
-        </Card>
-
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <StatCard
-            label="Loans Taken"
-            value={String(stats.loansTaken)}
-            color={Colors.teal}
+          <ProgressBar
+            progress={paymentProgress}
+            color={Colors.white}
+            height={4}
           />
-          <View style={{ width: Spacing.sm }} />
-          <StatCard
-            label="Repaid"
-            value={`${stats.paymentsRepaid}/${stats.totalPayments}`}
-            color={Colors.teal}
-          />
-          <View style={{ width: Spacing.sm }} />
-          <StatCard
-            label="Credit Score"
-            value={String(stats.creditScore)}
-            color={Colors.gold}
-          />
+          <View style={{ height: Spacing.lg }} />
+          <TouchableOpacity
+            style={styles.payNowBtn}
+            onPress={() => router.push("/(borrower)/payment")}
+          >
+            <Text style={styles.payNowText}>Pay Now</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* Action Buttons */}
-        <View style={styles.actions}>
+        {/* Stats row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statBox}>
+            <Text style={styles.statValue}>
+              UGX {((walletBalance ?? 0) / 1000000).toFixed(1)}M
+            </Text>
+            <Text style={styles.statLabel}>Balance</Text>
+          </View>
+          <View style={[styles.statBox, styles.statBorder]}>
+            <Text style={styles.statValue}>
+              {stats.paymentsRepaid
+                ? `${Math.round((stats.paymentsRepaid / stats.totalPayments) * 100)}%`
+                : "0%"}
+            </Text>
+            <Text style={styles.statLabel}>Repaid</Text>
+          </View>
+          <View style={styles.statBox}>
+            <Text style={styles.statValue}>{stats.loansTaken ?? "—"}</Text>
+            <Text style={styles.statLabel}>Offers Live</Text>
+          </View>
+        </View>
+
+        {/* Quick Actions */}
+        <Text style={styles.sectionLabel}>QUICK ACTIONS</Text>
+        <View style={styles.actionsGrid}>
           <TouchableOpacity
-            style={[styles.actionBtn, { backgroundColor: Colors.teal }]}
+            style={styles.actionCell}
+            onPress={() => router.push("/(borrower)/offers")}
+          >
+            <Ionicons name="search-outline" size={22} color={Colors.teal} />
+            <Text style={styles.actionLabel}>Browse Offers</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCell}
             onPress={() => router.push("/(borrower)/apply")}
           >
             <Ionicons
               name="document-text-outline"
-              size={20}
-              color={Colors.white}
+              size={22}
+              color={Colors.textSecondary}
             />
-            <Text style={styles.actionText}>Apply for Loan</Text>
+            <Text style={styles.actionLabel}>Post Request</Text>
           </TouchableOpacity>
-
           <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              {
-                backgroundColor: Colors.white,
-                borderWidth: 1,
-                borderColor: Colors.border,
-              },
-            ]}
+            style={styles.actionCell}
             onPress={() => router.push("/(borrower)/payment")}
           >
             <Ionicons
-              name="cash-outline"
-              size={20}
-              color={Colors.textPrimary}
+              name="card-outline"
+              size={22}
+              color={Colors.textSecondary}
             />
-            <Text style={[styles.actionText, { color: Colors.textPrimary }]}>
-              Make Payment
-            </Text>
+            <Text style={styles.actionLabel}>Repayment</Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.actions}>
           <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              {
-                backgroundColor: Colors.white,
-                borderWidth: 1,
-                borderColor: Colors.border,
-              },
-            ]}
-            onPress={() => router.push("/(borrower)/loans")}
-          >
-            <Ionicons
-              name="list-outline"
-              size={20}
-              color={Colors.textPrimary}
-            />
-            <Text style={[styles.actionText, { color: Colors.textPrimary }]}>
-              My Loans
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.actionBtn,
-              {
-                backgroundColor: Colors.white,
-                borderWidth: 1,
-                borderColor: Colors.border,
-              },
-            ]}
+            style={styles.actionCell}
             onPress={() => router.push("/(borrower)/wallet")}
           >
             <Ionicons
               name="wallet-outline"
-              size={20}
-              color={Colors.textPrimary}
+              size={22}
+              color={Colors.textSecondary}
             />
-            <Text style={[styles.actionText, { color: Colors.textPrimary }]}>
-              My Wallet
-            </Text>
+            <Text style={styles.actionLabel}>Wallet</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -181,71 +149,106 @@ export default function BorrowerHomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  greetingRow: {
+  scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    paddingVertical: Spacing.lg,
+  },
+  logoBox: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
+    backgroundColor: Colors.teal,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: Spacing.sm,
+  },
+  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+  greeting: { ...Typography.h4, color: Colors.textSecondary, flex: 1 },
+  greetingName: { color: Colors.teal },
+  headerRight: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  bellBtn: { position: "relative" },
+  bellDot: {
+    position: "absolute",
+    top: 0,
+    right: 0,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: Colors.danger,
+  },
+  avatarCircle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.teal,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { ...Typography.smallMedium, color: Colors.white },
+  loanCard: {
+    backgroundColor: Colors.teal,
+    borderRadius: BorderRadius.xl,
+    padding: Spacing.xl,
     marginBottom: Spacing.xl,
   },
-  greeting: { ...Typography.body, color: Colors.textSecondary },
-  name: { ...Typography.h2, color: Colors.textPrimary },
-  bellBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.white,
-    alignItems: "center",
-    justifyContent: "center",
-    ...Shadow.sm,
-  },
-  loanCard: { backgroundColor: Colors.navy, marginBottom: Spacing.lg },
-  loanHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  loanLabel: { ...Typography.small, color: Colors.textMuted },
-  activeBadge: {
-    backgroundColor: Colors.teal + "30",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  activeBadgeText: {
+  loanCardLabel: {
     ...Typography.caption,
-    color: Colors.teal,
-    fontWeight: "600",
-  },
-  loanAmount: {
-    ...Typography.h1,
-    color: Colors.white,
-    marginBottom: Spacing.md,
-  },
-  loanDetailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+    color: "rgba(255,255,255,0.7)",
+    letterSpacing: 1,
     marginBottom: Spacing.xs,
   },
-  loanDetailLabel: { ...Typography.small, color: Colors.textMuted },
-  loanDetailValue: { ...Typography.smallMedium, color: Colors.white },
-  paymentsLeft: {
+  loanAmount: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: Colors.white,
+    marginBottom: Spacing.xs,
+  },
+  loanNext: {
     ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.sm,
+    color: "rgba(255,255,255,0.8)",
+    marginBottom: Spacing.md,
   },
-  statsRow: { flexDirection: "row", marginBottom: Spacing.lg },
-  actions: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.sm },
-  actionBtn: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
+  payNowBtn: {
+    backgroundColor: "rgba(255,255,255,0.2)",
+    borderRadius: BorderRadius.full,
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.md,
-    ...Shadow.sm,
+    alignItems: "center",
   },
-  actionText: { ...Typography.buttonSmall, color: Colors.white },
+  payNowText: { ...Typography.button, color: Colors.white },
+  statsRow: {
+    flexDirection: "row",
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    marginBottom: Spacing.xl,
+  },
+  statBox: { flex: 1, alignItems: "center", paddingVertical: Spacing.lg },
+  statBorder: {
+    borderLeftWidth: 1,
+    borderRightWidth: 1,
+    borderColor: Colors.border,
+  },
+  statValue: { ...Typography.h4, color: Colors.textPrimary },
+  statLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
+  sectionLabel: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    letterSpacing: 1,
+    marginBottom: Spacing.md,
+  },
+  actionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.sm,
+  },
+  actionCell: {
+    width: "47.5%",
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.xl,
+    alignItems: "center",
+    gap: Spacing.xs,
+  },
+  actionLabel: { ...Typography.bodyMedium, color: Colors.textSecondary },
 });
