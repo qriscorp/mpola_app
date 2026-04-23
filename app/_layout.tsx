@@ -20,6 +20,8 @@ export default function RootLayout() {
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="forgot-password" />
         <Stack.Screen name="phone-otp-signin" />
+        <Stack.Screen name="verify-email" />
+        <Stack.Screen name="verify-phone" />
         <Stack.Screen name="(borrower)" />
         <Stack.Screen name="(lender)" />
       </Stack>

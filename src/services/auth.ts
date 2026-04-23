@@ -4,13 +4,18 @@
  */
 import * as SecureStore from "expo-secure-store";
 
+const ENV_API_URL = (
+  globalThis as { process?: { env?: Record<string, string | undefined> } }
+).process?.env?.EXPO_PUBLIC_API_URL;
+
 const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL ||
+  ENV_API_URL ||
   (__DEV__ ? "http://10.0.2.2:8000" : "https://api.lendflow.app");
 
 const TOKEN_KEY = "lf_access_token";
 const REFRESH_KEY = "lf_refresh_token";
 const USER_KEY = "lf_user";
+const SIGNUP_DRAFT_KEY = "lf_signup_draft";
 
 // ─── Token Management ────────────────────────────────────
 
@@ -42,6 +47,36 @@ export async function clearAuth() {
   await SecureStore.deleteItemAsync(USER_KEY);
 }
 
+export interface SignupDraftState {
+  draftId: string;
+  email: string;
+  phoneNumber: string;
+  role: "borrower" | "lender";
+  emailVerified: boolean;
+  phoneVerified: boolean;
+}
+
+async function storeSignupDraft(draft: SignupDraftState) {
+  await SecureStore.setItemAsync(SIGNUP_DRAFT_KEY, JSON.stringify(draft));
+}
+
+export async function getSignupDraft(): Promise<SignupDraftState | null> {
+  const json = await SecureStore.getItemAsync(SIGNUP_DRAFT_KEY);
+  return json ? (JSON.parse(json) as SignupDraftState) : null;
+}
+
+export async function clearSignupDraft() {
+  await SecureStore.deleteItemAsync(SIGNUP_DRAFT_KEY);
+}
+
+async function updateSignupDraft(
+  updater: (draft: SignupDraftState) => SignupDraftState,
+) {
+  const existing = await getSignupDraft();
+  if (!existing) return;
+  await storeSignupDraft(updater(existing));
+}
+
 // ─── Types ───────────────────────────────────────────────
 
 export interface AuthUser {
@@ -62,6 +97,20 @@ interface AuthResponse {
   user: AuthUser;
   access_token: string;
   refresh_token: string;
+}
+
+interface SignupDraftResponse {
+  draft_id: string;
+  email: string;
+  phone_number: string | null;
+  role: "borrower" | "lender";
+  status: number;
+  message: string;
+}
+
+interface ApiMessageResponse {
+  status: number;
+  message: string;
 }
 
 // ─── API Helpers ─────────────────────────────────────────
@@ -100,8 +149,8 @@ export async function apiRegister(data: {
   password: string;
   accountType: string;
   role: "borrower" | "lender";
-}): Promise<AuthUser> {
-  const res = await apiPost<AuthResponse>("/auth/register", {
+}): Promise<SignupDraftState> {
+  const res = await apiPost<SignupDraftResponse>("/auth/register_start", {
     email: data.email,
     password: data.password,
     full_name: data.fullName,
@@ -111,9 +160,16 @@ export async function apiRegister(data: {
     role: data.role,
   });
 
-  await storeTokens(res.access_token, res.refresh_token);
-  await storeUser(res.user);
-  return res.user;
+  const draft: SignupDraftState = {
+    draftId: res.draft_id,
+    email: res.email,
+    phoneNumber: res.phone_number || normalizePhone(data.phone),
+    role: res.role,
+    emailVerified: false,
+    phoneVerified: false,
+  };
+  await storeSignupDraft(draft);
+  return draft;
 }
 
 export async function apiLogin(data: {
@@ -153,6 +209,76 @@ export async function apiRefreshToken(): Promise<string | null> {
 
 export async function apiSignOut() {
   await clearAuth();
+}
+
+// ─── Signup Draft OTP Flow ───────────────────────────────
+
+export async function apiSendSignupEmailOtp(
+  draftId: string,
+): Promise<ApiMessageResponse> {
+  return apiPost("/auth/send_signup_email_otp", { draft_id: draftId });
+}
+
+export async function apiVerifySignupEmailOtp(
+  draftId: string,
+  code: string,
+): Promise<ApiMessageResponse> {
+  const res = await apiPost<ApiMessageResponse>(
+    "/auth/verify_signup_email_otp",
+    {
+      draft_id: draftId,
+      code,
+    },
+  );
+  await updateSignupDraft((draft) => ({
+    ...draft,
+    emailVerified: true,
+  }));
+  return res;
+}
+
+export async function apiSendSignupPhoneOtp(
+  draftId: string,
+  phoneNumber: string,
+): Promise<ApiMessageResponse> {
+  const normalized = normalizePhone(phoneNumber);
+  const res = await apiPost<ApiMessageResponse>("/auth/send_signup_phone_otp", {
+    draft_id: draftId,
+    phone_number: normalized,
+  });
+  await updateSignupDraft((draft) => ({
+    ...draft,
+    phoneNumber: normalized,
+  }));
+  return res;
+}
+
+export async function apiVerifySignupPhoneOtp(
+  draftId: string,
+  phoneNumber: string,
+  code: string,
+): Promise<ApiMessageResponse> {
+  const normalized = normalizePhone(phoneNumber);
+  const res = await apiPost<ApiMessageResponse>(
+    "/auth/verify_signup_phone_otp",
+    {
+      draft_id: draftId,
+      phone_number: normalized,
+      code,
+    },
+  );
+
+  if (res.message.toLowerCase().includes("account created")) {
+    await clearSignupDraft();
+  } else {
+    await updateSignupDraft((draft) => ({
+      ...draft,
+      phoneNumber: normalized,
+      phoneVerified: true,
+    }));
+  }
+
+  return res;
 }
 
 // ─── Forgot Password (OTP flow) ───────────────────────────

@@ -2,7 +2,12 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import type { UserRole, AccountType } from "../models";
 import { registerSchema, loginSchema } from "../validation";
-import { apiRegister, apiLogin, type AuthUser } from "../services/auth";
+import {
+  apiRegister,
+  apiLogin,
+  type AuthUser,
+  type SignupDraftState,
+} from "../services/auth";
 import type { ZodError } from "zod";
 
 type FieldErrors = Partial<Record<string, string>>;
@@ -26,6 +31,7 @@ export function useAuthViewModel() {
   const [agreed, setAgreed] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
+  const [signupDraft, setSignupDraft] = useState<SignupDraftState | null>(null);
 
   const registerMutation = useMutation({
     mutationFn: (params: {
@@ -37,7 +43,7 @@ export function useAuthViewModel() {
       accountType: string;
       role: "borrower" | "lender";
     }) => apiRegister(params),
-    onSuccess: (user) => setAuthUser(user),
+    onSuccess: (draft) => setSignupDraft(draft),
   });
 
   const loginMutation = useMutation({
@@ -119,6 +125,7 @@ export function useAuthViewModel() {
     setAgreed,
     errors,
     authUser,
+    signupDraft,
     loading: registerMutation.isPending || loginMutation.isPending,
     canSubmit,
     register,

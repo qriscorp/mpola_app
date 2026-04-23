@@ -27,7 +27,19 @@ export const registerSchema = z.object({
 export type RegisterInput = z.infer<typeof registerSchema>;
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
+  email: z
+    .string()
+    .min(1, "Email or phone is required")
+    .refine(
+      (value) => {
+        const trimmed = value.trim();
+        const digits = trimmed.replace(/\D/g, "");
+        const looksLikePhone = /^\d{9,12}$/.test(digits);
+        const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+        return looksLikePhone || looksLikeEmail;
+      },
+      { message: "Enter a valid email or phone number" },
+    ),
   password: z.string().min(1, "Password is required"),
 });
 

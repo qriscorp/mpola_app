@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,14 +11,34 @@ import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Input } from "../../src/components";
 import { useAuthViewModel } from "../../src/viewmodels";
+import {
+  clearSignupDraft,
+  getSignupDraft,
+  type SignupDraftState,
+} from "../../src/services/auth";
 
 export default function BorrowerRegisterScreen() {
   const router = useRouter();
   const vm = useAuthViewModel();
+  const [existingDraft, setExistingDraft] = useState<SignupDraftState | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const loadDraft = async () => {
+      const draft = await getSignupDraft();
+      if (draft?.role === "borrower") {
+        setExistingDraft(draft);
+      } else {
+        setExistingDraft(null);
+      }
+    };
+    void loadDraft();
+  }, []);
 
   const handleRegister = async () => {
     const success = await vm.register("borrower");
-    if (success) router.replace("/(borrower)/home");
+    if (success) router.replace("/verify-email?portal=borrower");
   };
 
   return (
@@ -34,6 +54,30 @@ export default function BorrowerRegisterScreen() {
         contentContainerStyle={styles.formContent}
         showsVerticalScrollIndicator={false}
       >
+        {existingDraft && (
+          <View style={styles.resumeCard}>
+            <Text style={styles.resumeTitle}>Resume signup draft</Text>
+            <Text style={styles.resumeText}>
+              Continue verification for {existingDraft.email}
+            </Text>
+            <View style={styles.resumeActions}>
+              <TouchableOpacity
+                onPress={() => router.replace("/verify-email?portal=borrower")}
+              >
+                <Text style={styles.resumeLink}>Continue</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={async () => {
+                  await clearSignupDraft();
+                  setExistingDraft(null);
+                }}
+              >
+                <Text style={styles.resumeReset}>Start over</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
         {/* Account Type Toggle */}
         <View style={styles.toggle}>
           <TouchableOpacity
@@ -126,7 +170,7 @@ export default function BorrowerRegisterScreen() {
         </TouchableOpacity>
 
         <Button
-          title="Create Account →"
+          title="Continue to Verification →"
           onPress={handleRegister}
           color={Colors.teal}
           loading={vm.loading}
@@ -134,7 +178,7 @@ export default function BorrowerRegisterScreen() {
         />
 
         <TouchableOpacity
-          onPress={() => router.push("/(borrower)/home")}
+          onPress={() => router.push("/sign-in")}
           style={styles.signInRow}
         >
           <Text style={styles.signInText}>Already have an account? </Text>
@@ -159,6 +203,28 @@ const styles = StyleSheet.create({
   },
   form: { flex: 1 },
   formContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
+  resumeCard: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  resumeTitle: { ...Typography.bodySemibold, color: Colors.textPrimary },
+  resumeText: {
+    ...Typography.small,
+    color: Colors.textSecondary,
+    marginTop: Spacing.xs,
+  },
+  resumeActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.lg,
+    marginTop: Spacing.sm,
+  },
+  resumeLink: { ...Typography.smallMedium, color: Colors.teal },
+  resumeReset: { ...Typography.smallMedium, color: Colors.textMuted },
   toggle: {
     flexDirection: "row",
     backgroundColor: Colors.surface,
