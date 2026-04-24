@@ -13,11 +13,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { BorderRadius, Colors, Spacing, Typography } from "../src/theme";
 import { Button, Input } from "../src/components";
 import {
+  apiRefreshSignupDraft,
   apiSendSignupPhoneOtp,
   apiVerifySignupPhoneOtp,
   clearSignupDraft,
   getSignupDraftNextStep,
-  getSignupDraft,
   type SignupDraftState,
 } from "../src/services/auth";
 
@@ -48,10 +48,15 @@ export default function VerifyPhoneScreen() {
 
   useEffect(() => {
     const loadDraft = async () => {
-      const existing = await getSignupDraft();
+      const existing = await apiRefreshSignupDraft();
       if (existing) {
-        if (getSignupDraftNextStep(existing) === "verify-email") {
+        const nextStep = getSignupDraftNextStep(existing);
+        if (nextStep === "verify-email") {
           router.replace(`/verify-email?portal=${existing.role}`);
+          return;
+        }
+        if (nextStep === "completed") {
+          router.replace("/sign-in");
           return;
         }
       }
@@ -115,7 +120,7 @@ export default function VerifyPhoneScreen() {
         phone.trim(),
         otp,
       );
-      if (response.message.toLowerCase().includes("account created")) {
+      if (response.account_created) {
         Alert.alert("Account ready", "Signup complete. Please sign in.", [
           {
             text: "Sign In",
@@ -125,8 +130,16 @@ export default function VerifyPhoneScreen() {
         return;
       }
 
-      if (response.message.toLowerCase().includes("verify email")) {
-        router.replace(`/verify-email?portal=${draft.role}`);
+      const latestDraft = await apiRefreshSignupDraft();
+      if (!latestDraft) {
+        router.replace(startOverRoute);
+        return;
+      }
+
+      setDraft(latestDraft);
+      const nextStep = getSignupDraftNextStep(latestDraft);
+      if (nextStep === "verify-email") {
+        router.replace(`/verify-email?portal=${latestDraft.role}`);
         return;
       }
 

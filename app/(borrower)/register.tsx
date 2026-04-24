@@ -12,6 +12,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Input } from "../../src/components";
 import { useAuthViewModel } from "../../src/viewmodels";
 import {
+  apiRefreshSignupDraft,
   clearSignupDraft,
   clearSignupFormDraft,
   getSignupFormDraft,
@@ -32,11 +33,13 @@ export default function BorrowerRegisterScreen() {
   const getResumeRoute = (draft: SignupDraftState) =>
     getSignupDraftNextStep(draft) === "verify-phone"
       ? "/verify-phone?portal=borrower"
-      : "/verify-email?portal=borrower";
+      : getSignupDraftNextStep(draft) === "completed"
+        ? "/sign-in"
+        : "/verify-email?portal=borrower";
 
   useEffect(() => {
     const loadDraft = async () => {
-      const draft = await getSignupDraft();
+      const draft = await apiRefreshSignupDraft();
       if (draft?.role === "borrower") {
         setExistingDraft(draft);
         setHasFormProgress(false);
@@ -101,7 +104,7 @@ export default function BorrowerRegisterScreen() {
   const handleRegister = async () => {
     const success = await vm.register("borrower");
     if (success) {
-      const latestDraft = await getSignupDraft();
+      const latestDraft = await apiRefreshSignupDraft();
       if (latestDraft?.role === "borrower") {
         router.replace(getResumeRoute(latestDraft));
         return;
@@ -132,7 +135,7 @@ export default function BorrowerRegisterScreen() {
             <View style={styles.resumeActions}>
               <TouchableOpacity
                 onPress={async () => {
-                  const latestDraft = await getSignupDraft();
+                  const latestDraft = await apiRefreshSignupDraft();
                   if (latestDraft?.role === "borrower") {
                     router.replace(getResumeRoute(latestDraft));
                     return;

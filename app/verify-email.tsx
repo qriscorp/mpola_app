@@ -12,11 +12,11 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
 import { Button } from "../src/components";
 import {
+  apiRefreshSignupDraft,
   apiSendSignupEmailOtp,
   apiVerifySignupEmailOtp,
   clearSignupDraft,
   getSignupDraftNextStep,
-  getSignupDraft,
   type SignupDraftState,
 } from "../src/services/auth";
 
@@ -41,10 +41,15 @@ export default function VerifyEmailScreen() {
 
   useEffect(() => {
     const loadDraft = async () => {
-      const existing = await getSignupDraft();
+      const existing = await apiRefreshSignupDraft();
       if (existing) {
-        if (getSignupDraftNextStep(existing) === "verify-phone") {
+        const nextStep = getSignupDraftNextStep(existing);
+        if (nextStep === "verify-phone") {
           router.replace(`/verify-phone?portal=${existing.role}`);
+          return;
+        }
+        if (nextStep === "completed") {
+          router.replace("/sign-in");
           return;
         }
       }
@@ -93,9 +98,27 @@ export default function VerifyEmailScreen() {
     setError("");
     setLoading(true);
     try {
-      await apiVerifySignupEmailOtp(draft.draftId, otp);
-      setDraft({ ...draft, emailVerified: true });
-      router.replace(`/verify-phone?portal=${draft.role}`);
+      const response = await apiVerifySignupEmailOtp(draft.draftId, otp);
+      if (response.account_created) {
+        await clearSignupDraft();
+        router.replace("/sign-in");
+        return;
+      }
+
+      const latestDraft = await apiRefreshSignupDraft();
+      if (!latestDraft) {
+        router.replace(startOverRoute);
+        return;
+      }
+
+      setDraft(latestDraft);
+      const nextStep = getSignupDraftNextStep(latestDraft);
+      if (nextStep === "verify-phone") {
+        router.replace(`/verify-phone?portal=${latestDraft.role}`);
+        return;
+      }
+
+      router.replace(`/verify-email?portal=${latestDraft.role}`);
     } catch (e: any) {
       setError(e?.message || "Invalid code. Please try again.");
     } finally {

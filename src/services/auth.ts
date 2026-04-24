@@ -55,6 +55,7 @@ export interface SignupDraftState {
   role: "borrower" | "lender";
   emailVerified: boolean;
   phoneVerified: boolean;
+  isCompleted?: boolean;
 }
 
 export interface SignupFormDraftState {
@@ -68,18 +69,21 @@ export interface SignupFormDraftState {
   agreed: boolean;
 }
 
-export type SignupDraftNextStep = "verify-email" | "verify-phone";
+export type SignupDraftNextStep = "verify-email" | "verify-phone" | "completed";
 
 export function getSignupDraftNextStep(
   draft: SignupDraftState,
 ): SignupDraftNextStep {
+  if (draft.isCompleted) {
+    return "completed";
+  }
   if (!draft.emailVerified) {
     return "verify-email";
   }
   if (!draft.phoneVerified) {
     return "verify-phone";
   }
-  return "verify-email";
+  return "completed";
 }
 
 async function storeSignupDraft(draft: SignupDraftState) {
@@ -147,11 +151,33 @@ interface SignupDraftResponse {
   role: "borrower" | "lender";
   status: number;
   message: string;
+  account_created?: boolean;
+  draft?: SignupDraftPayload;
+}
+
+interface SignupDraftPayload {
+  draft_id: string;
+  email: string;
+  phone_number: string | null;
+  role: "borrower" | "lender";
+  email_verified: boolean;
+  phone_verified: boolean;
+  is_completed: boolean;
+  next_step?: "verify_email" | "verify_phone" | "completed" | string;
+}
+
+interface SignupDraftStatusResponse {
+  status: number;
+  message: string;
+  account_created?: boolean;
+  draft?: SignupDraftPayload;
 }
 
 interface ApiMessageResponse {
   status: number;
   message: string;
+  account_created?: boolean;
+  draft?: SignupDraftPayload;
 }
 
 // ─── API Helpers ─────────────────────────────────────────
@@ -167,6 +193,32 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
     throw new Error(err.detail || `HTTP ${res.status}`);
   }
   return res.json();
+}
+
+async function apiGet<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "GET",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!res.ok) {
+    const err = await res
+      .json()
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+    throw new Error(err.detail || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+function mapSignupDraft(payload: SignupDraftPayload): SignupDraftState {
+  return {
+    draftId: payload.draft_id,
+    email: payload.email,
+    phoneNumber: payload.phone_number || "",
+    role: payload.role,
+    emailVerified: !!payload.email_verified,
+    phoneVerified: !!payload.phone_verified,
+    isCompleted: !!payload.is_completed,
+  };
 }
 
 // ─── Phone normalization ─────────────────────────────────
@@ -202,16 +254,49 @@ export async function apiRegister(data: {
   });
 
   const draft: SignupDraftState = {
-    draftId: res.draft_id,
-    email: res.email,
-    phoneNumber: res.phone_number || normalizePhone(data.phone),
-    role: res.role,
-    emailVerified: false,
-    phoneVerified: false,
+    draftId: res.draft?.draft_id || res.draft_id,
+    email: res.draft?.email || res.email,
+    phoneNumber:
+      res.draft?.phone_number || res.phone_number || normalizePhone(data.phone),
+    role: res.draft?.role || res.role,
+    emailVerified: !!res.draft?.email_verified,
+    phoneVerified: !!res.draft?.phone_verified,
+    isCompleted: !!res.draft?.is_completed,
   };
   await storeSignupDraft(draft);
   await clearSignupFormDraft();
   return draft;
+}
+
+export async function apiRefreshSignupDraft(): Promise<SignupDraftState | null> {
+  const localDraft = await getSignupDraft();
+  if (!localDraft?.draftId) {
+    return null;
+  }
+
+  try {
+    const response = await apiGet<SignupDraftStatusResponse>(
+      `/auth/signup_draft/${localDraft.draftId}`,
+    );
+
+    if (response.account_created || response.draft?.is_completed) {
+      await clearSignupDraft();
+      await clearSignupFormDraft();
+      return null;
+    }
+
+    if (!response.draft) {
+      await clearSignupDraft();
+      return null;
+    }
+
+    const mapped = mapSignupDraft(response.draft);
+    await storeSignupDraft(mapped);
+    return mapped;
+  } catch {
+    await clearSignupDraft();
+    return null;
+  }
 }
 
 export async function apiLogin(data: {
@@ -258,7 +343,18 @@ export async function apiSignOut() {
 export async function apiSendSignupEmailOtp(
   draftId: string,
 ): Promise<ApiMessageResponse> {
-  return apiPost("/auth/send_signup_email_otp", { draft_id: draftId });
+  const res = await apiPost<ApiMessageResponse>("/auth/send_signup_email_otp", {
+    draft_id: draftId,
+  });
+
+  if (res.account_created || res.draft?.is_completed) {
+    await clearSignupDraft();
+    await clearSignupFormDraft();
+  } else if (res.draft) {
+    await storeSignupDraft(mapSignupDraft(res.draft));
+  }
+
+  return res;
 }
 
 export async function apiVerifySignupEmailOtp(
@@ -272,10 +368,17 @@ export async function apiVerifySignupEmailOtp(
       code,
     },
   );
-  await updateSignupDraft((draft) => ({
-    ...draft,
-    emailVerified: true,
-  }));
+  if (res.account_created || res.draft?.is_completed) {
+    await clearSignupDraft();
+    await clearSignupFormDraft();
+  } else if (res.draft) {
+    await storeSignupDraft(mapSignupDraft(res.draft));
+  } else {
+    await updateSignupDraft((draft) => ({
+      ...draft,
+      emailVerified: true,
+    }));
+  }
   return res;
 }
 
@@ -288,11 +391,18 @@ export async function apiSendSignupPhoneOtp(
     draft_id: draftId,
     phone_number: normalized,
   });
-  await updateSignupDraft((draft) => ({
-    ...draft,
-    phoneNumber: normalized,
-    phoneVerified: false,
-  }));
+  if (res.account_created || res.draft?.is_completed) {
+    await clearSignupDraft();
+    await clearSignupFormDraft();
+  } else if (res.draft) {
+    await storeSignupDraft(mapSignupDraft(res.draft));
+  } else {
+    await updateSignupDraft((draft) => ({
+      ...draft,
+      phoneNumber: normalized,
+      phoneVerified: false,
+    }));
+  }
   return res;
 }
 
@@ -311,9 +421,11 @@ export async function apiVerifySignupPhoneOtp(
     },
   );
 
-  if (res.message.toLowerCase().includes("account created")) {
+  if (res.account_created || res.draft?.is_completed) {
     await clearSignupDraft();
     await clearSignupFormDraft();
+  } else if (res.draft) {
+    await storeSignupDraft(mapSignupDraft(res.draft));
   } else {
     await updateSignupDraft((draft) => ({
       ...draft,
