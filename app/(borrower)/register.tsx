@@ -17,7 +17,6 @@ import {
   clearSignupFormDraft,
   getSignupFormDraft,
   getSignupDraftNextStep,
-  getSignupDraft,
   saveSignupFormDraft,
   type SignupDraftState,
 } from "../../src/services/auth";
@@ -28,7 +27,23 @@ export default function BorrowerRegisterScreen() {
   const [existingDraft, setExistingDraft] = useState<SignupDraftState | null>(
     null,
   );
-  const [hasFormProgress, setHasFormProgress] = useState(false);
+
+  const hasMeaningfulFormDraft = (
+    formDraft: {
+      fullName?: string;
+      nin?: string;
+      phone?: string;
+      email?: string;
+      password?: string;
+    } | null,
+  ) =>
+    Boolean(
+      formDraft?.fullName ||
+      formDraft?.nin ||
+      formDraft?.phone ||
+      formDraft?.email ||
+      formDraft?.password,
+    );
 
   const getResumeRoute = (draft: SignupDraftState) =>
     getSignupDraftNextStep(draft) === "verify-phone"
@@ -42,12 +57,14 @@ export default function BorrowerRegisterScreen() {
       const draft = await apiRefreshSignupDraft();
       if (draft?.role === "borrower") {
         setExistingDraft(draft);
-        setHasFormProgress(false);
       } else {
         setExistingDraft(null);
 
         const formDraft = await getSignupFormDraft();
-        if (formDraft?.role === "borrower") {
+        if (
+          formDraft?.role === "borrower" &&
+          hasMeaningfulFormDraft(formDraft)
+        ) {
           vm.setFullName(formDraft.fullName || "");
           vm.setNin(formDraft.nin || "");
           vm.setPhone(formDraft.phone || "");
@@ -57,7 +74,6 @@ export default function BorrowerRegisterScreen() {
             formDraft.accountType === "business" ? "business" : "individual",
           );
           vm.setAgreed(!!formDraft.agreed);
-          setHasFormProgress(true);
         }
       }
     };
@@ -72,11 +88,10 @@ export default function BorrowerRegisterScreen() {
         !!vm.fullName || !!vm.nin || !!vm.phone || !!vm.email || !!vm.password;
 
       if (!hasAnyValue) {
-        setHasFormProgress(false);
+        await clearSignupFormDraft();
         return;
       }
 
-      setHasFormProgress(true);
       await saveSignupFormDraft({
         role: "borrower",
         fullName: vm.fullName,
@@ -150,7 +165,6 @@ export default function BorrowerRegisterScreen() {
                   await clearSignupDraft();
                   await clearSignupFormDraft();
                   setExistingDraft(null);
-                  setHasFormProgress(false);
                   vm.setFullName("");
                   vm.setNin("");
                   vm.setPhone("");
@@ -163,15 +177,6 @@ export default function BorrowerRegisterScreen() {
                 <Text style={styles.resumeReset}>Start over</Text>
               </TouchableOpacity>
             </View>
-          </View>
-        )}
-
-        {!existingDraft && hasFormProgress && (
-          <View style={styles.resumeCard}>
-            <Text style={styles.resumeTitle}>Saved form progress</Text>
-            <Text style={styles.resumeText}>
-              Your draft details have been restored. Continue filling the form.
-            </Text>
           </View>
         )}
 
