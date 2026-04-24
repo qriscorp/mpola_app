@@ -13,8 +13,11 @@ import { Button, Input } from "../../src/components";
 import { useAuthViewModel } from "../../src/viewmodels";
 import {
   clearSignupDraft,
+  clearSignupFormDraft,
+  getSignupFormDraft,
   getSignupDraftNextStep,
   getSignupDraft,
+  saveSignupFormDraft,
   type SignupDraftState,
 } from "../../src/services/auth";
 
@@ -24,6 +27,7 @@ export default function LenderRegisterScreen() {
   const [existingDraft, setExistingDraft] = useState<SignupDraftState | null>(
     null,
   );
+  const [hasFormProgress, setHasFormProgress] = useState(false);
 
   const getResumeRoute = (draft: SignupDraftState) =>
     getSignupDraftNextStep(draft) === "verify-phone"
@@ -35,16 +39,75 @@ export default function LenderRegisterScreen() {
       const draft = await getSignupDraft();
       if (draft?.role === "lender") {
         setExistingDraft(draft);
+        setHasFormProgress(false);
       } else {
         setExistingDraft(null);
+
+        const formDraft = await getSignupFormDraft();
+        if (formDraft?.role === "lender") {
+          vm.setFullName(formDraft.fullName || "");
+          vm.setNin(formDraft.nin || "");
+          vm.setPhone(formDraft.phone || "");
+          vm.setEmail(formDraft.email || "");
+          vm.setPassword(formDraft.password || "");
+          vm.setAccountType(
+            formDraft.accountType === "business" ? "business" : "individual",
+          );
+          vm.setAgreed(!!formDraft.agreed);
+          setHasFormProgress(true);
+        }
       }
     };
     void loadDraft();
   }, []);
 
+  useEffect(() => {
+    if (existingDraft) return;
+
+    const persist = async () => {
+      const hasAnyValue =
+        !!vm.fullName || !!vm.nin || !!vm.phone || !!vm.email || !!vm.password;
+
+      if (!hasAnyValue) {
+        setHasFormProgress(false);
+        return;
+      }
+
+      setHasFormProgress(true);
+      await saveSignupFormDraft({
+        role: "lender",
+        fullName: vm.fullName,
+        nin: vm.nin,
+        phone: vm.phone,
+        email: vm.email,
+        password: vm.password,
+        accountType: vm.accountType,
+        agreed: vm.agreed,
+      });
+    };
+
+    void persist();
+  }, [
+    existingDraft,
+    vm.fullName,
+    vm.nin,
+    vm.phone,
+    vm.email,
+    vm.password,
+    vm.accountType,
+    vm.agreed,
+  ]);
+
   const handleRegister = async () => {
     const success = await vm.register("lender");
-    if (success) router.replace("/verify-email?portal=lender");
+    if (success) {
+      const latestDraft = await getSignupDraft();
+      if (latestDraft?.role === "lender") {
+        router.replace(getResumeRoute(latestDraft));
+        return;
+      }
+      router.replace("/verify-email?portal=lender");
+    }
   };
 
   return (
@@ -70,19 +133,44 @@ export default function LenderRegisterScreen() {
             </Text>
             <View style={styles.resumeActions}>
               <TouchableOpacity
-                onPress={() => router.replace(getResumeRoute(existingDraft))}
+                onPress={async () => {
+                  const latestDraft = await getSignupDraft();
+                  if (latestDraft?.role === "lender") {
+                    router.replace(getResumeRoute(latestDraft));
+                    return;
+                  }
+                  setExistingDraft(null);
+                }}
               >
                 <Text style={styles.resumeLink}>Continue</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 onPress={async () => {
                   await clearSignupDraft();
+                  await clearSignupFormDraft();
                   setExistingDraft(null);
+                  setHasFormProgress(false);
+                  vm.setFullName("");
+                  vm.setNin("");
+                  vm.setPhone("");
+                  vm.setEmail("");
+                  vm.setPassword("");
+                  vm.setAccountType("individual");
+                  vm.setAgreed(false);
                 }}
               >
                 <Text style={styles.resumeReset}>Start over</Text>
               </TouchableOpacity>
             </View>
+          </View>
+        )}
+
+        {!existingDraft && hasFormProgress && (
+          <View style={styles.resumeCard}>
+            <Text style={styles.resumeTitle}>Saved form progress</Text>
+            <Text style={styles.resumeText}>
+              Your draft details have been restored. Continue filling the form.
+            </Text>
           </View>
         )}
 

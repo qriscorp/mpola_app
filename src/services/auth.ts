@@ -16,6 +16,7 @@ const TOKEN_KEY = "lf_access_token";
 const REFRESH_KEY = "lf_refresh_token";
 const USER_KEY = "lf_user";
 const SIGNUP_DRAFT_KEY = "lf_signup_draft";
+const SIGNUP_FORM_DRAFT_KEY = "lf_signup_form_draft";
 
 // ─── Token Management ────────────────────────────────────
 
@@ -56,12 +57,29 @@ export interface SignupDraftState {
   phoneVerified: boolean;
 }
 
+export interface SignupFormDraftState {
+  role: "borrower" | "lender";
+  fullName: string;
+  nin: string;
+  phone: string;
+  email: string;
+  password: string;
+  accountType: string;
+  agreed: boolean;
+}
+
 export type SignupDraftNextStep = "verify-email" | "verify-phone";
 
 export function getSignupDraftNextStep(
   draft: SignupDraftState,
 ): SignupDraftNextStep {
-  return draft.emailVerified ? "verify-phone" : "verify-email";
+  if (!draft.emailVerified) {
+    return "verify-email";
+  }
+  if (!draft.phoneVerified) {
+    return "verify-phone";
+  }
+  return "verify-email";
 }
 
 async function storeSignupDraft(draft: SignupDraftState) {
@@ -75,6 +93,21 @@ export async function getSignupDraft(): Promise<SignupDraftState | null> {
 
 export async function clearSignupDraft() {
   await SecureStore.deleteItemAsync(SIGNUP_DRAFT_KEY);
+}
+
+export async function saveSignupFormDraft(
+  draft: SignupFormDraftState,
+): Promise<void> {
+  await SecureStore.setItemAsync(SIGNUP_FORM_DRAFT_KEY, JSON.stringify(draft));
+}
+
+export async function getSignupFormDraft(): Promise<SignupFormDraftState | null> {
+  const json = await SecureStore.getItemAsync(SIGNUP_FORM_DRAFT_KEY);
+  return json ? (JSON.parse(json) as SignupFormDraftState) : null;
+}
+
+export async function clearSignupFormDraft() {
+  await SecureStore.deleteItemAsync(SIGNUP_FORM_DRAFT_KEY);
 }
 
 async function updateSignupDraft(
@@ -177,6 +210,7 @@ export async function apiRegister(data: {
     phoneVerified: false,
   };
   await storeSignupDraft(draft);
+  await clearSignupFormDraft();
   return draft;
 }
 
@@ -279,6 +313,7 @@ export async function apiVerifySignupPhoneOtp(
 
   if (res.message.toLowerCase().includes("account created")) {
     await clearSignupDraft();
+    await clearSignupFormDraft();
   } else {
     await updateSignupDraft((draft) => ({
       ...draft,
