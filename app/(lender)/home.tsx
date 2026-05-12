@@ -43,9 +43,9 @@ export default function LenderHomeScreen() {
         {/* Top Nav */}
         <View style={styles.topNav}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>L</Text>
+            <Text style={styles.logoLetter}>M</Text>
           </View>
-          <Text style={styles.logoText}>WeLend</Text>
+          <Text style={styles.logoText}>Mpola</Text>
           <View style={{ flex: 1 }} />
           <TouchableOpacity
             style={styles.bellBtn}

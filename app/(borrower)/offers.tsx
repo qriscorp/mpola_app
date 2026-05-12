@@ -26,7 +26,7 @@ export default function OffersScreen() {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.logoBox}>
-          <Text style={styles.logoLetter}>L</Text>
+          <Text style={styles.logoLetter}>M</Text>
         </View>
         <Text style={styles.headerTitle}>Browse Offers</Text>
         <Text style={styles.liveCount}>{offers.length} live</Text>

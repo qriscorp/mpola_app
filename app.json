@@ -1,38 +1,35 @@
 {
   "expo": {
-    "name": "LendFlow",
-    "slug": "lendflow-app",
+    "name": "Mpola",
+    "slug": "mpola-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "scheme": "lendflow",
+    "icon": "./assets/mpola_logo-3.png",
+    "scheme": "mpola",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/mpola_logo-1.png",
       "resizeMode": "contain",
       "backgroundColor": "#1B2B3A"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lendflow.app"
+      "bundleIdentifier": "com.mpola.app"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/mpola_logo-3.png",
         "backgroundColor": "#1B2B3A"
       },
-      "package": "com.lendflow.app"
+      "package": "com.mpola.app"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/mpola_logo-3.png"
     },
-    "plugins": [
-      "expo-router",
-      "expo-secure-store"
-    ],
+    "plugins": ["expo-router", "expo-secure-store"],
     "experiments": {
       "typedRoutes": true
     }

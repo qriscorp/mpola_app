@@ -1,5 +1,5 @@
 /**
- * Auth service — connects to real Welend API.
+ * Auth service — connects to real Mpola API.
  * Handles login, register, token storage (SecureStore), and refresh.
  */
 import * as SecureStore from "expo-secure-store";
@@ -10,7 +10,7 @@ const ENV_API_URL = (
 
 const API_BASE_URL =
   ENV_API_URL ||
-  (__DEV__ ? "http://10.0.2.2:8000" : "https://api.lendflow.app");
+  (__DEV__ ? "http://10.0.2.2:8000" : "https://api.mpola.app");
 
 const TOKEN_KEY = "lf_access_token";
 const REFRESH_KEY = "lf_refresh_token";

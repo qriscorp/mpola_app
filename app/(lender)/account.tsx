@@ -36,7 +36,7 @@ export default function LenderAccountScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>L</Text>
+            <Text style={styles.logoLetter}>M</Text>
           </View>
           <Text style={styles.headerTitle}>Account</Text>
           <View style={styles.avatarSmall}>
@@ -50,7 +50,7 @@ export default function LenderAccountScreen() {
             <Text style={styles.initials}>{initials}</Text>
           </View>
           <Text style={styles.name}>{user.fullName}</Text>
-          <Text style={styles.sub}>WeLend Lender since Jan 2024</Text>
+          <Text style={styles.sub}>Mpola Lender since Jan 2024</Text>
         </View>
 
         {/* KYC */}

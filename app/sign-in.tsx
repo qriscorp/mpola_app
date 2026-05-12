@@ -38,9 +38,9 @@ export default function SignInScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>L</Text>
+            <Text style={styles.logoLetter}>M</Text>
           </View>
-          <Text style={styles.appName}>WeLend</Text>
+          <Text style={styles.appName}>Mpola</Text>
         </View>
 
         {/* Title */}

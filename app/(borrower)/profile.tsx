@@ -36,7 +36,7 @@ export default function ProfileScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>L</Text>
+            <Text style={styles.logoLetter}>M</Text>
           </View>
           <Text style={styles.headerTitle}>Account</Text>
           <View style={styles.avatarSmall}>

@@ -13,10 +13,10 @@ export default function WelcomeScreen() {
         {/* Logo */}
         <View style={styles.logoArea}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>L</Text>
+            <Text style={styles.logoLetter}>M</Text>
           </View>
-          <Text style={styles.appName}>WeLend</Text>
-          <Text style={styles.tagline}>Fair credit, made simple</Text>
+          <Text style={styles.appName}>Mpola</Text>
+          <Text style={styles.tagline}>Lend me, grow together</Text>
         </View>
 
         {/* Action buttons */}

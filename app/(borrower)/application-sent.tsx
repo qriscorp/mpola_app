@@ -31,9 +31,9 @@ export default function ApplicationSentScreen() {
         {/* Header */}
         <View style={styles.logoRow}>
           <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>L</Text>
+            <Text style={styles.logoLetter}>M</Text>
           </View>
-          <Text style={styles.logoText}>WeLend</Text>
+          <Text style={styles.logoText}>Mpola</Text>
         </View>
 
         {/* Check icon */}
