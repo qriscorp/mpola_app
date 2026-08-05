@@ -5,29 +5,42 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, ProgressBar } from "../../src/components";
-import { portfolioLoans, portfolioBorrowerNames } from "../../src/services";
+import { fetchLoanDetail } from "../../src/services";
 
 export default function LoanDetailScreen() {
   const router = useRouter();
   const { loanId } = useLocalSearchParams<{ loanId: string }>();
 
-  const loan = portfolioLoans.find((l) => l.id === loanId) ?? portfolioLoans[0];
-  const borrowerName = portfolioBorrowerNames[loan.id] ?? "Unknown";
-  const progress = loan.paidInstalments / loan.totalInstalments;
+  const { data: loan, isLoading } = useQuery({
+    queryKey: ["lender", "loan-detail", loanId],
+    queryFn: () => fetchLoanDetail(loanId!),
+    enabled: !!loanId,
+  });
 
-  // Generate mock payment schedule
-  const schedule = Array.from({ length: loan.totalInstalments }, (_, i) => ({
-    number: i + 1,
-    amount: loan.monthlyPayment,
-    paid: i < loan.paidInstalments,
-    overdue: loan.status === "overdue" && i === loan.paidInstalments,
-  }));
+  if (isLoading || !loan) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator
+          size="large"
+          color={Colors.gold}
+          style={{ flex: 1 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  const borrowerName = loan.borrowerName ?? "Unknown";
+  const progress = loan.totalInstalments
+    ? loan.paidInstalments / loan.totalInstalments
+    : 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -51,9 +64,7 @@ export default function LoanDetailScreen() {
           </View>
           <View>
             <Text style={styles.borrowerName}>{borrowerName}</Text>
-            <Text style={styles.borrowerMeta}>
-              {loan.type === "personal" ? "Personal" : "Business"} Loan
-            </Text>
+            <Text style={styles.borrowerMeta}>#{loan.id.slice(0, 8)}</Text>
           </View>
           <View style={{ flex: 1 }} />
           <Badge
@@ -78,7 +89,7 @@ export default function LoanDetailScreen() {
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Interest Rate</Text>
-            <Text style={styles.cardValue}>{loan.interestRate}%/mo</Text>
+            <Text style={styles.cardValue}>{loan.interestRate}%/yr</Text>
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Duration</Text>
@@ -115,46 +126,52 @@ export default function LoanDetailScreen() {
           />
         </View>
 
-        {/* Payment Schedule */}
+        {/* Repayment History */}
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Payment Schedule</Text>
-          {schedule.map((item) => (
-            <View
-              key={item.number}
-              style={[
-                styles.scheduleRow,
-                item.number === schedule.length && { borderBottomWidth: 0 },
-              ]}
-            >
-              <Text style={styles.scheduleNum}>#{item.number}</Text>
-              <Text style={styles.scheduleAmount}>
-                UGX {item.amount.toLocaleString()}
-              </Text>
-              {item.paid ? (
-                <View style={styles.paidBadge}>
-                  <Ionicons
-                    name="checkmark-circle"
-                    size={16}
-                    color={Colors.success}
-                  />
-                  <Text style={styles.paidText}>Paid</Text>
-                </View>
-              ) : item.overdue ? (
-                <View style={styles.paidBadge}>
-                  <Ionicons
-                    name="alert-circle"
-                    size={16}
-                    color={Colors.danger}
-                  />
-                  <Text style={[styles.paidText, { color: Colors.danger }]}>
-                    Overdue
-                  </Text>
-                </View>
-              ) : (
-                <Text style={styles.pendingText}>Pending</Text>
-              )}
-            </View>
-          ))}
+          <Text style={styles.sectionTitle}>Repayment History</Text>
+          {loan.repayments.length === 0 ? (
+            <Text style={styles.emptyText}>
+              No repayments have been made on this loan yet.
+            </Text>
+          ) : (
+            loan.repayments.map((r, i) => (
+              <View
+                key={r.id}
+                style={[
+                  styles.scheduleRow,
+                  i === loan.repayments.length - 1 && { borderBottomWidth: 0 },
+                ]}
+              >
+                <Text style={styles.scheduleNum}>#{r.instalmentNumber}</Text>
+                <Text style={styles.scheduleAmount}>
+                  UGX {r.amount.toLocaleString()}
+                </Text>
+                {r.status === "completed" ? (
+                  <View style={styles.paidBadge}>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={16}
+                      color={Colors.success}
+                    />
+                    <Text style={styles.paidText}>Paid</Text>
+                  </View>
+                ) : r.status === "failed" ? (
+                  <View style={styles.paidBadge}>
+                    <Ionicons
+                      name="alert-circle"
+                      size={16}
+                      color={Colors.danger}
+                    />
+                    <Text style={[styles.paidText, { color: Colors.danger }]}>
+                      Failed
+                    </Text>
+                  </View>
+                ) : (
+                  <Text style={styles.pendingText}>Pending</Text>
+                )}
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -237,4 +254,5 @@ const styles = StyleSheet.create({
   paidBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
   paidText: { ...Typography.smallMedium, color: Colors.success },
   pendingText: { ...Typography.smallMedium, color: Colors.textMuted },
+  emptyText: { ...Typography.body, color: Colors.textMuted },
 });

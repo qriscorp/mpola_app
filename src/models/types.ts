@@ -33,17 +33,30 @@ export interface Loan {
   id: string;
   borrowerId: string;
   lenderId?: string;
+  borrowerName?: string | null;
+  lenderName?: string | null;
   amount: number;
   duration: number; // months
   type: LoanType;
   interestRate: number;
   monthlyPayment: number;
   totalRepayable: number;
+  totalPaid?: number;
   status: LoanStatus;
   paidInstalments: number;
   totalInstalments: number;
   nextPaymentDate?: string;
   nextPaymentAmount?: number;
+  createdAt: string;
+}
+
+export interface LoanRepaymentRecord {
+  id: string;
+  amount: number;
+  instalmentNumber: number;
+  status: string;
+  paymentMethod: string | null;
+  transactionId: string | null;
   createdAt: string;
 }
 
@@ -206,4 +219,14 @@ export interface EarningsBreakdown {
 export interface MonthlyEarning {
   month: string;
   amount: number;
+}
+
+export interface LenderEarnings {
+  totalDeployed: number;
+  activeLoans: number;
+  totalRepaid: number;
+  totalEarned: number;
+  thisMonthEarned: number;
+  avgYield: number;
+  monthlyEarnings: MonthlyEarning[];
 }

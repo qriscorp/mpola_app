@@ -10,13 +10,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Typography, Spacing } from "../../src/theme";
 import { Card, StatCard } from "../../src/components";
 import { useEarningsViewModel } from "../../src/viewmodels";
 
 export default function EarningsScreen() {
   const router = useRouter();
-  const { stats, breakdown, monthly, isLoading } = useEarningsViewModel();
+  const { earnings, monthly, isLoading } = useEarningsViewModel();
 
   if (isLoading) {
     return (
@@ -49,57 +49,59 @@ export default function EarningsScreen() {
         <View style={styles.statsRow}>
           <StatCard
             label="Total Earned"
-            value={`UGX ${((stats?.totalEarned ?? 0) / 1000000).toFixed(1)}M`}
+            value={`UGX ${((earnings?.totalEarned ?? 0) / 1000000).toFixed(1)}M`}
             color={Colors.gold}
           />
           <View style={{ width: Spacing.sm }} />
           <StatCard
             label="This Month"
-            value={`UGX ${((stats?.thisMonthEarned ?? 0) / 1000).toFixed(0)}K`}
+            value={`UGX ${((earnings?.thisMonthEarned ?? 0) / 1000).toFixed(0)}K`}
             color={Colors.teal}
           />
         </View>
+        <View style={styles.statsRow}>
+          <StatCard
+            label="Avg Yield"
+            value={`${(earnings?.avgYield ?? 0).toFixed(1)}%`}
+            color={Colors.teal}
+          />
+          <View style={{ width: Spacing.sm }} />
+          <StatCard
+            label="Active Loans"
+            value={String(earnings?.activeLoans ?? 0)}
+            color={Colors.gold}
+          />
+        </View>
 
-        {/* Monthly Chart Placeholder */}
+        {/* Monthly Chart */}
         <Card style={styles.chartCard}>
           <Text style={styles.chartTitle}>Monthly Earnings</Text>
-          <View style={styles.chartContainer}>
-            {monthly.map((m) => {
-              const maxAmount = Math.max(...monthly.map((e) => e.amount));
-              const barHeight =
-                maxAmount > 0 ? (m.amount / maxAmount) * 120 : 0;
-              return (
-                <View key={m.month} style={styles.barCol}>
-                  <View
-                    style={[
-                      styles.bar,
-                      { height: barHeight, backgroundColor: Colors.gold },
-                    ]}
-                  />
-                  <Text style={styles.barLabel}>{m.month}</Text>
-                </View>
-              );
-            })}
-          </View>
+          {monthly.length === 0 ? (
+            <Text style={styles.emptyText}>No earnings recorded yet.</Text>
+          ) : (
+            <View style={styles.chartContainer}>
+              {monthly.map((m) => {
+                const maxAmount = Math.max(...monthly.map((e) => e.amount), 1);
+                const barHeight = (m.amount / maxAmount) * 120;
+                return (
+                  <View key={m.month} style={styles.barCol}>
+                    <View
+                      style={[
+                        styles.bar,
+                        { height: Math.max(4, barHeight), backgroundColor: Colors.gold },
+                      ]}
+                    />
+                    <Text style={styles.barLabel}>
+                      {new Date(`${m.month}-01`).toLocaleString("en-US", {
+                        month: "short",
+                      })}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </Card>
-
-        {/* Per-Loan Earnings */}
-        <Text style={styles.sectionTitle}>Earnings by Borrower</Text>
-        {breakdown.map((item) => (
-          <View key={item.borrowerName} style={styles.breakdownRow}>
-            <View style={styles.breakdownAvatar}>
-              <Text style={styles.breakdownInitial}>
-                {item.borrowerName[0]}
-              </Text>
-            </View>
-            <View style={styles.breakdownInfo}>
-              <Text style={styles.breakdownName}>{item.borrowerName}</Text>
-            </View>
-            <Text style={styles.breakdownAmount}>
-              UGX {item.totalEarnings.toLocaleString()}
-            </Text>
-          </View>
-        ))}
       </ScrollView>
     </SafeAreaView>
   );
@@ -137,30 +139,10 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: Spacing.xs,
   },
-  sectionTitle: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
+  emptyText: {
+    ...Typography.body,
+    color: Colors.textMuted,
+    textAlign: "center",
+    paddingVertical: Spacing.xl,
   },
-  breakdownRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-    padding: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.sm,
-  },
-  breakdownAvatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.gold + "25",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
-  breakdownInitial: { ...Typography.bodyMedium, color: Colors.gold },
-  breakdownInfo: { flex: 1 },
-  breakdownName: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  breakdownAmount: { ...Typography.bodySemibold, color: Colors.gold },
 });

@@ -1,16 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchEarnings } from "../services";
+import { fetchLenderEarnings } from "../services";
 
 export function useEarningsViewModel() {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["lender", "earnings"],
-    queryFn: fetchEarnings,
+    queryFn: fetchLenderEarnings,
   });
 
   return {
-    stats: data?.stats,
-    breakdown: data?.breakdown ?? [],
-    monthly: data?.monthly ?? [],
+    earnings: data,
+    monthly: data?.monthlyEarnings ?? [],
     isLoading,
     error,
     refetch,

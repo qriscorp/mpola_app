@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchPortfolio } from "../services";
+import { fetchPortfolio, fetchLenderEarnings } from "../services";
 import type { LoanStatus } from "../models";
 
 export function usePortfolioViewModel() {
@@ -16,12 +16,21 @@ export function usePortfolioViewModel() {
     queryFn: fetchPortfolio,
   });
 
+  const { data: earnings } = useQuery({
+    queryKey: ["lender", "earnings"],
+    queryFn: fetchLenderEarnings,
+  });
+
   const loans = allLoans.filter((l) => filter === "all" || l.status === filter);
 
-  const totalLent = 12400000;
-  const totalEarned = 1860000;
-  const repaymentRate = 94;
-  const totalActive = allLoans.filter((l) => l.status === "active").length;
+  const totalLent = allLoans.reduce((sum, l) => sum + l.amount, 0);
+  const totalEarned = earnings?.totalEarned ?? 0;
+  const totalPaid = allLoans.reduce((sum, l) => sum + (l.totalPaid ?? 0), 0);
+  const totalOwed = allLoans.reduce((sum, l) => sum + l.totalRepayable, 0);
+  const repaymentRate = totalOwed ? Math.round((totalPaid / totalOwed) * 100) : 0;
+  const totalActive = allLoans.filter(
+    (l) => l.status === "active" || l.status === "overdue",
+  ).length;
 
   const filters = ["all", "active", "completed", "overdue"] as const;
 

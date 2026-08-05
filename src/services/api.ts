@@ -24,8 +24,8 @@ import type {
   BorrowerStats,
   LenderStats,
   Notification,
-  EarningsBreakdown,
   MonthlyEarning,
+  LenderEarnings,
 } from "../models";
 import * as mock from "./mockData";
 import { apiAuthGet, apiAuthPost, apiAuthPatch, apiAuthUpload } from "./auth";
@@ -187,6 +187,8 @@ interface RawLoan {
   id: string;
   borrower_id: string;
   lender_id: string;
+  borrower_name?: string | null;
+  lender_name?: string | null;
   amount: number;
   interest_rate: number;
   duration: number;
@@ -202,22 +204,47 @@ interface RawLoan {
   created_at: string;
 }
 
+interface RawRepayment {
+  id: string;
+  amount: number;
+  instalment_number: number;
+  status: string;
+  payment_method: string | null;
+  transaction_id: string | null;
+  created_at: string;
+}
+
 function mapLoan(raw: RawLoan): Loan {
   return {
     id: raw.id,
     borrowerId: raw.borrower_id,
     lenderId: raw.lender_id,
+    borrowerName: raw.borrower_name ?? null,
+    lenderName: raw.lender_name ?? null,
     amount: raw.amount,
     duration: raw.duration,
     type: "personal", // the active-loan API doesn't return a loan type today
     interestRate: raw.interest_rate,
     monthlyPayment: raw.monthly_payment,
     totalRepayable: raw.total_repayable,
+    totalPaid: raw.total_paid,
     status: raw.status as LoanStatus,
     paidInstalments: raw.paid_instalments,
     totalInstalments: raw.total_instalments,
     nextPaymentDate: raw.next_payment_date ?? undefined,
     nextPaymentAmount: raw.next_payment_amount ?? undefined,
+    createdAt: raw.created_at,
+  };
+}
+
+function mapRepayment(raw: RawRepayment) {
+  return {
+    id: raw.id,
+    amount: raw.amount,
+    instalmentNumber: raw.instalment_number,
+    status: raw.status,
+    paymentMethod: raw.payment_method,
+    transactionId: raw.transaction_id,
     createdAt: raw.created_at,
   };
 }
@@ -230,6 +257,18 @@ export async function fetchActiveLoan(): Promise<Loan | null> {
     res.loans.find((l) => l.status === "active" || l.status === "overdue") ??
     res.loans[0];
   return raw ? mapLoan(raw) : null;
+}
+
+export async function fetchLoanDetail(
+  loanId: string,
+): Promise<Loan & { repayments: ReturnType<typeof mapRepayment>[] }> {
+  const raw = await apiAuthGet<RawLoan & { repayments?: RawRepayment[] }>(
+    `/loans/active/${loanId}`,
+  );
+  return {
+    ...mapLoan(raw),
+    repayments: (raw.repayments ?? []).map(mapRepayment),
+  };
 }
 
 export async function makeRepayment(data: {
@@ -540,11 +579,13 @@ export async function makeOffer(data: {
 export async function fetchPortfolio(): Promise<
   (Loan & { borrowerName: string; progress: number })[]
 > {
-  await delay();
-  return mock.portfolioLoans.map((l) => ({
+  const res = await apiAuthGet<{ total: number; loans: RawLoan[] }>(
+    "/loans/active?limit=100",
+  );
+  return res.loans.map(mapLoan).map((l) => ({
     ...l,
-    borrowerName: mock.portfolioBorrowerNames[l.id] ?? "Unknown",
-    progress: l.paidInstalments / l.totalInstalments,
+    borrowerName: l.borrowerName ?? "Unknown",
+    progress: l.totalInstalments ? l.paidInstalments / l.totalInstalments : 0,
   }));
 }
 
@@ -556,12 +597,26 @@ export async function fetchLenderWallet(): Promise<Wallet> {
 
 // ─── Earnings ───────────────────────────────────────────
 
-export async function fetchEarnings() {
-  await delay();
+interface RawLenderEarnings {
+  total_deployed: number;
+  active_loans: number;
+  total_repaid: number;
+  total_earned: number;
+  this_month_earned: number;
+  avg_yield: number;
+  monthly_earnings: MonthlyEarning[];
+}
+
+export async function fetchLenderEarnings(): Promise<LenderEarnings> {
+  const raw = await apiAuthGet<RawLenderEarnings>("/loans/earnings");
   return {
-    stats: mock.lenderStats,
-    breakdown: mock.earningsBreakdown,
-    monthly: mock.monthlyEarnings,
+    totalDeployed: raw.total_deployed,
+    activeLoans: raw.active_loans,
+    totalRepaid: raw.total_repaid,
+    totalEarned: raw.total_earned,
+    thisMonthEarned: raw.this_month_earned,
+    avgYield: raw.avg_yield,
+    monthlyEarnings: raw.monthly_earnings,
   };
 }
 
