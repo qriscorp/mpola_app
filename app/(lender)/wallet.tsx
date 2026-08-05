@@ -11,13 +11,35 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Card, TransactionItem, WalletSetupModal } from "../../src/components";
+import {
+  Card,
+  TransactionItem,
+  WalletSetupModal,
+  WalletDepositModal,
+  WalletWithdrawModal,
+} from "../../src/components";
 import { useLenderWalletViewModel } from "../../src/viewmodels";
 
 export default function LenderWalletScreen() {
-  const { wallet, isLoading, setupWallet, isSettingUp } =
-    useLenderWalletViewModel();
+  const {
+    wallet,
+    isLoading,
+    setupWallet,
+    isSettingUp,
+    depositMobileMoney,
+    isDepositingMobileMoney,
+    depositWithCard,
+    isDepositingWithCard,
+    withdrawMobileMoney,
+    isWithdrawingMobileMoney,
+    withdrawWithBank,
+    isWithdrawingWithBank,
+    banks,
+    banksLoading,
+  } = useLenderWalletViewModel();
   const [setupVisible, setSetupVisible] = useState(false);
+  const [depositVisible, setDepositVisible] = useState(false);
+  const [withdrawVisible, setWithdrawVisible] = useState(false);
 
   const handleSetup = async (pin: string) => {
     try {
@@ -82,7 +104,10 @@ export default function LenderWalletScreen() {
             </>
           ) : (
             <View style={styles.balanceActions}>
-              <TouchableOpacity style={styles.depositBtn}>
+              <TouchableOpacity
+                style={styles.depositBtn}
+                onPress={() => setDepositVisible(true)}
+              >
                 <Ionicons
                   name="add-circle-outline"
                   size={18}
@@ -90,7 +115,10 @@ export default function LenderWalletScreen() {
                 />
                 <Text style={styles.depositText}>Deposit</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.withdrawBtn}>
+              <TouchableOpacity
+                style={styles.withdrawBtn}
+                onPress={() => setWithdrawVisible(true)}
+              >
                 <Ionicons
                   name="arrow-up-circle-outline"
                   size={18}
@@ -107,6 +135,28 @@ export default function LenderWalletScreen() {
           onClose={() => setSetupVisible(false)}
           onSubmit={handleSetup}
           loading={isSettingUp}
+          accentColor={Colors.gold}
+        />
+
+        <WalletDepositModal
+          visible={depositVisible}
+          onClose={() => setDepositVisible(false)}
+          onDepositMobileMoney={depositMobileMoney}
+          onDepositCard={depositWithCard}
+          isSubmittingMobileMoney={isDepositingMobileMoney}
+          isSubmittingCard={isDepositingWithCard}
+          accentColor={Colors.gold}
+        />
+
+        <WalletWithdrawModal
+          visible={withdrawVisible}
+          onClose={() => setWithdrawVisible(false)}
+          onWithdrawMobileMoney={withdrawMobileMoney}
+          onWithdrawBank={withdrawWithBank}
+          banks={banks}
+          banksLoading={banksLoading}
+          isSubmittingMobileMoney={isWithdrawingMobileMoney}
+          isSubmittingBank={isWithdrawingWithBank}
           accentColor={Colors.gold}
         />
 

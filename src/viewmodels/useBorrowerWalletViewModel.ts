@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchBorrowerWallet, submitPayment, setupWallet } from "../services";
+import { useWalletTransactions } from "./useWalletTransactions";
 import type { PaymentMethod } from "../models";
 
 export function useBorrowerWalletViewModel() {
@@ -22,6 +23,8 @@ export function useBorrowerWalletViewModel() {
     },
   });
 
+  const transactions = useWalletTransactions();
+
   return {
     wallet,
     isLoading,
@@ -30,6 +33,7 @@ export function useBorrowerWalletViewModel() {
     setupWallet: setupMutation.mutateAsync,
     isSettingUp: setupMutation.isPending,
     setupError: setupMutation.error,
+    ...transactions,
   };
 }
 

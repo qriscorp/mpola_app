@@ -10,6 +10,9 @@ import type {
   Wallet,
   Transaction,
   TransactionType,
+  BankOption,
+  CardDepositInitiateResult,
+  TransferStatusResult,
   BorrowerStats,
   LenderStats,
   BorrowerProfile,
@@ -72,6 +75,73 @@ export async function setupWallet(
   pin: string,
 ): Promise<{ status: number; message: string }> {
   return apiAuthPost("/wallet/setup", { pin });
+}
+
+// Mobile money — synchronous, backed by UPG collect/disburse.
+export async function depositMobileMoney(data: {
+  amount: number;
+  phone: string;
+  carrier?: string;
+}): Promise<{ status: number; message: string; balance: number }> {
+  return apiAuthPost("/wallet/deposit", data);
+}
+
+export async function withdrawMobileMoney(data: {
+  amount: number;
+  phone: string;
+  carrier?: string;
+}): Promise<{ status: number; message: string; balance: number }> {
+  return apiAuthPost("/wallet/withdraw", data);
+}
+
+// Card — Flutterwave hosted checkout, async: initiate then poll status.
+export async function initiateCardDeposit(data: {
+  amount: number;
+  redirectUrl: string;
+}): Promise<CardDepositInitiateResult> {
+  const res = await apiAuthPost<{ checkout_url: string; reference: string }>(
+    "/wallet/deposit/card/initiate",
+    { amount: data.amount, redirect_url: data.redirectUrl },
+  );
+  return { checkoutUrl: res.checkout_url, reference: res.reference };
+}
+
+export async function getCardDepositStatus(
+  reference: string,
+): Promise<TransferStatusResult> {
+  return apiAuthGet(`/wallet/deposit/card/status/${reference}`);
+}
+
+// Bank transfer — Flutterwave payout, async: initiate then poll status.
+export async function getBanks(
+  countryCode: string = "UG",
+): Promise<BankOption[]> {
+  const res = await apiAuthGet<{ country_code: string; banks: BankOption[] }>(
+    `/wallet/banks/${countryCode}`,
+  );
+  return res.banks;
+}
+
+export async function initiateBankWithdraw(data: {
+  amount: number;
+  accountBank: string;
+  accountNumber: string;
+  beneficiaryName: string;
+  narration?: string;
+}): Promise<{ reference: string; status: string }> {
+  return apiAuthPost("/wallet/withdraw/bank/initiate", {
+    amount: data.amount,
+    account_bank: data.accountBank,
+    account_number: data.accountNumber,
+    beneficiary_name: data.beneficiaryName,
+    narration: data.narration,
+  });
+}
+
+export async function getBankWithdrawStatus(
+  reference: string,
+): Promise<TransferStatusResult> {
+  return apiAuthGet(`/wallet/withdraw/bank/status/${reference}`);
 }
 
 async function fetchWallet(): Promise<Wallet> {

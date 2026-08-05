@@ -9,12 +9,33 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { TransactionItem, WalletSetupModal } from "../../src/components";
+import {
+  TransactionItem,
+  WalletSetupModal,
+  WalletDepositModal,
+  WalletWithdrawModal,
+} from "../../src/components";
 import { useBorrowerWalletViewModel } from "../../src/viewmodels";
 
 export default function WalletScreen() {
-  const { wallet, setupWallet, isSettingUp } = useBorrowerWalletViewModel();
+  const {
+    wallet,
+    setupWallet,
+    isSettingUp,
+    depositMobileMoney,
+    isDepositingMobileMoney,
+    depositWithCard,
+    isDepositingWithCard,
+    withdrawMobileMoney,
+    isWithdrawingMobileMoney,
+    withdrawWithBank,
+    isWithdrawingWithBank,
+    banks,
+    banksLoading,
+  } = useBorrowerWalletViewModel();
   const [setupVisible, setSetupVisible] = useState(false);
+  const [depositVisible, setDepositVisible] = useState(false);
+  const [withdrawVisible, setWithdrawVisible] = useState(false);
 
   const handleSetup = async (pin: string) => {
     try {
@@ -58,10 +79,16 @@ export default function WalletScreen() {
             </>
           ) : (
             <View style={styles.balanceActions}>
-              <TouchableOpacity style={styles.topUpBtn}>
+              <TouchableOpacity
+                style={styles.topUpBtn}
+                onPress={() => setDepositVisible(true)}
+              >
                 <Text style={styles.topUpText}>+ Top Up</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.withdrawBtn}>
+              <TouchableOpacity
+                style={styles.withdrawBtn}
+                onPress={() => setWithdrawVisible(true)}
+              >
                 <Text style={styles.withdrawText}>Withdraw</Text>
               </TouchableOpacity>
             </View>
@@ -73,6 +100,28 @@ export default function WalletScreen() {
           onClose={() => setSetupVisible(false)}
           onSubmit={handleSetup}
           loading={isSettingUp}
+          accentColor={Colors.teal}
+        />
+
+        <WalletDepositModal
+          visible={depositVisible}
+          onClose={() => setDepositVisible(false)}
+          onDepositMobileMoney={depositMobileMoney}
+          onDepositCard={depositWithCard}
+          isSubmittingMobileMoney={isDepositingMobileMoney}
+          isSubmittingCard={isDepositingWithCard}
+          accentColor={Colors.teal}
+        />
+
+        <WalletWithdrawModal
+          visible={withdrawVisible}
+          onClose={() => setWithdrawVisible(false)}
+          onWithdrawMobileMoney={withdrawMobileMoney}
+          onWithdrawBank={withdrawWithBank}
+          banks={banks}
+          banksLoading={banksLoading}
+          isSubmittingMobileMoney={isWithdrawingMobileMoney}
+          isSubmittingBank={isWithdrawingWithBank}
           accentColor={Colors.teal}
         />
 

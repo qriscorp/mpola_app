@@ -142,6 +142,21 @@ export interface Wallet {
   transactions: Transaction[];
 }
 
+export interface BankOption {
+  code: string;
+  name: string;
+}
+
+export interface CardDepositInitiateResult {
+  checkoutUrl: string;
+  reference: string;
+}
+
+export interface TransferStatusResult {
+  status: "pending" | "completed" | "failed";
+  balance: number;
+}
+
 export type PaymentMethod = "wallet" | "momo" | "airtel";
 
 export interface PaymentDetails {
