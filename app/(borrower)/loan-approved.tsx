@@ -1,12 +1,18 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 
 export default function LoanApprovedScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    lenderName?: string;
+    amount?: string;
+    interestRate?: string;
+    totalRepayable?: string;
+  }>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -18,7 +24,8 @@ export default function LoanApprovedScreen() {
 
         <Text style={styles.title}>Offer Accepted!</Text>
         <Text style={styles.sub}>
-          James Mugisha will disburse within 24 hours.
+          {params.lenderName ?? "Your lender"} will disburse to your mobile
+          money shortly.
         </Text>
 
         {/* Details Card */}
@@ -26,16 +33,24 @@ export default function LoanApprovedScreen() {
           {[
             {
               label: "Lender",
-              value: "James Mugisha",
+              value: params.lenderName ?? "—",
               color: Colors.textPrimary,
             },
             {
               label: "Amount",
-              value: "UGX 8,000,000",
+              value: `UGX ${Number(params.amount ?? 0).toLocaleString()}`,
               color: Colors.textPrimary,
             },
-            { label: "Rate", value: "5%/month", color: Colors.teal },
-            { label: "Total", value: "UGX 9,200,000", color: Colors.teal },
+            {
+              label: "Rate",
+              value: `${params.interestRate ?? "—"}% p.a.`,
+              color: Colors.teal,
+            },
+            {
+              label: "Total",
+              value: `UGX ${Number(params.totalRepayable ?? 0).toLocaleString()}`,
+              color: Colors.teal,
+            },
           ].map((row, i, arr) => (
             <View
               key={row.label}

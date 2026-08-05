@@ -8,6 +8,7 @@ interface Props {
   onChangeText: (text: string) => void;
   placeholder?: string;
   keyboardType?: "default" | "numeric" | "email-address" | "phone-pad";
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
   secureTextEntry?: boolean;
   prefix?: string;
   error?: string;
@@ -22,6 +23,7 @@ export function Input({
   onChangeText,
   placeholder,
   keyboardType = "default",
+  autoCapitalize = "sentences",
   secureTextEntry,
   prefix,
   error,
@@ -40,6 +42,7 @@ export function Input({
           placeholder={placeholder}
           placeholderTextColor={Colors.textMuted}
           keyboardType={keyboardType}
+          autoCapitalize={autoCapitalize}
           secureTextEntry={secureTextEntry}
           style={[styles.input, multiline && styles.multiline]}
           multiline={multiline}

@@ -262,6 +262,56 @@ export async function apiAuthPost<T>(path: string, body: unknown): Promise<T> {
   return res.json();
 }
 
+/** PATCH with the stored access token attached — for endpoints that require auth. */
+/** POST multipart/form-data with the stored access token attached — for file uploads. */
+export async function apiAuthUpload<T>(
+  path: string,
+  formData: FormData,
+): Promise<T> {
+  const token = await getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: formData,
+  });
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new Error("Session expired");
+  }
+  if (!res.ok) {
+    const err = await res
+      .json()
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+    throw new Error(err.detail || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function apiAuthPatch<T>(path: string, body: unknown): Promise<T> {
+  const token = await getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new Error("Session expired");
+  }
+  if (!res.ok) {
+    const err = await res
+      .json()
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+    throw new Error(err.detail || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 function mapSignupDraft(payload: SignupDraftPayload): SignupDraftState {
   return {
     draftId: payload.draft_id,

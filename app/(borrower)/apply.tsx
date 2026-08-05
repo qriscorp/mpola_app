@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -17,15 +18,45 @@ import type { LoanType } from "../../src/models";
 const loanTypeLabels: Record<LoanType, string> = {
   personal: "Personal",
   business: "Business",
-  real_estate: "Real Estate",
   education: "Education",
+  agricultural: "Agricultural",
+  emergency: "Emergency",
 };
 
 export default function ApplyScreen() {
   const router = useRouter();
   const vm = useApplyViewModel();
 
-  const stepLabels = ["Details", "Docs", "Guarantors", "Lenders", "Review"];
+  const [guarantorName, setGuarantorName] = useState("");
+  const [guarantorPhone, setGuarantorPhone] = useState("");
+
+  const stepLabels = ["Details", "Docs", "Guarantors", "Review"];
+
+  const handleAddGuarantor = () => {
+    if (!guarantorName.trim() || !guarantorPhone.trim()) return;
+    vm.addGuarantor({
+      name: guarantorName,
+      phone: guarantorPhone,
+      relationshipType: "Other",
+    });
+    setGuarantorName("");
+    setGuarantorPhone("");
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const res = await vm.submitApplication();
+      router.push({
+        pathname: "/(borrower)/application-sent",
+        params: { referenceNumber: res.referenceNumber },
+      });
+    } catch (e) {
+      Alert.alert(
+        "Submission failed",
+        e instanceof Error ? e.message : "Please try again.",
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -92,6 +123,7 @@ export default function ApplyScreen() {
               onChangeText={vm.setAmount}
               prefix="UGX"
               keyboardType="numeric"
+              error={vm.detailsErrors.amount}
             />
 
             <Text style={styles.sectionLabel}>Duration</Text>
@@ -137,13 +169,23 @@ export default function ApplyScreen() {
               ))}
             </View>
 
+            <Input
+              label="Purpose (optional)"
+              value={vm.purpose}
+              onChangeText={vm.setPurpose}
+              placeholder="What's the loan for?"
+              multiline
+            />
+
             <Card style={styles.estimateCard}>
-              <Text style={styles.estimateLabel}>Estimated Repayment</Text>
+              <Text style={styles.estimateLabel}>
+                Estimated Repayment ({vm.interestRate}% p.a.)
+              </Text>
               <Text style={styles.estimateAmount}>
                 ~UGX {vm.monthlyPayment.toLocaleString()}/month
               </Text>
               <Text style={styles.estimateTotal}>
-                UGX {vm.totalRepayable.toLocaleString()} total
+                UGX {Math.round(vm.totalRepayable).toLocaleString()} total
               </Text>
             </Card>
 
@@ -159,6 +201,9 @@ export default function ApplyScreen() {
         {vm.step === 2 && (
           <>
             <Text style={styles.sectionLabel}>Required Documents</Text>
+            <Text style={styles.docsNote}>
+              Optional for now — not required to submit your application.
+            </Text>
             {vm.documents
               .filter((d) => d.required)
               .map((doc) => (
@@ -226,59 +271,45 @@ export default function ApplyScreen() {
         {/* Step 3: Guarantors */}
         {vm.step === 3 && (
           <>
+            <Text style={styles.docsNote}>
+              Add at least 2 guarantors. They&apos;ll be attached to your
+              application when you submit.
+            </Text>
+
             {vm.guarantors.map((g) => (
               <Card key={g.id} style={styles.guarantorCard}>
                 <View style={styles.guarantorHeader}>
                   <Text style={styles.guarantorName}>{g.name}</Text>
-                  <View
-                    style={[
-                      styles.guarantorBadge,
-                      {
-                        backgroundColor:
-                          g.status === "accepted"
-                            ? Colors.successBg
-                            : Colors.warningBg,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        ...Typography.caption,
-                        fontWeight: "600",
-                        color:
-                          g.status === "accepted"
-                            ? Colors.success
-                            : Colors.warning,
-                      }}
-                    >
-                      {g.status === "accepted" ? "Accepted ✓" : "Pending"}
-                    </Text>
-                  </View>
+                  <TouchableOpacity onPress={() => vm.removeGuarantor(g.id)}>
+                    <Text style={styles.removeText}>Remove</Text>
+                  </TouchableOpacity>
                 </View>
-                <Text style={styles.guarantorPhone}>{g.phone}</Text>
-                <Text style={styles.guarantorLabel}>
-                  Guarantor {g.order} of 2
+                <Text style={styles.guarantorPhone}>
+                  {g.phone} · {g.relationshipType}
                 </Text>
-                {g.status === "pending" && (
-                  <Text style={styles.smsNote}>SMS invite sent</Text>
-                )}
               </Card>
             ))}
 
-            <TouchableOpacity style={styles.addGuarantor}>
-              <Ionicons name="add" size={20} color={Colors.teal} />
-              <Text style={styles.addGuarantorText}>Add Another Guarantor</Text>
-            </TouchableOpacity>
-
-            <Card style={styles.infoBox}>
-              <Ionicons
-                name="information-circle-outline"
-                size={18}
-                color={Colors.info}
+            <Card style={styles.addGuarantorCard}>
+              <Input
+                label="Full Name"
+                value={guarantorName}
+                onChangeText={setGuarantorName}
+                placeholder="Guarantor full name"
               />
-              <Text style={styles.infoText}>
-                Both guarantors must accept before you can proceed
-              </Text>
+              <Input
+                label="Phone Number"
+                value={guarantorPhone}
+                onChangeText={setGuarantorPhone}
+                placeholder="+256 7XX XXX XXX"
+                keyboardType="phone-pad"
+              />
+              <Button
+                title="Add Guarantor"
+                onPress={handleAddGuarantor}
+                color={Colors.teal}
+                variant="outline"
+              />
             </Card>
 
             <Button
@@ -289,64 +320,8 @@ export default function ApplyScreen() {
           </>
         )}
 
-        {/* Step 4: Choose Lenders */}
+        {/* Step 4: Review */}
         {vm.step === 4 && (
-          <>
-            {vm.lenders.map((lender) => {
-              const selected = vm.selectedLenders.includes(lender.id);
-              return (
-                <TouchableOpacity
-                  key={lender.id}
-                  onPress={() => vm.toggleLender(lender.id)}
-                  style={[
-                    styles.lenderCard,
-                    selected && styles.lenderCardSelected,
-                  ]}
-                >
-                  <View style={styles.lenderHeader}>
-                    <Text style={styles.lenderName}>{lender.name}</Text>
-                    {lender.recommended && (
-                      <View style={styles.recommendedBadge}>
-                        <Text style={styles.recommendedText}>
-                          ★ Recommended
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.lenderRate}>
-                    {lender.repaymentRate}% repayment rate
-                  </Text>
-                  <View style={styles.lenderDetails}>
-                    <Text style={styles.lenderDetail}>
-                      {lender.interestRate}%/mo
-                    </Text>
-                    <Text style={styles.lenderDetail}>
-                      UGX {(lender.maxAmount / 1000000).toFixed(0)}M max
-                    </Text>
-                  </View>
-                  {selected && (
-                    <View style={styles.selectedCheck}>
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={22}
-                        color={Colors.teal}
-                      />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-            <View style={{ height: Spacing.lg }} />
-            <Button
-              title="Next: Review & Submit →"
-              onPress={vm.nextStep}
-              color={Colors.teal}
-            />
-          </>
-        )}
-
-        {/* Step 5: Review */}
-        {vm.step === 5 && (
           <>
             <Card style={{ marginBottom: Spacing.md }}>
               <View style={styles.reviewRow}>
@@ -365,6 +340,10 @@ export default function ApplyScreen() {
                 <Text style={styles.reviewLabel}>Duration</Text>
                 <Text style={styles.reviewValue}>{vm.duration} months</Text>
               </View>
+              <View style={[styles.reviewRow, { borderBottomWidth: 0 }]}>
+                <Text style={styles.reviewLabel}>Rate</Text>
+                <Text style={styles.reviewValue}>{vm.interestRate}% p.a.</Text>
+              </View>
             </Card>
 
             <Card style={{ marginBottom: Spacing.md }}>
@@ -375,34 +354,24 @@ export default function ApplyScreen() {
               </Text>
             </Card>
 
-            <Card style={{ marginBottom: Spacing.md }}>
-              <Text style={styles.reviewSection}>Guarantors</Text>
-              {vm.guarantors.map((g) => (
-                <Text key={g.id} style={styles.reviewDetail}>
-                  {g.name} —{" "}
-                  {g.status === "accepted" ? "✓ Confirmed" : "Pending"}
-                </Text>
-              ))}
-            </Card>
-
             <Card style={{ marginBottom: Spacing.xxl }}>
-              <Text style={styles.reviewSection}>Selected Lender</Text>
-              {vm.lenders
-                .filter((l) => vm.selectedLenders.includes(l.id))
-                .map((l) => (
-                  <Text key={l.id} style={styles.reviewDetail}>
-                    {l.name} — {l.interestRate}%/mo
+              <Text style={styles.reviewSection}>Guarantors</Text>
+              {vm.guarantors.length === 0 ? (
+                <Text style={styles.reviewDetail}>None added</Text>
+              ) : (
+                vm.guarantors.map((g) => (
+                  <Text key={g.id} style={styles.reviewDetail}>
+                    {g.name} — {g.phone}
                   </Text>
-                ))}
+                ))
+              )}
             </Card>
 
             <Button
               title="Submit Application 🚀"
-              onPress={async () => {
-                await vm.submitApplication();
-                router.push("/(borrower)/application-sent");
-              }}
+              onPress={handleSubmit}
               color={Colors.teal}
+              loading={vm.submitting}
             />
           </>
         )}
@@ -459,6 +428,11 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     letterSpacing: 0.8,
     textTransform: "uppercase",
+  },
+  docsNote: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginBottom: Spacing.lg,
   },
   chips: {
     flexDirection: "row",
@@ -538,89 +512,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   guarantorName: { ...Typography.h4, color: Colors.textPrimary },
-  guarantorBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
+  removeText: { ...Typography.smallMedium, color: Colors.danger },
   guarantorPhone: {
     ...Typography.body,
     color: Colors.textSecondary,
     marginTop: 4,
   },
-  guarantorLabel: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginTop: 2,
-  },
-  smsNote: {
-    ...Typography.small,
-    color: Colors.warning,
-    fontStyle: "italic",
-    marginTop: 4,
-  },
-  addGuarantor: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    paddingVertical: Spacing.lg,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: Colors.teal,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.lg,
-  },
-  addGuarantorText: { ...Typography.bodyMedium, color: Colors.teal },
-  infoBox: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    backgroundColor: Colors.surface,
-    marginBottom: Spacing.xxl,
-    alignItems: "center",
-  },
-  infoText: { ...Typography.small, color: Colors.textSecondary, flex: 1 },
-  lenderCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-  },
-  lenderCardSelected: {
-    borderColor: Colors.teal,
-    backgroundColor: Colors.teal + "15",
-  },
-  lenderHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  lenderName: { ...Typography.h4, color: Colors.textPrimary },
-  recommendedBadge: {
-    backgroundColor: Colors.gold + "25",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 10,
-  },
-  recommendedText: {
-    ...Typography.caption,
-    color: Colors.gold,
-    fontWeight: "600",
-  },
-  lenderRate: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  lenderDetails: {
-    flexDirection: "row",
-    gap: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-  lenderDetail: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  selectedCheck: { position: "absolute", top: Spacing.lg, right: Spacing.lg },
+  addGuarantorCard: { marginBottom: Spacing.lg, gap: Spacing.sm },
   reviewRow: {
     flexDirection: "row",
     justifyContent: "space-between",

@@ -15,8 +15,11 @@ import { useMakeOfferViewModel } from "../../src/viewmodels";
 
 export default function MakeOfferScreen() {
   const router = useRouter();
-  const { borrowerName } = useLocalSearchParams<{ borrowerName: string }>();
-  const vm = useMakeOfferViewModel();
+  const { applicationId, borrowerName } = useLocalSearchParams<{
+    applicationId: string;
+    borrowerName: string;
+  }>();
+  const vm = useMakeOfferViewModel(applicationId ?? "");
 
   const handleSend = async () => {
     const success = await vm.sendOffer();
@@ -54,14 +57,14 @@ export default function MakeOfferScreen() {
         )}
 
         <Input
-          label="Interest Rate (%/month)"
+          label="Interest Rate (% p.a.)"
           value={vm.rate}
           onChangeText={vm.setRate}
-          placeholder="e.g. 3.5"
+          placeholder="e.g. 15"
           keyboardType="numeric"
         />
-        {vm.offerErrors.interestRate && (
-          <Text style={styles.error}>{vm.offerErrors.interestRate}</Text>
+        {vm.offerErrors.rate && (
+          <Text style={styles.error}>{vm.offerErrors.rate}</Text>
         )}
 
         <Input

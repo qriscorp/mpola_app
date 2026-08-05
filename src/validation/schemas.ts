@@ -54,7 +54,13 @@ export const loanDetailsSchema = z.object({
     .refine((v) => Number(v) >= 100000, "Minimum loan is UGX 100,000")
     .refine((v) => Number(v) <= 50000000, "Maximum loan is UGX 50,000,000"),
   duration: z.number().min(3).max(24),
-  loanType: z.enum(["personal", "business", "real_estate", "education"]),
+  loanType: z.enum([
+    "personal",
+    "business",
+    "education",
+    "agricultural",
+    "emergency",
+  ]),
 });
 
 export type LoanDetailsInput = z.infer<typeof loanDetailsSchema>;
@@ -69,7 +75,7 @@ export const makeOfferSchema = z.object({
   rate: z
     .string()
     .min(1, "Interest rate is required")
-    .refine((v) => Number(v) > 0 && Number(v) <= 10, "Rate must be 0.1% - 10%"),
+    .refine((v) => Number(v) > 0 && Number(v) <= 25, "Rate must be 0.1% - 25%"),
   duration: z
     .string()
     .min(1, "Duration is required")

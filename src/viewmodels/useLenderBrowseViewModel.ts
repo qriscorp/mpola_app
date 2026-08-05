@@ -1,30 +1,41 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchBorrowerProfiles, sendLendingOffer } from "../services";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchMarketplace, fetchApplicationDetail, makeOffer } from "../services";
 import { makeOfferSchema } from "../validation";
 import type { LoanType } from "../models";
+
+export function useApplicationDetailViewModel(applicationId: string) {
+  const { data: application, isLoading, error, refetch } = useQuery({
+    queryKey: ["application", applicationId],
+    queryFn: () => fetchApplicationDetail(applicationId),
+    enabled: !!applicationId,
+  });
+
+  return { application, isLoading, error, refetch };
+}
 
 export function useBrowseBorrowersViewModel() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | LoanType>("all");
 
   const {
-    data: allBorrowers = [],
+    data: applications = [],
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["lender", "borrowerProfiles"],
-    queryFn: fetchBorrowerProfiles,
+    queryKey: ["lender", "marketplace"],
+    queryFn: () => fetchMarketplace(),
   });
 
-  const borrowers = allBorrowers.filter((b) => {
-    const matchSearch = b.name.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || b.loanType === filter;
+  const borrowers = applications.filter((a) => {
+    const name = a.borrower?.fullName ?? "";
+    const matchSearch = name.toLowerCase().includes(search.toLowerCase());
+    const matchFilter = filter === "all" || a.loanType === filter;
     return matchSearch && matchFilter;
   });
 
-  const totalCount = allBorrowers.length;
+  const totalCount = applications.length;
   const filters = ["all", "personal", "business"] as const;
 
   return {
@@ -41,9 +52,10 @@ export function useBrowseBorrowersViewModel() {
   };
 }
 
-export function useMakeOfferViewModel() {
+export function useMakeOfferViewModel(applicationId: string) {
+  const queryClient = useQueryClient();
   const [amount, setAmount] = useState("8000000");
-  const [rate, setRate] = useState("3.5");
+  const [rate, setRate] = useState("15");
   const [duration, setDuration] = useState("18");
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
 
@@ -51,22 +63,23 @@ export function useMakeOfferViewModel() {
   const numRate = Number(rate) || 0;
   const numDuration = Number(duration) || 1;
 
-  const monthlyPayment = Math.round(
-    (numAmount * (1 + (numRate / 100) * numDuration)) / numDuration,
-  );
-  const totalEarnings = Math.round(numAmount * (numRate / 100) * numDuration);
-  const totalRepayable = numAmount + totalEarnings;
+  const totalInterest = numAmount * (numRate / 100) * (numDuration / 12);
+  const totalRepayable = numAmount + totalInterest;
+  const monthlyPayment =
+    numDuration > 0 ? Math.round(totalRepayable / numDuration) : 0;
 
   const offerMutation = useMutation({
-    mutationFn: sendLendingOffer,
+    mutationFn: makeOffer,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lender", "marketplace"] });
+      queryClient.invalidateQueries({
+        queryKey: ["application", applicationId],
+      });
+    },
   });
 
   const sendOffer = async () => {
-    const result = makeOfferSchema.safeParse({
-      amount: numAmount,
-      interestRate: numRate,
-      duration: numDuration,
-    });
+    const result = makeOfferSchema.safeParse({ amount, rate, duration });
     if (!result.success) {
       const errs: Record<string, string> = {};
       for (const issue of result.error.issues) {
@@ -77,7 +90,12 @@ export function useMakeOfferViewModel() {
       return false;
     }
     setOfferErrors({});
-    await offerMutation.mutateAsync(result.data);
+    await offerMutation.mutateAsync({
+      applicationId,
+      amount: numAmount,
+      interestRate: numRate,
+      duration: numDuration,
+    });
     return true;
   };
 
@@ -89,8 +107,8 @@ export function useMakeOfferViewModel() {
     duration,
     setDuration,
     monthlyPayment,
-    totalEarnings,
-    totalRepayable,
+    totalEarnings: Math.round(totalInterest),
+    totalRepayable: Math.round(totalRepayable),
     offerErrors,
     loading: offerMutation.isPending,
     sendOffer,

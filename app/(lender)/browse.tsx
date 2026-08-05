@@ -15,6 +15,16 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge } from "../../src/components";
 import { useBrowseBorrowersViewModel } from "../../src/viewmodels";
 
+function initials(name: string | null | undefined): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export default function BrowseBorrowersScreen() {
   const router = useRouter();
   const {
@@ -32,8 +42,8 @@ export default function BrowseBorrowersScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Browse Borrowers</Text>
-        <Text style={styles.subtitle}>{totalCount} verified borrowers</Text>
+        <Text style={styles.title}>Browse Marketplace</Text>
+        <Text style={styles.subtitle}>{totalCount} loan applications</Text>
       </View>
 
       {/* Search Bar */}
@@ -42,7 +52,7 @@ export default function BrowseBorrowersScreen() {
           <Ionicons name="search" size={18} color={Colors.textMuted} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search borrowers..."
+            placeholder="Search by name or purpose..."
             placeholderTextColor={Colors.textMuted}
             value={search}
             onChangeText={setSearch}
@@ -56,7 +66,7 @@ export default function BrowseBorrowersScreen() {
           <TouchableOpacity
             key={f}
             style={[styles.chip, filter === f && styles.chipActive]}
-            onPress={() => setFilter(f as any)}
+            onPress={() => setFilter(f)}
           >
             <Text
               style={[styles.chipText, filter === f && styles.chipTextActive]}
@@ -78,64 +88,73 @@ export default function BrowseBorrowersScreen() {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          {borrowers.map((b) => (
-            <TouchableOpacity
-              key={b.id}
-              style={styles.borrowerCard}
-              onPress={() =>
-                router.push({
-                  pathname: "/(lender)/borrower-profile",
-                  params: { borrowerId: b.id },
-                })
-              }
-            >
-              <View style={styles.cardTop}>
-                <View style={styles.avatarWrap}>
-                  <Text style={styles.avatarText}>{b.initials}</Text>
-                </View>
-                <View style={styles.cardInfo}>
-                  <View style={styles.nameRow}>
-                    <Text style={styles.borrowerName}>{b.name}</Text>
-                    {b.kycVerified && (
-                      <Ionicons
-                        name="checkmark-circle"
-                        size={14}
-                        color={Colors.teal}
-                      />
-                    )}
+          {borrowers.map((app) => {
+            const verified = app.borrower?.kycStatus === "verified";
+            return (
+              <TouchableOpacity
+                key={app.id}
+                style={styles.borrowerCard}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(lender)/borrower-profile",
+                    params: { applicationId: app.id },
+                  })
+                }
+              >
+                <View style={styles.cardTop}>
+                  <View style={styles.avatarWrap}>
+                    <Text style={styles.avatarText}>
+                      {initials(app.borrower?.fullName)}
+                    </Text>
                   </View>
-                  <Text style={styles.borrowerMeta}>
-                    {b.location} • Member since {b.memberSince}
-                  </Text>
+                  <View style={styles.cardInfo}>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.borrowerName}>
+                        {app.borrower?.fullName ?? "Borrower"}
+                      </Text>
+                      {verified && (
+                        <Ionicons
+                          name="checkmark-circle"
+                          size={14}
+                          color={Colors.teal}
+                        />
+                      )}
+                    </View>
+                    <Text style={styles.borrowerMeta}>
+                      Credit score: {app.borrower?.creditScore ?? "—"}
+                    </Text>
+                  </View>
+                  <Badge
+                    label={
+                      app.loanType === "personal" ? "Personal" : "Business"
+                    }
+                    variant={app.loanType === "personal" ? "success" : "gold"}
+                  />
                 </View>
-                <Badge
-                  label={b.loanType === "personal" ? "Personal" : "Business"}
-                  variant={b.loanType === "personal" ? "success" : "gold"}
-                />
-              </View>
 
-              <View style={styles.cardDetails}>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Amount</Text>
-                  <Text style={styles.detailValue}>
-                    UGX {b.amount.toLocaleString()}
-                  </Text>
+                <View style={styles.cardDetails}>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>Amount</Text>
+                    <Text style={styles.detailValue}>
+                      UGX {app.amount.toLocaleString()}
+                    </Text>
+                  </View>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>Duration</Text>
+                    <Text style={styles.detailValue}>
+                      {app.duration} months
+                    </Text>
+                  </View>
                 </View>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Duration</Text>
-                  <Text style={styles.detailValue}>{b.duration} months</Text>
-                </View>
-                <View style={styles.detailItem}>
-                  <Text style={styles.detailLabel}>Prev. Loans</Text>
-                  <Text style={styles.detailValue}>{b.previousLoans}</Text>
-                </View>
-              </View>
 
-              <Text style={styles.purpose} numberOfLines={2}>
-                {b.purpose}
-              </Text>
-            </TouchableOpacity>
-          ))}
+                {app.purpose && (
+                  <Text style={styles.purpose} numberOfLines={2}>
+                    {app.purpose}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
       )}
     </SafeAreaView>

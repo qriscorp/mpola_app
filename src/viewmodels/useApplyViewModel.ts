@@ -1,32 +1,46 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import * as DocumentPicker from "expo-document-picker";
 import type { LoanType, ApplicationStep, Document, Guarantor } from "../models";
-import { fetchLenderProfiles, submitLoanApplication } from "../services";
+import { submitLoanApplication, addGuarantor, uploadLoanDocument } from "../services";
 import { loanDetailsSchema } from "../validation";
+
+interface PickedFile {
+  uri: string;
+  name: string;
+  mimeType?: string;
+}
+
+// Matches mpola_api's default platform rate (routers/loans.py: rate = 15.0, annual %).
+const PLATFORM_RATE_PA = 15;
 
 export function useApplyViewModel() {
   const [step, setStep] = useState<ApplicationStep>(1);
   const [amount, setAmount] = useState("2000000");
   const [duration, setDuration] = useState(6);
   const [loanType, setLoanType] = useState<LoanType>("personal");
+  const [purpose, setPurpose] = useState("");
   const [detailsErrors, setDetailsErrors] = useState<Record<string, string>>(
     {},
   );
 
-  // Documents
+  // Documents — picked locally, uploaded once the application is created.
+  const [pickedFiles, setPickedFiles] = useState<Record<string, PickedFile>>(
+    {},
+  );
   const [documents, setDocuments] = useState<Document[]>([
     {
       id: "d1",
       type: "national_id",
       name: "National ID",
-      status: "uploaded",
+      status: "pending",
       required: true,
     },
     {
       id: "d2",
       type: "payslip",
       name: "Payslip / Bank Statement",
-      status: "uploaded",
+      status: "pending",
       required: true,
     },
     {
@@ -45,45 +59,21 @@ export function useApplyViewModel() {
     },
   ]);
 
-  // Guarantors
-  const [guarantors, setGuarantors] = useState<Guarantor[]>([
-    {
-      id: "g1",
-      name: "Moses Ssekandi",
-      phone: "+256 772 123 456",
-      status: "accepted",
-      order: 1,
-    },
-    {
-      id: "g2",
-      name: "Ruth Namaganda",
-      phone: "+256 701 987 654",
-      status: "pending",
-      order: 2,
-    },
-  ]);
+  // Guarantors — collected locally, attached to the application once it's created.
+  const [guarantors, setGuarantors] = useState<Guarantor[]>([]);
 
-  // Selected lenders
-  const [selectedLenders, setSelectedLenders] = useState<string[]>(["lend1"]);
-
-  const { data: lenders = [], isLoading: loadingLenders } = useQuery({
-    queryKey: ["lenderProfiles"],
-    queryFn: fetchLenderProfiles,
-  });
-
-  const interestRate =
-    lenders.find((l) => l.id === selectedLenders[0])?.interestRate ?? 2.5;
-  const monthlyPayment = Math.round(
-    (Number(amount) * (1 + (interestRate / 100) * duration)) / duration,
-  );
-  const totalRepayable = monthlyPayment * duration;
+  const numAmount = Number(amount) || 0;
+  const totalInterest = numAmount * (PLATFORM_RATE_PA / 100) * (duration / 12);
+  const totalRepayable = numAmount + totalInterest;
+  const monthlyPayment = duration > 0 ? Math.round(totalRepayable / duration) : 0;
 
   const durationOptions = [3, 6, 12, 18, 24];
   const loanTypes: LoanType[] = [
     "personal",
     "business",
-    "real_estate",
     "education",
+    "agricultural",
+    "emergency",
   ];
 
   const validateDetails = () => {
@@ -103,17 +93,29 @@ export function useApplyViewModel() {
 
   const nextStep = () => {
     if (step === 1 && !validateDetails()) return;
-    setStep((s) => Math.min(s + 1, 5) as ApplicationStep);
+    setStep((s) => Math.min(s + 1, 4) as ApplicationStep);
   };
   const prevStep = () => setStep((s) => Math.max(s - 1, 1) as ApplicationStep);
 
-  const toggleLender = (id: string) => {
-    setSelectedLenders((prev) =>
-      prev.includes(id) ? prev.filter((l) => l !== id) : [...prev, id],
-    );
-  };
+  const uploadDocument = async (docId: string) => {
+    const doc = documents.find((d) => d.id === docId);
+    if (!doc) return;
 
-  const uploadDocument = (docId: string) => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+
+    const asset = result.assets[0];
+    setPickedFiles((prev) => ({
+      ...prev,
+      [doc.type]: {
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+      },
+    }));
     setDocuments((prev) =>
       prev.map((d) =>
         d.id === docId ? { ...d, status: "uploaded" as const } : d,
@@ -121,8 +123,45 @@ export function useApplyViewModel() {
     );
   };
 
+  const addGuarantorLocal = (data: { name: string; phone: string; relationshipType: string }) => {
+    setGuarantors((prev) => [
+      ...prev,
+      {
+        id: `local-${prev.length}`,
+        name: data.name,
+        phone: data.phone,
+        relationshipType: data.relationshipType,
+        status: "pending",
+      },
+    ]);
+  };
+
+  const removeGuarantor = (id: string) => {
+    setGuarantors((prev) => prev.filter((g) => g.id !== id));
+  };
+
   const submitMutation = useMutation({
-    mutationFn: submitLoanApplication,
+    mutationFn: async () => {
+      const res = await submitLoanApplication({
+        amount: numAmount,
+        duration,
+        loanType,
+        purpose: purpose || undefined,
+      });
+      await Promise.all([
+        ...guarantors.map((g) =>
+          addGuarantor(res.applicationId, {
+            name: g.name,
+            phone: g.phone,
+            relationshipType: g.relationshipType ?? undefined,
+          }),
+        ),
+        ...Object.entries(pickedFiles).map(([documentType, file]) =>
+          uploadLoanDocument(res.applicationId, file, documentType),
+        ),
+      ]);
+      return res;
+    },
   });
 
   const submitApplication = async () => {
@@ -142,17 +181,17 @@ export function useApplyViewModel() {
     loanType,
     setLoanType,
     loanTypes,
+    purpose,
+    setPurpose,
     documents,
     uploadDocument,
     guarantors,
-    lenders,
-    selectedLenders,
-    toggleLender,
-    interestRate,
+    addGuarantor: addGuarantorLocal,
+    removeGuarantor,
+    interestRate: PLATFORM_RATE_PA,
     monthlyPayment,
     totalRepayable,
     detailsErrors,
-    loadingLenders,
     submitting: submitMutation.isPending,
     submitApplication,
   };

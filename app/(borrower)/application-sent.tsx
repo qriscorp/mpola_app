@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 
@@ -21,6 +21,9 @@ const steps = [
 
 export default function ApplicationSentScreen() {
   const router = useRouter();
+  const { referenceNumber } = useLocalSearchParams<{
+    referenceNumber?: string;
+  }>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -43,14 +46,17 @@ export default function ApplicationSentScreen() {
 
         <Text style={styles.title}>Application{"\n"}Submitted!</Text>
         <Text style={styles.sub}>
-          Sent to James Mugisha. You'll be notified once reviewed.
+          Your application is live on the marketplace. You&apos;ll be
+          notified when lenders make offers.
         </Text>
 
         {/* Ref card */}
         <View style={styles.refCard}>
           <View style={styles.refRow}>
             <Text style={styles.refLabel}>Ref No.</Text>
-            <Text style={styles.refValue}>#APP-20240091</Text>
+            <Text style={styles.refValue}>
+              #{referenceNumber ?? "—"}
+            </Text>
           </View>
           <View
             style={[

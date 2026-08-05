@@ -6,8 +6,15 @@
 import type {
   User,
   Loan,
+  LoanType,
   LoanStatus,
+  LoanApplication,
+  ApplicationStatus,
+  ApplicationBorrower,
+  MarketplaceApplication,
   LoanOffer,
+  OfferStatus,
+  Guarantor,
   Wallet,
   Transaction,
   TransactionType,
@@ -16,15 +23,12 @@ import type {
   TransferStatusResult,
   BorrowerStats,
   LenderStats,
-  BorrowerProfile,
-  LenderProfile,
   Notification,
   EarningsBreakdown,
   MonthlyEarning,
 } from "../models";
 import * as mock from "./mockData";
-import { apiAuthGet, apiAuthPost } from "./auth";
-import type { RegisterInput, LoginInput, MakeOfferInput } from "../validation";
+import { apiAuthGet, apiAuthPost, apiAuthPatch, apiAuthUpload } from "./auth";
 
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms));
 
@@ -159,20 +163,6 @@ async function fetchWallet(): Promise<Wallet> {
   };
 }
 
-// ─── Auth ────────────────────────────────────────────────
-
-export async function apiRegister(
-  data: RegisterInput & { role: "borrower" | "lender" },
-): Promise<User> {
-  await delay(1500);
-  return data.role === "borrower" ? mock.borrowerUser : mock.lenderUser;
-}
-
-export async function apiLogin(_data: LoginInput): Promise<User> {
-  await delay(1000);
-  return mock.borrowerUser;
-}
-
 // ─── Borrower Dashboard ──────────────────────────────────
 
 export async function fetchBorrowerDashboard() {
@@ -285,25 +275,201 @@ export async function makeRepayment(data: {
   };
 }
 
+// ─── Loan applications / marketplace / offers (shared mapping) ──
+
+interface RawApplicationBorrower {
+  id: string;
+  full_name: string | null;
+  kyc_status: string;
+  credit_score: number;
+}
+
+interface RawOffer {
+  id: string;
+  application_id: string;
+  lender_id: string;
+  lender_name: string | null;
+  amount: number;
+  interest_rate: number;
+  duration: number;
+  monthly_payment: number | null;
+  total_repayable: number | null;
+  status: string;
+  created_at: string;
+}
+
+interface RawGuarantor {
+  id: string;
+  name: string;
+  phone: string;
+  relationship_type: string | null;
+  status: string;
+}
+
+interface RawApplication {
+  id: string;
+  reference_number: string;
+  amount: number;
+  duration: number;
+  loan_type: string;
+  purpose: string | null;
+  status: string;
+  interest_rate: number | null;
+  monthly_payment: number | null;
+  total_repayable: number | null;
+  created_at: string;
+  borrower: RawApplicationBorrower | null;
+  offers?: RawOffer[];
+  guarantors?: RawGuarantor[];
+}
+
+function mapOffer(o: RawOffer): LoanOffer {
+  return {
+    id: o.id,
+    applicationId: o.application_id,
+    lenderId: o.lender_id,
+    lenderName: o.lender_name,
+    amount: o.amount,
+    interestRate: o.interest_rate,
+    duration: o.duration,
+    monthlyPayment: o.monthly_payment,
+    totalRepayable: o.total_repayable,
+    status: o.status as OfferStatus,
+    createdAt: o.created_at,
+  };
+}
+
+function mapGuarantor(g: RawGuarantor): Guarantor {
+  return {
+    id: g.id,
+    name: g.name,
+    phone: g.phone,
+    relationshipType: g.relationship_type,
+    status: g.status as Guarantor["status"],
+  };
+}
+
+function mapApplicationBorrower(
+  b: RawApplicationBorrower,
+): ApplicationBorrower {
+  return {
+    id: b.id,
+    fullName: b.full_name,
+    kycStatus: b.kyc_status as ApplicationBorrower["kycStatus"],
+    creditScore: b.credit_score,
+  };
+}
+
+function mapApplication(a: RawApplication): LoanApplication {
+  return {
+    id: a.id,
+    referenceNumber: a.reference_number,
+    amount: a.amount,
+    duration: a.duration,
+    loanType: a.loan_type as LoanType,
+    purpose: a.purpose,
+    status: a.status as ApplicationStatus,
+    interestRate: a.interest_rate,
+    monthlyPayment: a.monthly_payment,
+    totalRepayable: a.total_repayable,
+    createdAt: a.created_at,
+    borrower: a.borrower ? mapApplicationBorrower(a.borrower) : null,
+    offers: a.offers?.map(mapOffer),
+    guarantors: a.guarantors?.map(mapGuarantor),
+  };
+}
+
+export async function fetchApplications(): Promise<LoanApplication[]> {
+  const res = await apiAuthGet<{
+    total: number;
+    applications: RawApplication[];
+  }>("/loans/applications");
+  return res.applications.map(mapApplication);
+}
+
+export async function fetchApplicationDetail(
+  id: string,
+): Promise<LoanApplication> {
+  const res = await apiAuthGet<RawApplication>(`/loans/applications/${id}`);
+  return mapApplication(res);
+}
+
+export async function addGuarantor(
+  applicationId: string,
+  data: { name: string; phone: string; relationshipType?: string },
+): Promise<{ status: number; message: string }> {
+  return apiAuthPost(`/loans/applications/${applicationId}/guarantors`, {
+    name: data.name,
+    phone: data.phone,
+    relationship_type: data.relationshipType,
+  });
+}
+
+export async function uploadLoanDocument(
+  applicationId: string,
+  file: { uri: string; name: string; mimeType?: string },
+  documentType: string,
+): Promise<{
+  status: number;
+  message: string;
+  document: {
+    id: string;
+    document_type: string;
+    file_url: string;
+    file_name: string | null;
+    verified: boolean;
+  };
+}> {
+  const formData = new FormData();
+  formData.append("document_type", documentType);
+  // React Native's FormData expects this shape for files, not a real Blob.
+  formData.append("file", {
+    uri: file.uri,
+    name: file.name,
+    type: file.mimeType || "application/octet-stream",
+  } as unknown as Blob);
+  return apiAuthUpload(
+    `/loans/applications/${applicationId}/documents`,
+    formData,
+  );
+}
+
+export async function submitLoanApplication(data: {
+  amount: number;
+  duration: number;
+  loanType: string;
+  purpose?: string;
+}): Promise<{ referenceNumber: string; applicationId: string }> {
+  const res = await apiAuthPost<{
+    status: number;
+    message: string;
+    application: RawApplication;
+  }>("/loans/applications", {
+    amount: data.amount,
+    duration: data.duration,
+    loan_type: data.loanType,
+    purpose: data.purpose,
+  });
+  return {
+    referenceNumber: res.application.reference_number,
+    applicationId: res.application.id,
+  };
+}
+
 // ─── Offers ──────────────────────────────────────────────
 
-export async function fetchBorrowerOffers(): Promise<LoanOffer[]> {
-  await delay();
-  return mock.borrowerOffers;
+export async function fetchBorrowerOffers(
+  applicationId: string,
+): Promise<LoanOffer[]> {
+  const application = await fetchApplicationDetail(applicationId);
+  return application.offers ?? [];
 }
 
-export async function acceptOffer(offerId: string): Promise<boolean> {
-  await delay(1000);
-  return true;
-}
-
-// ─── Loan Application ───────────────────────────────────
-
-export async function submitLoanApplication(): Promise<{
-  referenceNumber: string;
-}> {
-  await delay(1500);
-  return { referenceNumber: "LF-2025-04-8821" };
+export async function respondToOffer(
+  offerId: string,
+  status: "accepted" | "declined",
+): Promise<{ status: number; message: string }> {
+  return apiAuthPatch(`/loans/offers/${offerId}`, { status });
 }
 
 // ─── Lender Dashboard ───────────────────────────────────
@@ -322,27 +488,51 @@ export async function fetchLenderDashboard() {
   };
 }
 
-// ─── Browse Borrowers ───────────────────────────────────
+// ─── Marketplace (Lender browse) ────────────────────────
 
-export async function fetchBorrowerProfiles(): Promise<BorrowerProfile[]> {
-  await delay();
-  return mock.borrowerProfiles;
+export async function fetchMarketplace(filters?: {
+  loanType?: string;
+  minAmount?: number;
+  maxAmount?: number;
+}): Promise<MarketplaceApplication[]> {
+  const params = new URLSearchParams();
+  if (filters?.loanType) params.set("loan_type", filters.loanType);
+  if (filters?.minAmount) params.set("min_amount", String(filters.minAmount));
+  if (filters?.maxAmount) params.set("max_amount", String(filters.maxAmount));
+  const qs = params.toString();
+  const res = await apiAuthGet<{
+    total: number;
+    applications: RawApplication[];
+  }>(`/loans/marketplace${qs ? `?${qs}` : ""}`);
+  return res.applications.map(mapApplication);
 }
 
-// ─── Lender Profiles (for borrower to pick) ─────────────
-
-export async function fetchLenderProfiles(): Promise<LenderProfile[]> {
-  await delay();
-  return mock.lenderProfiles;
+export async function fetchMyOffers(): Promise<LoanOffer[]> {
+  const res = await apiAuthGet<{ total: number; offers: RawOffer[] }>(
+    "/loans/offers/mine",
+  );
+  return res.offers.map(mapOffer);
 }
 
 // ─── Make Offer ─────────────────────────────────────────
 
-export async function sendLendingOffer(
-  _data: MakeOfferInput,
-): Promise<boolean> {
-  await delay(1500);
-  return true;
+export async function makeOffer(data: {
+  applicationId: string;
+  amount: number;
+  interestRate: number;
+  duration: number;
+}): Promise<LoanOffer> {
+  const res = await apiAuthPost<{
+    status: number;
+    message: string;
+    offer: RawOffer;
+  }>("/loans/offers", {
+    application_id: data.applicationId,
+    amount: data.amount,
+    interest_rate: data.interestRate,
+    duration: data.duration,
+  });
+  return mapOffer(res.offer);
 }
 
 // ─── Portfolio ──────────────────────────────────────────

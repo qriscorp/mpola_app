@@ -5,20 +5,45 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Badge } from "../../src/components";
-import { borrowerProfiles } from "../../src/services";
+import { useApplicationDetailViewModel } from "../../src/viewmodels";
+
+function initials(name: string | null | undefined): string {
+  if (!name) return "?";
+  return name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
 
 export default function BorrowerProfileScreen() {
   const router = useRouter();
-  const { borrowerId } = useLocalSearchParams<{ borrowerId: string }>();
+  const { applicationId } = useLocalSearchParams<{ applicationId: string }>();
+  const { application, isLoading } = useApplicationDetailViewModel(
+    applicationId ?? "",
+  );
 
-  const borrower =
-    borrowerProfiles.find((b) => b.id === borrowerId) ?? borrowerProfiles[0];
+  if (isLoading || !application) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator
+          size="large"
+          color={Colors.gold}
+          style={{ flex: 1 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  const verified = application.borrower?.kycStatus === "verified";
 
   return (
     <SafeAreaView style={styles.container}>
@@ -27,7 +52,7 @@ export default function BorrowerProfileScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Borrower Profile</Text>
+        <Text style={styles.headerTitle}>Application Detail</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -38,14 +63,18 @@ export default function BorrowerProfileScreen() {
         {/* Avatar + Name */}
         <View style={styles.profileSection}>
           <View style={styles.avatar}>
-            <Text style={styles.initials}>{borrower.initials}</Text>
+            <Text style={styles.initials}>
+              {initials(application.borrower?.fullName)}
+            </Text>
           </View>
-          <Text style={styles.name}>{borrower.name}</Text>
+          <Text style={styles.name}>
+            {application.borrower?.fullName ?? "Borrower"}
+          </Text>
           <Text style={styles.meta}>
-            {borrower.location} • Member since {borrower.memberSince}
+            Credit score: {application.borrower?.creditScore ?? "—"}
           </Text>
           <View style={styles.badges}>
-            {borrower.kycVerified && (
+            {verified && (
               <View style={styles.kycBadge}>
                 <Ionicons
                   name="checkmark-circle"
@@ -56,8 +85,10 @@ export default function BorrowerProfileScreen() {
               </View>
             )}
             <Badge
-              label={borrower.loanType === "personal" ? "Personal" : "Business"}
-              variant={borrower.loanType === "personal" ? "success" : "gold"}
+              label={
+                application.loanType === "personal" ? "Personal" : "Business"
+              }
+              variant={application.loanType === "personal" ? "success" : "gold"}
             />
           </View>
         </View>
@@ -68,12 +99,12 @@ export default function BorrowerProfileScreen() {
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Amount</Text>
             <Text style={styles.cardValue}>
-              UGX {borrower.amount.toLocaleString()}
+              UGX {application.amount.toLocaleString()}
             </Text>
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Duration</Text>
-            <Text style={styles.cardValue}>{borrower.duration} months</Text>
+            <Text style={styles.cardValue}>{application.duration} months</Text>
           </View>
           <View style={[styles.cardRow, { borderBottomWidth: 0 }]}>
             <Text style={styles.cardLabel}>Purpose</Text>
@@ -81,54 +112,57 @@ export default function BorrowerProfileScreen() {
               style={[styles.cardValue, { flex: 1, textAlign: "right" }]}
               numberOfLines={2}
             >
-              {borrower.purpose}
+              {application.purpose ?? "—"}
             </Text>
           </View>
         </View>
 
-        {/* Credit Info */}
+        {/* Guarantors */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Credit Information</Text>
-          <View style={styles.cardRow}>
-            <Text style={styles.cardLabel}>Occupation</Text>
-            <Text style={styles.cardValue}>{borrower.occupation}</Text>
-          </View>
-          {borrower.businessAge && (
-            <View style={styles.cardRow}>
-              <Text style={styles.cardLabel}>Business Age</Text>
-              <Text style={styles.cardValue}>{borrower.businessAge}</Text>
-            </View>
+          <Text style={styles.cardTitle}>
+            Guarantors ({application.guarantors?.length ?? 0})
+          </Text>
+          {application.guarantors && application.guarantors.length > 0 ? (
+            application.guarantors.map((g, i, arr) => (
+              <View
+                key={g.id}
+                style={[
+                  styles.cardRow,
+                  i === arr.length - 1 && { borderBottomWidth: 0 },
+                ]}
+              >
+                <Text style={styles.cardLabel}>{g.name}</Text>
+                <Text style={styles.cardValue}>{g.relationshipType ?? "—"}</Text>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.cardLabel}>No guarantors added</Text>
           )}
-          <View style={styles.cardRow}>
-            <Text style={styles.cardLabel}>Previous Loans</Text>
-            <Text style={styles.cardValue}>{borrower.previousLoans}</Text>
-          </View>
-          <View style={styles.cardRow}>
-            <Text style={styles.cardLabel}>Documents</Text>
-            <Text style={styles.cardValue}>
-              {borrower.documentsCount} uploaded
-            </Text>
-          </View>
-          <View style={[styles.cardRow, { borderBottomWidth: 0 }]}>
-            <Text style={styles.cardLabel}>Guarantors</Text>
-            <Text style={styles.cardValue}>
-              {borrower.guarantorsCount} confirmed
-            </Text>
-          </View>
         </View>
 
         {/* Make Offer Button */}
-        <Button
-          title="Make an Offer →"
-          onPress={() =>
-            router.push({
-              pathname: "/(lender)/make-offer",
-              params: { borrowerId: borrower.id, borrowerName: borrower.name },
-            })
-          }
-          color={Colors.gold}
-          style={{ marginTop: Spacing.md }}
-        />
+        {application.status === "pending" ? (
+          <Button
+            title="Make an Offer →"
+            onPress={() =>
+              router.push({
+                pathname: "/(lender)/make-offer",
+                params: {
+                  applicationId: application.id,
+                  borrowerName: application.borrower?.fullName ?? "Borrower",
+                },
+              })
+            }
+            color={Colors.gold}
+            style={{ marginTop: Spacing.md }}
+          />
+        ) : (
+          <View style={styles.statusPill}>
+            <Text style={styles.statusPillText}>
+              Status: {application.status}
+            </Text>
+          </View>
+        )}
 
         <TouchableOpacity style={styles.backLink} onPress={() => router.back()}>
           <Text style={styles.backLinkText}>← Back to Browse</Text>
@@ -197,6 +231,18 @@ const styles = StyleSheet.create({
   },
   cardLabel: { ...Typography.body, color: Colors.textSecondary },
   cardValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  statusPill: {
+    marginTop: Spacing.md,
+    alignItems: "center",
+    paddingVertical: Spacing.md,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.full,
+  },
+  statusPillText: {
+    ...Typography.bodyMedium,
+    color: Colors.textSecondary,
+    textTransform: "capitalize",
+  },
   backLink: {
     alignItems: "center",
     marginTop: Spacing.xl,

@@ -14,7 +14,12 @@ export interface User {
   createdAt: string;
 }
 
-export type LoanType = "personal" | "business" | "real_estate" | "education";
+export type LoanType =
+  | "personal"
+  | "business"
+  | "education"
+  | "agricultural"
+  | "emergency";
 export type LoanStatus =
   | "pending"
   | "active"
@@ -22,7 +27,7 @@ export type LoanStatus =
   | "overdue"
   | "completed"
   | "rejected";
-export type ApplicationStep = 1 | 2 | 3 | 4 | 5;
+export type ApplicationStep = 1 | 2 | 3 | 4;
 
 export interface Loan {
   id: string;
@@ -42,25 +47,36 @@ export interface Loan {
   createdAt: string;
 }
 
+export type ApplicationStatus =
+  | "pending"
+  | "approved"
+  | "rejected"
+  | "funded"
+  | "completed"
+  | "defaulted";
+
+export interface ApplicationBorrower {
+  id: string;
+  fullName: string | null;
+  kycStatus: "pending" | "verified" | "rejected";
+  creditScore: number;
+}
+
 export interface LoanApplication {
   id: string;
   referenceNumber: string;
-  borrowerId: string;
   amount: number;
   duration: number;
-  type: LoanType;
-  step: ApplicationStep;
-  documents: Document[];
-  guarantors: Guarantor[];
-  selectedLenders: string[];
-  status:
-    | "draft"
-    | "submitted"
-    | "under_review"
-    | "offers_received"
-    | "accepted"
-    | "funded";
+  loanType: LoanType;
+  purpose: string | null;
+  status: ApplicationStatus;
+  interestRate: number | null;
+  monthlyPayment: number | null;
+  totalRepayable: number | null;
   createdAt: string;
+  borrower: ApplicationBorrower | null;
+  offers?: LoanOffer[];
+  guarantors?: Guarantor[];
 }
 
 export type DocumentType =
@@ -79,44 +95,27 @@ export interface Document {
   required: boolean;
 }
 
-export type GuarantorStatus = "pending" | "accepted" | "declined";
-
 export interface Guarantor {
   id: string;
   name: string;
   phone: string;
-  status: GuarantorStatus;
-  order: number;
-}
-
-export interface LenderProfile {
-  id: string;
-  name: string;
-  interestRate: number;
-  maxAmount: number;
-  repaymentRate: number;
-  recommended?: boolean;
-  avatar?: string;
+  relationshipType: string | null;
+  status: "pending" | "accepted" | "declined";
 }
 
 export type OfferStatus = "pending" | "accepted" | "declined" | "expired";
 
 export interface LoanOffer {
   id: string;
+  applicationId: string;
   lenderId: string;
-  lenderName: string;
-  borrowerId: string;
-  borrowerName: string;
+  lenderName: string | null;
   amount: number;
   interestRate: number;
   duration: number;
-  monthlyPayment: number;
-  totalEarnings: number;
-  totalRepayable: number;
+  monthlyPayment: number | null;
+  totalRepayable: number | null;
   status: OfferStatus;
-  expiresIn?: string;
-  recommended?: boolean;
-  bestRate?: boolean;
   createdAt: string;
 }
 
@@ -187,23 +186,8 @@ export interface LenderStats {
   projectedAmount: number;
 }
 
-export interface BorrowerProfile {
-  id: string;
-  name: string;
-  initials: string;
-  location: string;
-  memberSince: string;
-  kycVerified: boolean;
-  loanType: LoanType;
-  amount: number;
-  duration: number;
-  purpose: string;
-  occupation: string;
-  businessAge?: string;
-  previousLoans: number;
-  documentsCount: number;
-  guarantorsCount: number;
-}
+/** A pending loan application as seen by lenders browsing the open marketplace. */
+export type MarketplaceApplication = LoanApplication;
 
 export interface Notification {
   id: string;

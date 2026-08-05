@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge, ProgressBar } from "../../src/components";
+import { Badge, ProgressBar, StatCard } from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
 
 export default function PortfolioScreen() {

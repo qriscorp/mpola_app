@@ -10,6 +10,7 @@ export { useOffersViewModel } from "./useOffersViewModel";
 export { useLenderDashboardViewModel } from "./useLenderDashboardViewModel";
 export {
   useBrowseBorrowersViewModel,
+  useApplicationDetailViewModel,
   useMakeOfferViewModel,
 } from "./useLenderBrowseViewModel";
 export { usePortfolioViewModel } from "./usePortfolioViewModel";
