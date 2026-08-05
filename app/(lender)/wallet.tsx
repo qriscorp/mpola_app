@@ -24,6 +24,7 @@ export default function LenderWalletScreen() {
   const {
     wallet,
     isLoading,
+    error,
     setupWallet,
     isSettingUp,
     depositMobileMoney,
@@ -52,6 +53,18 @@ export default function LenderWalletScreen() {
       );
     }
   };
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.lg }}>
+          <Text style={{ color: Colors.textMuted }}>
+            Couldn&apos;t load your wallet. Please try again.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading || !wallet) {
     return (

@@ -27,9 +27,21 @@ function initials(name: string | null | undefined): string {
 export default function BorrowerProfileScreen() {
   const router = useRouter();
   const { applicationId } = useLocalSearchParams<{ applicationId: string }>();
-  const { application, isLoading } = useApplicationDetailViewModel(
+  const { application, isLoading, error } = useApplicationDetailViewModel(
     applicationId ?? "",
   );
+
+  if (!applicationId || error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.lg }}>
+          <Text style={{ color: Colors.textMuted }}>
+            {error ? "This application couldn't be found." : "No application selected."}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading || !application) {
     return (

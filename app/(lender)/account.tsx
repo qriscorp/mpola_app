@@ -14,9 +14,21 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
 
 export default function LenderAccountScreen() {
-  const { profile, isLoading, signOut } = useProfileViewModel();
+  const { profile, isLoading, error, signOut } = useProfileViewModel();
   const [offersNotif, setOffersNotif] = useState(true);
   const [repayNotif, setRepayNotif] = useState(true);
+
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.lg }}>
+          <Text style={{ color: Colors.textMuted }}>
+            Couldn&apos;t load your account. Please try again.
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading || !profile) {
     return (

@@ -19,11 +19,23 @@ export default function LoanDetailScreen() {
   const router = useRouter();
   const { loanId } = useLocalSearchParams<{ loanId: string }>();
 
-  const { data: loan, isLoading } = useQuery({
+  const { data: loan, isLoading, error } = useQuery({
     queryKey: ["lender", "loan-detail", loanId],
     queryFn: () => fetchLoanDetail(loanId!),
     enabled: !!loanId,
   });
+
+  if (!loanId || error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.lg }}>
+          <Text style={{ color: Colors.textMuted }}>
+            {error ? "This loan couldn't be found." : "No loan selected."}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (isLoading || !loan) {
     return (
