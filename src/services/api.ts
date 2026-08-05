@@ -19,7 +19,7 @@ import type {
   MonthlyEarning,
 } from "../models";
 import * as mock from "./mockData";
-import { apiAuthGet } from "./auth";
+import { apiAuthGet, apiAuthPost } from "./auth";
 import type { RegisterInput, LoginInput, MakeOfferInput } from "../validation";
 
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms));
@@ -66,6 +66,12 @@ function mapWalletTransaction(tx: RawWalletTransaction): Transaction {
     date: formatTxDate(tx.created_at),
     counterparty: tx.counterparty ?? undefined,
   };
+}
+
+export async function setupWallet(
+  pin: string,
+): Promise<{ status: number; message: string }> {
+  return apiAuthPost("/wallet/setup", { pin });
 }
 
 async function fetchWallet(): Promise<Wallet> {

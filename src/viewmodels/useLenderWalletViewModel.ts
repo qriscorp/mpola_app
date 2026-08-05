@@ -1,7 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchLenderWallet } from "../services";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchLenderWallet, setupWallet } from "../services";
 
 export function useLenderWalletViewModel() {
+  const queryClient = useQueryClient();
   const {
     data: wallet,
     isLoading,
@@ -12,5 +13,20 @@ export function useLenderWalletViewModel() {
     queryFn: fetchLenderWallet,
   });
 
-  return { wallet, isLoading, error, refetch };
+  const setupMutation = useMutation({
+    mutationFn: setupWallet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["lender", "wallet"] });
+    },
+  });
+
+  return {
+    wallet,
+    isLoading,
+    error,
+    refetch,
+    setupWallet: setupMutation.mutateAsync,
+    isSettingUp: setupMutation.isPending,
+    setupError: setupMutation.error,
+  };
 }

@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { fetchBorrowerWallet, submitPayment } from "../services";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { fetchBorrowerWallet, submitPayment, setupWallet } from "../services";
 import type { PaymentMethod } from "../models";
 
 export function useBorrowerWalletViewModel() {
+  const queryClient = useQueryClient();
   const {
     data: wallet,
     isLoading,
@@ -14,7 +15,22 @@ export function useBorrowerWalletViewModel() {
     queryFn: fetchBorrowerWallet,
   });
 
-  return { wallet, isLoading, error, refetch };
+  const setupMutation = useMutation({
+    mutationFn: setupWallet,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["borrower", "wallet"] });
+    },
+  });
+
+  return {
+    wallet,
+    isLoading,
+    error,
+    refetch,
+    setupWallet: setupMutation.mutateAsync,
+    isSettingUp: setupMutation.isPending,
+    setupError: setupMutation.error,
+  };
 }
 
 export function usePaymentViewModel() {

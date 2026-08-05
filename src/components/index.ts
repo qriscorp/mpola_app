@@ -5,3 +5,4 @@ export { Badge } from "./Badge";
 export { Input } from "./Input";
 export { TransactionItem } from "./TransactionItem";
 export { ProgressBar } from "./ProgressBar";
+export { WalletSetupModal } from "./WalletSetupModal";

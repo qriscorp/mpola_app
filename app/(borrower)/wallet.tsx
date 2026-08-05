@@ -1,18 +1,32 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { TransactionItem } from "../../src/components";
+import { TransactionItem, WalletSetupModal } from "../../src/components";
 import { useBorrowerWalletViewModel } from "../../src/viewmodels";
 
 export default function WalletScreen() {
-  const { wallet } = useBorrowerWalletViewModel();
+  const { wallet, setupWallet, isSettingUp } = useBorrowerWalletViewModel();
+  const [setupVisible, setSetupVisible] = useState(false);
+
+  const handleSetup = async (pin: string) => {
+    try {
+      await setupWallet(pin);
+      setSetupVisible(false);
+    } catch (e) {
+      Alert.alert(
+        "Setup failed",
+        e instanceof Error ? e.message : "Please try again.",
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -28,20 +42,39 @@ export default function WalletScreen() {
           <Text style={styles.balanceAmount}>
             UGX {wallet?.balance.toLocaleString()}
           </Text>
-          {wallet && !wallet.isWalletSetup && (
-            <Text style={styles.setupHint}>
-              Set up your wallet to deposit or withdraw
-            </Text>
+          {wallet && !wallet.isWalletSetup ? (
+            <>
+              <Text style={styles.setupHint}>
+                Set up your wallet to deposit or withdraw
+              </Text>
+              <View style={styles.balanceActions}>
+                <TouchableOpacity
+                  style={styles.topUpBtn}
+                  onPress={() => setSetupVisible(true)}
+                >
+                  <Text style={styles.topUpText}>Set Up Wallet</Text>
+                </TouchableOpacity>
+              </View>
+            </>
+          ) : (
+            <View style={styles.balanceActions}>
+              <TouchableOpacity style={styles.topUpBtn}>
+                <Text style={styles.topUpText}>+ Top Up</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.withdrawBtn}>
+                <Text style={styles.withdrawText}>Withdraw</Text>
+              </TouchableOpacity>
+            </View>
           )}
-          <View style={styles.balanceActions}>
-            <TouchableOpacity style={styles.topUpBtn}>
-              <Text style={styles.topUpText}>+ Top Up</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.withdrawBtn}>
-              <Text style={styles.withdrawText}>Withdraw</Text>
-            </TouchableOpacity>
-          </View>
         </View>
+
+        <WalletSetupModal
+          visible={setupVisible}
+          onClose={() => setSetupVisible(false)}
+          onSubmit={handleSetup}
+          loading={isSettingUp}
+          accentColor={Colors.teal}
+        />
 
         {/* Transactions */}
         <View style={styles.txHeader}>
