@@ -88,7 +88,7 @@ export default function LoansScreen() {
                 UGX {loan.amount.toLocaleString()}
               </Text>
               <Text style={styles.loanSub}>
-                {loan.interestRate}%/mo · {loan.duration} months
+                {loan.interestRate}% p.a. · {loan.duration} months
               </Text>
             </View>
             <View style={styles.activeBadge}>

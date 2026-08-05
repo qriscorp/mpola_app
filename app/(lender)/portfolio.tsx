@@ -112,7 +112,8 @@ export default function PortfolioScreen() {
               <View style={styles.loanInfo}>
                 <Text style={styles.loanName}>{loan.borrowerName}</Text>
                 <Text style={styles.loanMeta}>
-                  UGX {loan.amount.toLocaleString()} • {loan.interestRate}%/mo
+                  UGX {loan.amount.toLocaleString()} • {loan.interestRate}%
+                  p.a.
                 </Text>
               </View>
               <Badge

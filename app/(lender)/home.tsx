@@ -12,12 +12,16 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge } from "../../src/components";
-import { useLenderDashboardViewModel } from "../../src/viewmodels";
+import {
+  useLenderDashboardViewModel,
+  useNotificationsViewModel,
+} from "../../src/viewmodels";
 
 export default function LenderHomeScreen() {
   const router = useRouter();
   const { user, stats, recentActivity, newMatches, isLoading } =
     useLenderDashboardViewModel();
+  const { unreadCount } = useNotificationsViewModel();
 
   if (isLoading) {
     return (
@@ -56,7 +60,7 @@ export default function LenderHomeScreen() {
               size={20}
               color={Colors.textPrimary}
             />
-            <View style={styles.bellDot} />
+            {unreadCount > 0 && <View style={styles.bellDot} />}
           </TouchableOpacity>
           <View style={styles.avatarBtn}>
             <Text style={styles.avatarText}>{initials}</Text>
@@ -75,14 +79,16 @@ export default function LenderHomeScreen() {
           <Text style={styles.capitalAmount}>
             UGX {stats.totalDeployed.toLocaleString()}
           </Text>
-          <Text style={styles.capitalGrowth}>+12% this month</Text>
+          <Text style={styles.capitalGrowth}>
+            UGX {stats.thisMonthEarned.toLocaleString()} earned this month
+          </Text>
           <View style={styles.capitalStats}>
             <View style={styles.capitalStat}>
-              <Text style={styles.capitalStatLabel}>Offers</Text>
+              <Text style={styles.capitalStatLabel}>Active Loans</Text>
               <Text style={styles.capitalStatValue}>{stats.activeLoans}</Text>
             </View>
             <View style={styles.capitalStat}>
-              <Text style={styles.capitalStatLabel}>Applications</Text>
+              <Text style={styles.capitalStatLabel}>Marketplace</Text>
               <Text style={styles.capitalStatValue}>{newMatches}</Text>
             </View>
             <View style={styles.capitalStat}>
@@ -94,8 +100,8 @@ export default function LenderHomeScreen() {
           </View>
         </View>
 
-        {/* My Active Offers */}
-        <Text style={styles.sectionTitle}>My Active Offers</Text>
+        {/* My Active Loans */}
+        <Text style={styles.sectionTitle}>My Active Loans</Text>
 
         {recentActivity.map((item: any) => (
           <TouchableOpacity
@@ -124,10 +130,10 @@ export default function LenderHomeScreen() {
               />
             </View>
             <Text style={styles.offerSub}>
-              {item.interestRate}%/mo · Max {item.duration ?? "—"} months
+              {item.interestRate}% p.a. · {item.duration ?? "—"} months
             </Text>
             <Text style={styles.offerMeta}>
-              {item.applicants ?? 0} applicants · {item.approved ?? 0} approved
+              {item.borrowerName ?? "Unknown borrower"}
             </Text>
           </TouchableOpacity>
         ))}

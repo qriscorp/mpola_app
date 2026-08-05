@@ -27,7 +27,6 @@ import type {
   MonthlyEarning,
   LenderEarnings,
 } from "../models";
-import * as mock from "./mockData";
 import { apiAuthGet, apiAuthPost, apiAuthPatch, apiAuthUpload } from "./auth";
 
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms));
@@ -166,12 +165,32 @@ async function fetchWallet(): Promise<Wallet> {
 // ─── Borrower Dashboard ──────────────────────────────────
 
 export async function fetchBorrowerDashboard() {
-  await delay();
+  const [profile, applications, loan, wallet] = await Promise.all([
+    apiAuthGet<{ full_name: string | null; credit_score: number }>(
+      "/users/me",
+    ),
+    fetchApplications(),
+    fetchActiveLoan(),
+    fetchBorrowerWallet(),
+  ]);
+
+  const [firstName, ...rest] = (profile.full_name ?? "").split(" ");
+  const pendingApps = applications.filter((a) => a.status === "pending");
+  const offersLive = pendingApps.reduce(
+    (sum, a) => sum + (a.pendingOffersCount ?? 0),
+    0,
+  );
+
   return {
-    user: { firstName: "Sarah", lastName: "N." },
-    stats: mock.borrowerStats,
-    loan: mock.activeLoan,
-    walletBalance: mock.borrowerWallet.balance,
+    user: { firstName: firstName || "", lastName: rest.join(" ") },
+    stats: {
+      loansTaken: offersLive,
+      paymentsRepaid: loan?.totalPaid ?? 0,
+      totalPayments: loan?.totalRepayable ?? 0,
+      creditScore: profile.credit_score ?? 0,
+    },
+    loan: loan ?? undefined,
+    walletBalance: wallet.balance,
   };
 }
 
@@ -358,6 +377,8 @@ interface RawApplication {
   total_repayable: number | null;
   created_at: string;
   borrower: RawApplicationBorrower | null;
+  offers_count: number;
+  pending_offers_count: number;
   offers?: RawOffer[];
   guarantors?: RawGuarantor[];
 }
@@ -413,6 +434,8 @@ function mapApplication(a: RawApplication): LoanApplication {
     totalRepayable: a.total_repayable,
     createdAt: a.created_at,
     borrower: a.borrower ? mapApplicationBorrower(a.borrower) : null,
+    offersCount: a.offers_count,
+    pendingOffersCount: a.pending_offers_count,
     offers: a.offers?.map(mapOffer),
     guarantors: a.guarantors?.map(mapGuarantor),
   };
@@ -514,16 +537,34 @@ export async function respondToOffer(
 // ─── Lender Dashboard ───────────────────────────────────
 
 export async function fetchLenderDashboard() {
-  await delay();
-  const recentActivity = mock.portfolioLoans.slice(0, 3).map((loan) => ({
-    ...loan,
-    borrowerName: mock.portfolioBorrowerNames[loan.id] ?? "Unknown",
-  }));
+  const [profile, portfolio, earnings, marketplace] = await Promise.all([
+    apiAuthGet<{ full_name: string | null }>("/users/me"),
+    fetchPortfolio(),
+    fetchLenderEarnings(),
+    fetchMarketplace(),
+  ]);
+
+  const [firstName, ...rest] = (profile.full_name ?? "").split(" ");
+  const activeLoans = portfolio.filter(
+    (l) => l.status === "active" || l.status === "overdue",
+  );
+  const totalPaid = portfolio.reduce((sum, l) => sum + (l.totalPaid ?? 0), 0);
+  const totalOwed = portfolio.reduce((sum, l) => sum + l.totalRepayable, 0);
+
   return {
-    user: { firstName: "Joseph", lastName: "M." },
-    stats: mock.lenderStats,
-    recentActivity,
-    newMatches: 3,
+    user: { firstName: firstName || "", lastName: rest.join(" ") },
+    stats: {
+      totalDeployed: earnings.totalDeployed,
+      activeLoans: activeLoans.length,
+      monthlyReturn: earnings.thisMonthEarned,
+      repaymentRate: totalOwed ? Math.round((totalPaid / totalOwed) * 100) : 0,
+      totalEarned: earnings.totalEarned,
+      thisMonthEarned: earnings.thisMonthEarned,
+      pendingAmount: 0,
+      projectedAmount: 0,
+    },
+    recentActivity: activeLoans.slice(0, 3),
+    newMatches: marketplace.length,
   };
 }
 
@@ -622,7 +663,35 @@ export async function fetchLenderEarnings(): Promise<LenderEarnings> {
 
 // ─── Notifications ──────────────────────────────────────
 
+interface RawNotification {
+  id: string;
+  title: string;
+  message: string;
+  type: string | null;
+  is_read: boolean;
+  created_at: string;
+}
+
 export async function fetchNotifications(): Promise<Notification[]> {
-  await delay();
-  return mock.lenderNotifications;
+  const res = await apiAuthGet<{
+    total: number;
+    unread: number;
+    notifications: RawNotification[];
+  }>("/notifications/?limit=50");
+  return res.notifications.map((n) => ({
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    read: n.is_read,
+    timestamp: n.created_at,
+  }));
+}
+
+export async function markNotificationRead(id: string): Promise<void> {
+  await apiAuthPatch(`/notifications/${id}/read`, {});
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  await apiAuthPost("/notifications/read-all", {});
 }

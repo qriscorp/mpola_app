@@ -16,13 +16,13 @@ import { useNotificationsViewModel } from "../../src/viewmodels";
 const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   loan_offer: {
     name: "gift-outline",
-    color: Colors.gold,
-    bg: Colors.gold + "25",
+    color: Colors.teal,
+    bg: Colors.teal + "25",
   },
   offer_accepted: {
     name: "checkmark-circle",
-    color: Colors.gold,
-    bg: Colors.gold + "25",
+    color: Colors.teal,
+    bg: Colors.teal + "25",
   },
   offer_declined: {
     name: "close-circle-outline",
@@ -52,7 +52,7 @@ const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   },
 };
 
-export default function NotificationsScreen() {
+export default function BorrowerNotificationsScreen() {
   const router = useRouter();
   const { notifications, unreadCount, isLoading, markRead, markAllRead } =
     useNotificationsViewModel();
@@ -62,7 +62,7 @@ export default function NotificationsScreen() {
       <SafeAreaView style={styles.container}>
         <ActivityIndicator
           size="large"
-          color={Colors.gold}
+          color={Colors.teal}
           style={{ flex: 1 }}
         />
       </SafeAreaView>
@@ -71,7 +71,6 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
@@ -163,7 +162,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   unreadText: { ...Typography.caption, color: Colors.white, fontWeight: "700" },
-  markAllText: { ...Typography.smallMedium, color: Colors.gold },
+  markAllText: { ...Typography.smallMedium, color: Colors.teal },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   notifCard: {
     flexDirection: "row",
@@ -174,7 +173,7 @@ const styles = StyleSheet.create({
   },
   notifCardUnread: {
     borderLeftWidth: 3,
-    borderLeftColor: Colors.gold,
+    borderLeftColor: Colors.teal,
   },
   notifIcon: {
     width: 40,
@@ -195,7 +194,7 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: Colors.gold,
+    backgroundColor: Colors.teal,
   },
   notifMessage: {
     ...Typography.small,

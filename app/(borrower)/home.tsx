@@ -11,12 +11,16 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { ProgressBar } from "../../src/components";
-import { useBorrowerDashboardViewModel } from "../../src/viewmodels";
+import {
+  useBorrowerDashboardViewModel,
+  useNotificationsViewModel,
+} from "../../src/viewmodels";
 
 export default function BorrowerHomeScreen() {
   const router = useRouter();
   const { user, stats, loan, paymentProgress, walletBalance } =
     useBorrowerDashboardViewModel();
+  const { unreadCount } = useNotificationsViewModel();
 
   const initials = [user.firstName?.[0], user.lastName?.[0]]
     .filter(Boolean)
@@ -38,13 +42,16 @@ export default function BorrowerHomeScreen() {
             Hi, <Text style={styles.greetingName}>{user.firstName}</Text>
           </Text>
           <View style={styles.headerRight}>
-            <TouchableOpacity style={styles.bellBtn}>
+            <TouchableOpacity
+              style={styles.bellBtn}
+              onPress={() => router.push("/(borrower)/notifications")}
+            >
               <Ionicons
                 name="notifications-outline"
                 size={20}
                 color={Colors.textSecondary}
               />
-              <View style={styles.bellDot} />
+              {unreadCount > 0 && <View style={styles.bellDot} />}
             </TouchableOpacity>
             <View style={styles.avatarCircle}>
               <Text style={styles.avatarText}>{initials}</Text>

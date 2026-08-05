@@ -88,6 +88,8 @@ export interface LoanApplication {
   totalRepayable: number | null;
   createdAt: string;
   borrower: ApplicationBorrower | null;
+  offersCount: number;
+  pendingOffersCount: number;
   offers?: LoanOffer[];
   guarantors?: Guarantor[];
 }
@@ -206,7 +208,7 @@ export interface Notification {
   id: string;
   title: string;
   message: string;
-  type: "offer_accepted" | "repayment" | "overdue" | "new_matches" | "general";
+  type: string | null;
   read: boolean;
   timestamp: string;
 }
