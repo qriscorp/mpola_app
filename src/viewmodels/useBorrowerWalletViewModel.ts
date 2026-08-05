@@ -3,11 +3,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchBorrowerWallet,
   fetchActiveLoan,
+  fetchWalletTransactionsPage,
   makeRepayment,
   setupWallet,
 } from "../services";
 import { useWalletTransactions } from "./useWalletTransactions";
 import type { PaymentMethod } from "../models";
+
+const TX_PAGE_SIZE = 20;
 
 export function useBorrowerWalletViewModel() {
   const queryClient = useQueryClient();
@@ -19,6 +22,12 @@ export function useBorrowerWalletViewModel() {
   } = useQuery({
     queryKey: ["borrower", "wallet"],
     queryFn: fetchBorrowerWallet,
+  });
+
+  const [txPage, setTxPage] = useState(1);
+  const { data: txPageData, isLoading: txPageLoading } = useQuery({
+    queryKey: ["borrower", "wallet", "transactions", txPage],
+    queryFn: () => fetchWalletTransactionsPage(txPage, TX_PAGE_SIZE),
   });
 
   const setupMutation = useMutation({
@@ -38,6 +47,12 @@ export function useBorrowerWalletViewModel() {
     setupWallet: setupMutation.mutateAsync,
     isSettingUp: setupMutation.isPending,
     setupError: setupMutation.error,
+    txPage,
+    setTxPage,
+    txPageSize: TX_PAGE_SIZE,
+    pagedTransactions: txPageData?.transactions ?? [],
+    pagedTransactionsTotal: txPageData?.total ?? 0,
+    pagedTransactionsLoading: txPageLoading,
     ...transactions,
   };
 }

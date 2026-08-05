@@ -12,6 +12,14 @@ import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 import { Input } from "./Input";
 import { Button } from "./Button";
 import type { BankOption } from "../models";
+import {
+  calcMobileMoneyWithdrawalCharges,
+  calcBankWithdrawalCharges,
+} from "../services/fees";
+
+function formatUgx(n: number): string {
+  return `UGX ${Math.round(n).toLocaleString()}`;
+}
 
 interface Props {
   visible: boolean;
@@ -60,20 +68,36 @@ export function WalletWithdrawModal({
     (method === "mobile_money" ? !!phone : bankValid) &&
     !isSubmitting;
 
+  const numericAmount = Number(amount) || 0;
+  const charges =
+    numericAmount > 0
+      ? method === "mobile_money"
+        ? calcMobileMoneyWithdrawalCharges(numericAmount, phone || "MTN")
+        : calcBankWithdrawalCharges(numericAmount)
+      : null;
+
   const handleSubmit = async () => {
-    const numericAmount = Number(amount);
     try {
+      let fee: number | null | undefined;
       if (method === "mobile_money") {
-        await onWithdrawMobileMoney({ amount: numericAmount, phone });
+        const result = (await onWithdrawMobileMoney({
+          amount: numericAmount,
+          phone,
+        })) as { fee?: number } | undefined;
+        fee = result?.fee;
       } else if (selectedBank) {
-        await onWithdrawBank({
+        const result = (await onWithdrawBank({
           amount: numericAmount,
           accountBank: selectedBank.code,
           accountNumber,
           beneficiaryName,
-        });
+        })) as { fee?: number | null } | undefined;
+        fee = result?.fee;
       }
       onClose();
+      if (fee != null) {
+        Alert.alert("Withdrawal successful", `${formatUgx(fee)} fee charged.`);
+      }
     } catch (e) {
       Alert.alert(
         "Withdrawal failed",
@@ -168,6 +192,39 @@ export function WalletWithdrawModal({
             </>
           )}
 
+          {charges && (
+            <View style={styles.feeBox}>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>Recipient receives</Text>
+                <Text style={styles.feeValue}>{formatUgx(numericAmount)}</Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>Platform fee (0.5%)</Text>
+                <Text style={styles.feeValue}>
+                  {formatUgx(charges.platform_fee)}
+                </Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>
+                  {method === "mobile_money"
+                    ? "Network fee"
+                    : "Flutterwave fee (3%)"}
+                </Text>
+                <Text style={styles.feeValue}>
+                  {formatUgx(charges.provider_fee)}
+                </Text>
+              </View>
+              <View style={[styles.feeRow, styles.feeTotalRow]}>
+                <Text style={styles.feeTotalLabel}>
+                  Total debited from wallet
+                </Text>
+                <Text style={styles.feeTotalValue}>
+                  {formatUgx(numericAmount + charges.total_fee)}
+                </Text>
+              </View>
+            </View>
+          )}
+
           {isSubmittingBank && (
             <Text style={styles.waiting}>Processing your transfer…</Text>
           )}
@@ -257,6 +314,27 @@ const styles = StyleSheet.create({
     color: Colors.warning,
     marginBottom: Spacing.sm,
   },
+  feeBox: {
+    backgroundColor: Colors.navyLight,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  feeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  feeLabel: { ...Typography.small, color: Colors.textSecondary },
+  feeValue: { ...Typography.small, color: Colors.textSecondary },
+  feeTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  feeTotalLabel: { ...Typography.smallMedium, color: Colors.textPrimary },
+  feeTotalValue: { ...Typography.smallMedium, color: Colors.textPrimary },
   actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
   flex: { flex: 1 },
 });

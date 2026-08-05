@@ -35,6 +35,9 @@ export default function BrowseBorrowersScreen() {
     borrowers,
     totalCount,
     filters,
+    page,
+    totalPages,
+    setPage,
     isLoading,
   } = useBrowseBorrowersViewModel();
 
@@ -155,6 +158,31 @@ export default function BrowseBorrowersScreen() {
               </TouchableOpacity>
             );
           })}
+
+          <View style={styles.paginationRow}>
+            <TouchableOpacity
+              style={[styles.pageBtn, page <= 1 && styles.pageBtnDisabled]}
+              onPress={() => setPage(page - 1)}
+              disabled={page <= 1}
+            >
+              <Ionicons name="chevron-back" size={16} color={Colors.white} />
+              <Text style={styles.pageBtnText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageIndicator}>
+              Page {page} of {totalPages}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.pageBtn,
+                page >= totalPages && styles.pageBtnDisabled,
+              ]}
+              onPress={() => setPage(page + 1)}
+              disabled={page >= totalPages}
+            >
+              <Text style={styles.pageBtnText}>Next</Text>
+              <Ionicons name="chevron-forward" size={16} color={Colors.white} />
+            </TouchableOpacity>
+          </View>
         </ScrollView>
       )}
     </SafeAreaView>
@@ -246,4 +274,24 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   purpose: { ...Typography.small, color: Colors.textSecondary },
+  paginationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: Spacing.md,
+  },
+  pageBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  pageBtnDisabled: { opacity: 0.4 },
+  pageBtnText: { ...Typography.smallMedium, color: Colors.white },
+  pageIndicator: { ...Typography.small, color: Colors.textSecondary },
 });

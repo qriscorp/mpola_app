@@ -14,38 +14,53 @@ export function useApplicationDetailViewModel(applicationId: string) {
   return { application, isLoading, error, refetch };
 }
 
+const PAGE_SIZE = 20;
+
 export function useBrowseBorrowersViewModel() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | LoanType>("all");
+  const [page, setPage] = useState(1);
 
   const {
-    data: applications = [],
+    data,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["lender", "marketplace"],
-    queryFn: () => fetchMarketplace(),
+    queryKey: ["lender", "marketplace", page, filter],
+    queryFn: () =>
+      fetchMarketplace(page, PAGE_SIZE, {
+        loanType: filter === "all" ? undefined : filter,
+      }),
   });
 
+  const applications = data?.applications ?? [];
+  const total = data?.total ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+  // Search is client-side over the current page only — the marketplace
+  // endpoint doesn't support a text search filter server-side.
   const borrowers = applications.filter((a) => {
     const name = a.borrower?.fullName ?? "";
-    const matchSearch = name.toLowerCase().includes(search.toLowerCase());
-    const matchFilter = filter === "all" || a.loanType === filter;
-    return matchSearch && matchFilter;
+    return name.toLowerCase().includes(search.toLowerCase());
   });
 
-  const totalCount = applications.length;
   const filters = ["all", "personal", "business"] as const;
 
   return {
     search,
     setSearch,
     filter,
-    setFilter,
+    setFilter: (f: "all" | LoanType) => {
+      setFilter(f);
+      setPage(1);
+    },
     borrowers,
-    totalCount,
+    totalCount: total,
     filters,
+    page,
+    totalPages,
+    setPage,
     isLoading,
     error,
     refetch,

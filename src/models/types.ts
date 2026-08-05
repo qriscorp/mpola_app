@@ -171,6 +171,13 @@ export interface CardDepositInitiateResult {
 export interface TransferStatusResult {
   status: "pending" | "completed" | "failed";
   balance: number;
+  fee?: number | null;
+}
+
+export interface WithdrawalCharges {
+  platform_fee: number;
+  provider_fee: number;
+  total_fee: number;
 }
 
 export type PaymentMethod = "wallet" | "momo" | "airtel";

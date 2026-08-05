@@ -102,7 +102,13 @@ export async function withdrawMobileMoney(data: {
   amount: number;
   phone: string;
   carrier?: string;
-}): Promise<{ status: number; message: string; balance: number }> {
+}): Promise<{
+  status: number;
+  message: string;
+  balance: number;
+  fee: number;
+  total_debited: number;
+}> {
   return apiAuthPost("/wallet/withdraw", data);
 }
 
@@ -154,6 +160,21 @@ export async function getBankWithdrawStatus(
   reference: string,
 ): Promise<TransferStatusResult> {
   return apiAuthGet(`/wallet/withdraw/bank/status/${reference}`);
+}
+
+export async function fetchWalletTransactionsPage(
+  page: number = 1,
+  pageSize: number = 20,
+): Promise<{ transactions: Transaction[]; total: number }> {
+  const params = new URLSearchParams({
+    skip: String((page - 1) * pageSize),
+    limit: String(pageSize),
+  });
+  const res = await apiAuthGet<{
+    total: number;
+    transactions: RawWalletTransaction[];
+  }>(`/wallet/transactions?${params.toString()}`);
+  return { transactions: res.transactions.map(mapWalletTransaction), total: res.total };
 }
 
 async function fetchWallet(): Promise<Wallet> {
@@ -666,27 +687,32 @@ export async function fetchLenderDashboard() {
       projectedAmount: 0,
     },
     recentActivity: activeLoans.slice(0, 3),
-    newMatches: marketplace.length,
+    newMatches: marketplace.total,
   };
 }
 
 // ─── Marketplace (Lender browse) ────────────────────────
 
-export async function fetchMarketplace(filters?: {
-  loanType?: string;
-  minAmount?: number;
-  maxAmount?: number;
-}): Promise<MarketplaceApplication[]> {
+export async function fetchMarketplace(
+  page: number = 1,
+  pageSize: number = 20,
+  filters?: {
+    loanType?: string;
+    minAmount?: number;
+    maxAmount?: number;
+  },
+): Promise<{ applications: MarketplaceApplication[]; total: number }> {
   const params = new URLSearchParams();
+  params.set("skip", String((page - 1) * pageSize));
+  params.set("limit", String(pageSize));
   if (filters?.loanType) params.set("loan_type", filters.loanType);
   if (filters?.minAmount) params.set("min_amount", String(filters.minAmount));
   if (filters?.maxAmount) params.set("max_amount", String(filters.maxAmount));
-  const qs = params.toString();
   const res = await apiAuthGet<{
     total: number;
     applications: RawApplication[];
-  }>(`/loans/marketplace${qs ? `?${qs}` : ""}`);
-  return res.applications.map(mapApplication);
+  }>(`/loans/marketplace?${params.toString()}`);
+  return { applications: res.applications.map(mapApplication), total: res.total };
 }
 
 export async function fetchMyOffers(): Promise<LoanOffer[]> {

@@ -32,7 +32,12 @@ export default function WalletScreen() {
     isWithdrawingWithBank,
     banks,
     banksLoading,
+    txPage,
+    setTxPage,
+    pagedTransactions,
+    pagedTransactionsTotal,
   } = useBorrowerWalletViewModel();
+  const totalTxPages = Math.max(1, Math.ceil(pagedTransactionsTotal / 20));
   const [setupVisible, setSetupVisible] = useState(false);
   const [depositVisible, setDepositVisible] = useState(false);
   const [withdrawVisible, setWithdrawVisible] = useState(false);
@@ -128,12 +133,9 @@ export default function WalletScreen() {
         {/* Transactions */}
         <View style={styles.txHeader}>
           <Text style={styles.txTitle}>Transaction History</Text>
-          <TouchableOpacity>
-            <Text style={styles.seeAll}>See all</Text>
-          </TouchableOpacity>
         </View>
 
-        {wallet?.transactions.map((tx) => (
+        {pagedTransactions.map((tx) => (
           <TransactionItem
             key={tx.id}
             amount={tx.amount}
@@ -142,6 +144,34 @@ export default function WalletScreen() {
             type={tx.amount > 0 ? "credit" : "debit"}
           />
         ))}
+
+        {pagedTransactionsTotal > 0 && (
+          <View style={styles.paginationRow}>
+            <TouchableOpacity
+              style={[
+                styles.pageBtn,
+                txPage <= 1 && styles.pageBtnDisabled,
+              ]}
+              onPress={() => setTxPage(txPage - 1)}
+              disabled={txPage <= 1}
+            >
+              <Text style={styles.pageBtnText}>Previous</Text>
+            </TouchableOpacity>
+            <Text style={styles.pageIndicator}>
+              Page {txPage} of {totalTxPages}
+            </Text>
+            <TouchableOpacity
+              style={[
+                styles.pageBtn,
+                txPage >= totalTxPages && styles.pageBtnDisabled,
+              ]}
+              onPress={() => setTxPage(txPage + 1)}
+              disabled={txPage >= totalTxPages}
+            >
+              <Text style={styles.pageBtnText}>Next</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -203,4 +233,21 @@ const styles = StyleSheet.create({
   },
   txTitle: { ...Typography.h4, color: Colors.textPrimary },
   seeAll: { ...Typography.smallMedium, color: Colors.teal },
+  paginationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: Spacing.md,
+  },
+  pageBtn: {
+    backgroundColor: Colors.surface,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+  },
+  pageBtnDisabled: { opacity: 0.4 },
+  pageBtnText: { ...Typography.smallMedium, color: Colors.white },
+  pageIndicator: { ...Typography.small, color: Colors.textSecondary },
 });
