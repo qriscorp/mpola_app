@@ -8,6 +8,8 @@ import type {
   Loan,
   LoanOffer,
   Wallet,
+  Transaction,
+  TransactionType,
   BorrowerStats,
   LenderStats,
   BorrowerProfile,
@@ -17,9 +19,68 @@ import type {
   MonthlyEarning,
 } from "../models";
 import * as mock from "./mockData";
+import { apiAuthGet } from "./auth";
 import type { RegisterInput, LoginInput, MakeOfferInput } from "../validation";
 
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms));
+
+// ─── Wallet (shared) ─────────────────────────────────────
+// One wallet per user — borrower and lender portals hit the same endpoints.
+
+interface RawWalletTransaction {
+  id: string;
+  amount: number;
+  type: TransactionType;
+  status: "pending" | "completed" | "failed";
+  description: string | null;
+  reference: string | null;
+  counterparty: string | null;
+  created_at: string;
+}
+
+const DEBIT_TYPES = new Set<TransactionType>(["withdrawal", "repayment"]);
+
+const TYPE_LABELS: Record<TransactionType, string> = {
+  deposit: "Deposit",
+  withdrawal: "Withdrawal",
+  repayment: "Repayment",
+  disbursement: "Disbursement",
+  top_up: "Top Up",
+};
+
+function formatTxDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-UG", { day: "numeric", month: "short" });
+}
+
+function mapWalletTransaction(tx: RawWalletTransaction): Transaction {
+  const signedAmount = DEBIT_TYPES.has(tx.type)
+    ? -Math.abs(tx.amount)
+    : Math.abs(tx.amount);
+  return {
+    id: tx.id,
+    type: tx.type,
+    amount: signedAmount,
+    description: tx.description || TYPE_LABELS[tx.type],
+    date: formatTxDate(tx.created_at),
+    counterparty: tx.counterparty ?? undefined,
+  };
+}
+
+async function fetchWallet(): Promise<Wallet> {
+  const [walletRes, txRes] = await Promise.all([
+    apiAuthGet<{ balance: number; is_wallet_setup: boolean }>("/wallet/"),
+    apiAuthGet<{ total: number; transactions: RawWalletTransaction[] }>(
+      "/wallet/transactions",
+    ),
+  ]);
+  return {
+    balance: walletRes.balance,
+    isWalletSetup: walletRes.is_wallet_setup,
+    transactions: txRes.transactions.map(mapWalletTransaction),
+  };
+}
 
 // ─── Auth ────────────────────────────────────────────────
 
@@ -50,8 +111,7 @@ export async function fetchBorrowerDashboard() {
 // ─── Borrower Wallet ────────────────────────────────────
 
 export async function fetchBorrowerWallet(): Promise<Wallet> {
-  await delay();
-  return mock.borrowerWallet;
+  return fetchWallet();
 }
 
 // ─── Offers ──────────────────────────────────────────────
@@ -140,8 +200,7 @@ export async function fetchPortfolio(): Promise<
 // ─── Lender Wallet ──────────────────────────────────────
 
 export async function fetchLenderWallet(): Promise<Wallet> {
-  await delay();
-  return mock.lenderWallet;
+  return fetchWallet();
 }
 
 // ─── Earnings ───────────────────────────────────────────

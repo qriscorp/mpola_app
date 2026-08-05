@@ -28,7 +28,11 @@ export default function WalletScreen() {
           <Text style={styles.balanceAmount}>
             UGX {wallet?.balance.toLocaleString()}
           </Text>
-          <Text style={styles.balanceUsd}>≈ USD {wallet?.balanceUsd}</Text>
+          {wallet && !wallet.isWalletSetup && (
+            <Text style={styles.setupHint}>
+              Set up your wallet to deposit or withdraw
+            </Text>
+          )}
           <View style={styles.balanceActions}>
             <TouchableOpacity style={styles.topUpBtn}>
               <Text style={styles.topUpText}>+ Top Up</Text>
@@ -83,13 +87,17 @@ const styles = StyleSheet.create({
     color: Colors.white,
     marginTop: 4,
   },
-  balanceUsd: {
+  setupHint: {
     ...Typography.small,
     color: Colors.textMuted,
-    marginTop: 2,
-    marginBottom: Spacing.lg,
+    marginTop: 6,
+    textAlign: "center",
   },
-  balanceActions: { flexDirection: "row", gap: Spacing.md },
+  balanceActions: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+  },
   topUpBtn: {
     backgroundColor: Colors.teal,
     paddingHorizontal: Spacing.xxl,

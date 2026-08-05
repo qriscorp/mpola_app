@@ -51,7 +51,11 @@ export default function LenderWalletScreen() {
           <Text style={styles.balanceAmount}>
             UGX {wallet.balance.toLocaleString()}
           </Text>
-          <Text style={styles.balanceUsd}>≈ USD {wallet.balanceUsd}</Text>
+          {!wallet.isWalletSetup && (
+            <Text style={styles.setupHint}>
+              Set up your wallet to deposit or withdraw
+            </Text>
+          )}
           <View style={styles.balanceActions}>
             <TouchableOpacity style={styles.depositBtn}>
               <Ionicons
@@ -122,13 +126,17 @@ const styles = StyleSheet.create({
     color: Colors.white,
     marginTop: 4,
   },
-  balanceUsd: {
+  setupHint: {
     ...Typography.small,
     color: Colors.textMuted,
-    marginTop: 2,
-    marginBottom: Spacing.lg,
+    marginTop: 6,
+    textAlign: "center",
   },
-  balanceActions: { flexDirection: "row", gap: Spacing.md },
+  balanceActions: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginTop: Spacing.lg,
+  },
   depositBtn: {
     flexDirection: "row",
     alignItems: "center",

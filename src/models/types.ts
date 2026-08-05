@@ -138,7 +138,7 @@ export interface Transaction {
 
 export interface Wallet {
   balance: number;
-  balanceUsd: number;
+  isWalletSetup: boolean;
   transactions: Transaction[];
 }
 

@@ -55,7 +55,7 @@ export const activeLoan: Loan = {
 
 export const borrowerWallet: Wallet = {
   balance: 512000,
-  balanceUsd: 138,
+  isWalletSetup: true,
   transactions: [
     {
       id: "t1",
@@ -199,41 +199,6 @@ export const lenderStats: LenderStats = {
   thisMonthEarned: 186000,
   pendingAmount: 574000,
   projectedAmount: 210000,
-};
-
-export const lenderWallet: Wallet = {
-  balance: 3240000,
-  balanceUsd: 870,
-  transactions: [
-    {
-      id: "lt1",
-      type: "repayment",
-      amount: 574000,
-      description: "Repayment — A. Nakato",
-      date: "Apr 18",
-    },
-    {
-      id: "lt2",
-      type: "deposit",
-      amount: 2000000,
-      description: "Wallet Top Up",
-      date: "Apr 10",
-    },
-    {
-      id: "lt3",
-      type: "disbursement",
-      amount: -8000000,
-      description: "Loan Disbursed — D. Ssemwogerere",
-      date: "Apr 5",
-    },
-    {
-      id: "lt4",
-      type: "repayment",
-      amount: 720000,
-      description: "Repayment — B. Kiwanuka",
-      date: "Mar 28",
-    },
-  ],
 };
 
 export const portfolioLoans: Loan[] = [
