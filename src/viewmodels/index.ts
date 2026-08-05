@@ -3,6 +3,7 @@ export { useBorrowerDashboardViewModel } from "./useBorrowerDashboardViewModel";
 export { useApplyViewModel } from "./useApplyViewModel";
 export {
   useBorrowerWalletViewModel,
+  useActiveLoanViewModel,
   usePaymentViewModel,
 } from "./useBorrowerWalletViewModel";
 export { useOffersViewModel } from "./useOffersViewModel";

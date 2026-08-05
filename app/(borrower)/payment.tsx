@@ -5,12 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card } from "../../src/components";
+import { Button, Card, Input } from "../../src/components";
 import { usePaymentViewModel } from "../../src/viewmodels";
 import type { PaymentMethod } from "../../src/models";
 
@@ -20,9 +22,43 @@ const methods: { key: PaymentMethod; label: string }[] = [
   { key: "airtel", label: "Airtel" },
 ];
 
+function formatDueDate(iso: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleDateString("en-UG", { day: "numeric", month: "short" });
+}
+
 export default function PaymentScreen() {
   const router = useRouter();
   const vm = usePaymentViewModel();
+
+  if (vm.loanLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator
+          size="large"
+          color={Colors.teal}
+          style={{ flex: 1 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (!vm.loan) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Make a Payment</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <Text style={styles.noLoanText}>You don&apos;t have an active loan.</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -46,7 +82,7 @@ export default function PaymentScreen() {
           </Text>
           <Text style={styles.amountSub}>
             Instalment {vm.instalmentNumber} of {vm.totalInstalments} · Due{" "}
-            {vm.dueDate}
+            {formatDueDate(vm.dueDate)}
           </Text>
         </Card>
 
@@ -73,6 +109,17 @@ export default function PaymentScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Mobile Money Phone Number */}
+        {vm.method !== "wallet" && (
+          <Input
+            label="Phone Number"
+            value={vm.phone}
+            onChangeText={vm.setPhone}
+            placeholder="+256 7XX XXX XXX"
+            keyboardType="phone-pad"
+          />
+        )}
 
         {/* Wallet Balance */}
         {vm.method === "wallet" && (
@@ -117,8 +164,25 @@ export default function PaymentScreen() {
         <Button
           title="Confirm Payment ✓"
           onPress={async () => {
-            await vm.confirmPayment();
-            router.push("/(borrower)/payment-success");
+            try {
+              const result = await vm.confirmPayment();
+              router.push({
+                pathname: "/(borrower)/payment-success",
+                params: {
+                  transactionId: result.transactionId,
+                  amount: String(result.amount),
+                  paymentMethod: result.paymentMethod,
+                  instalmentNumber: String(result.instalmentNumber),
+                  totalInstalments: String(vm.totalInstalments),
+                  date: result.date,
+                },
+              });
+            } catch (e) {
+              Alert.alert(
+                "Payment failed",
+                e instanceof Error ? e.message : "Please try again.",
+              );
+            }
           }}
           color={Colors.teal}
           loading={vm.loading}
@@ -145,6 +209,12 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   headerTitle: { ...Typography.h3, color: Colors.white },
+  noLoanText: {
+    ...Typography.body,
+    color: Colors.textMuted,
+    textAlign: "center",
+    marginTop: Spacing.xxl,
+  },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   amountCard: {
     backgroundColor: Colors.teal,

@@ -1,12 +1,42 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Card } from "../../src/components";
 
+const METHOD_LABEL: Record<string, string> = {
+  wallet: "Mpola Wallet",
+  mobile_money: "Mobile Money",
+};
+
+function formatDateTime(iso: string | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString("en-UG", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export default function PaymentSuccessScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    transactionId?: string;
+    amount?: string;
+    paymentMethod?: string;
+    instalmentNumber?: string;
+    totalInstalments?: string;
+    date?: string;
+  }>();
+
+  const amount = Number(params.amount ?? 0);
+  const instalmentNumber = Number(params.instalmentNumber ?? 0);
+  const totalInstalments = Number(params.totalInstalments ?? 0);
+  const remaining = Math.max(totalInstalments - instalmentNumber, 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -15,28 +45,36 @@ export default function PaymentSuccessScreen() {
           <Text style={styles.check}>✓</Text>
         </View>
         <Text style={styles.title}>Payment Successful!</Text>
-        <Text style={styles.txId}>Transaction ID: TXN-20250418-7821</Text>
+        <Text style={styles.txId}>
+          Transaction ID: {params.transactionId ?? "—"}
+        </Text>
 
         <Card style={styles.receipt}>
           <View style={styles.row}>
             <Text style={styles.label}>Amount Paid</Text>
-            <Text style={styles.value}>UGX 354,000</Text>
+            <Text style={styles.value}>UGX {amount.toLocaleString()}</Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Payment Method</Text>
-            <Text style={styles.value}>Mpola Wallet</Text>
+            <Text style={styles.value}>
+              {METHOD_LABEL[params.paymentMethod ?? ""] ??
+                params.paymentMethod ??
+                "—"}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Instalment</Text>
-            <Text style={styles.value}>7 of 12</Text>
+            <Text style={styles.value}>
+              {instalmentNumber} of {totalInstalments}
+            </Text>
           </View>
           <View style={styles.row}>
             <Text style={styles.label}>Date</Text>
-            <Text style={styles.value}>Apr 18, 9:41 AM</Text>
+            <Text style={styles.value}>{formatDateTime(params.date)}</Text>
           </View>
           <View style={[styles.row, { borderBottomWidth: 0 }]}>
             <Text style={styles.label}>Remaining</Text>
-            <Text style={styles.value}>5 payments</Text>
+            <Text style={styles.value}>{remaining} payments</Text>
           </View>
         </Card>
 

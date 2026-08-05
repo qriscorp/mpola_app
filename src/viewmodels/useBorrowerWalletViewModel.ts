@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchBorrowerWallet, submitPayment, setupWallet } from "../services";
+import {
+  fetchBorrowerWallet,
+  fetchActiveLoan,
+  makeRepayment,
+  setupWallet,
+} from "../services";
 import { useWalletTransactions } from "./useWalletTransactions";
 import type { PaymentMethod } from "../models";
 
@@ -37,29 +42,66 @@ export function useBorrowerWalletViewModel() {
   };
 }
 
-export function usePaymentViewModel() {
-  const [method, setMethod] = useState<PaymentMethod>("wallet");
+export function useActiveLoanViewModel() {
+  const { data: loan, isLoading, error, refetch } = useQuery({
+    queryKey: ["borrower", "activeLoan"],
+    queryFn: fetchActiveLoan,
+  });
 
-  const amount = 354000;
-  const instalmentNumber = 7;
-  const totalInstalments = 12;
-  const dueDate = "May 1";
-  const walletBalance = 512000;
+  return { loan, isLoading, error, refetch };
+}
+
+export function usePaymentViewModel() {
+  const queryClient = useQueryClient();
+  const [method, setMethod] = useState<PaymentMethod>("wallet");
+  const [phone, setPhone] = useState("");
+
+  const { data: loan, isLoading: loanLoading } = useQuery({
+    queryKey: ["borrower", "activeLoan"],
+    queryFn: fetchActiveLoan,
+  });
+  const { data: wallet } = useQuery({
+    queryKey: ["borrower", "wallet"],
+    queryFn: fetchBorrowerWallet,
+  });
+
+  const amount = loan?.nextPaymentAmount ?? loan?.monthlyPayment ?? 0;
+  const instalmentNumber = (loan?.paidInstalments ?? 0) + 1;
+  const totalInstalments = loan?.totalInstalments ?? 0;
+  const dueDate = loan?.nextPaymentDate ?? "";
+  const walletBalance = wallet?.balance ?? 0;
   const processingFee = 0;
   const totalDeducted = amount + processingFee;
   const sufficient = walletBalance >= totalDeducted;
 
   const paymentMutation = useMutation({
-    mutationFn: submitPayment,
+    mutationFn: makeRepayment,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["borrower", "activeLoan"] });
+      queryClient.invalidateQueries({ queryKey: ["borrower", "wallet"] });
+    },
   });
 
   const confirmPayment = async () => {
-    return paymentMutation.mutateAsync({ method, amount });
+    if (!loan) throw new Error("No active loan to pay");
+    const carrier =
+      method === "momo" ? "MTN" : method === "airtel" ? "AIRTEL" : undefined;
+    return paymentMutation.mutateAsync({
+      loanId: loan.id,
+      amount,
+      paymentMethod: method === "wallet" ? "wallet" : "mobile_money",
+      phoneNumber: method === "wallet" ? undefined : phone,
+      carrier,
+    });
   };
 
   return {
+    loan,
+    loanLoading,
     method,
     setMethod,
+    phone,
+    setPhone,
     amount,
     instalmentNumber,
     totalInstalments,

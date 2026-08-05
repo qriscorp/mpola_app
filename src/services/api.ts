@@ -6,6 +6,7 @@
 import type {
   User,
   Loan,
+  LoanStatus,
   LoanOffer,
   Wallet,
   Transaction,
@@ -190,6 +191,100 @@ export async function fetchBorrowerWallet(): Promise<Wallet> {
   return fetchWallet();
 }
 
+// ─── Active Loan / Repayments ───────────────────────────
+
+interface RawLoan {
+  id: string;
+  borrower_id: string;
+  lender_id: string;
+  amount: number;
+  interest_rate: number;
+  duration: number;
+  monthly_payment: number;
+  total_repayable: number;
+  total_paid: number;
+  paid_instalments: number;
+  total_instalments: number;
+  next_payment_date: string | null;
+  next_payment_amount: number | null;
+  status: string;
+  disbursed_at: string | null;
+  created_at: string;
+}
+
+function mapLoan(raw: RawLoan): Loan {
+  return {
+    id: raw.id,
+    borrowerId: raw.borrower_id,
+    lenderId: raw.lender_id,
+    amount: raw.amount,
+    duration: raw.duration,
+    type: "personal", // the active-loan API doesn't return a loan type today
+    interestRate: raw.interest_rate,
+    monthlyPayment: raw.monthly_payment,
+    totalRepayable: raw.total_repayable,
+    status: raw.status as LoanStatus,
+    paidInstalments: raw.paid_instalments,
+    totalInstalments: raw.total_instalments,
+    nextPaymentDate: raw.next_payment_date ?? undefined,
+    nextPaymentAmount: raw.next_payment_amount ?? undefined,
+    createdAt: raw.created_at,
+  };
+}
+
+export async function fetchActiveLoan(): Promise<Loan | null> {
+  const res = await apiAuthGet<{ total: number; loans: RawLoan[] }>(
+    "/loans/active",
+  );
+  const raw =
+    res.loans.find((l) => l.status === "active" || l.status === "overdue") ??
+    res.loans[0];
+  return raw ? mapLoan(raw) : null;
+}
+
+export async function makeRepayment(data: {
+  loanId: string;
+  amount: number;
+  paymentMethod: "wallet" | "mobile_money";
+  phoneNumber?: string;
+  carrier?: string;
+}): Promise<{
+  transactionId: string;
+  date: string;
+  amount: number;
+  paymentMethod: string;
+  instalmentNumber: number;
+  loan: Loan;
+}> {
+  const res = await apiAuthPost<{
+    status: number;
+    message: string;
+    repayment: {
+      id: string;
+      amount: number;
+      instalment_number: number;
+      payment_method: string | null;
+      transaction_id: string | null;
+      created_at: string;
+    };
+    loan: RawLoan;
+  }>("/loans/repayments", {
+    loan_id: data.loanId,
+    amount: data.amount,
+    payment_method: data.paymentMethod,
+    phone_number: data.phoneNumber,
+    carrier: data.carrier,
+  });
+  return {
+    transactionId: res.repayment.transaction_id ?? res.repayment.id,
+    date: res.repayment.created_at,
+    amount: res.repayment.amount,
+    paymentMethod: res.repayment.payment_method ?? data.paymentMethod,
+    instalmentNumber: res.repayment.instalment_number,
+    loan: mapLoan(res.loan),
+  };
+}
+
 // ─── Offers ──────────────────────────────────────────────
 
 export async function fetchBorrowerOffers(): Promise<LoanOffer[]> {
@@ -200,16 +295,6 @@ export async function fetchBorrowerOffers(): Promise<LoanOffer[]> {
 export async function acceptOffer(offerId: string): Promise<boolean> {
   await delay(1000);
   return true;
-}
-
-// ─── Payments ────────────────────────────────────────────
-
-export async function submitPayment(data: {
-  method: string;
-  amount: number;
-}): Promise<{ transactionId: string; date: string }> {
-  await delay(1500);
-  return { transactionId: "TXN-20250418-7821", date: "Apr 18, 9:41 AM" };
 }
 
 // ─── Loan Application ───────────────────────────────────

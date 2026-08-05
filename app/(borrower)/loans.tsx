@@ -5,19 +5,46 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { ProgressBar } from "../../src/components";
-import { activeLoan } from "../../src/services";
+import { useActiveLoanViewModel } from "../../src/viewmodels";
 
 const TABS = ["All", "Active", "Pending", "Closed"];
 
 export default function LoansScreen() {
   const router = useRouter();
-  const loan = activeLoan;
+  const { loan, isLoading } = useActiveLoanViewModel();
   const [activeTab, setActiveTab] = useState("All");
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator
+          size="large"
+          color={Colors.teal}
+          style={{ flex: 1 }}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (!loan) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.title}>My Loans</Text>
+          <Text style={styles.noLoanText}>
+            You don&apos;t have any loans yet.
+          </Text>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
+
   const progress = loan.paidInstalments / loan.totalInstalments;
 
   return (
@@ -88,7 +115,14 @@ export default function LoansScreen() {
             </View>
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Next Payment</Text>
-              <Text style={styles.detailValue}>May 1, 2025</Text>
+              <Text style={styles.detailValue}>
+                {loan.nextPaymentDate
+                  ? new Date(loan.nextPaymentDate).toLocaleDateString(
+                      "en-UG",
+                      { day: "numeric", month: "short", year: "numeric" },
+                    )
+                  : "—"}
+              </Text>
             </View>
           </View>
 
@@ -108,6 +142,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.lg },
+  noLoanText: { ...Typography.body, color: Colors.textMuted },
   tabsScroll: { marginBottom: Spacing.lg },
   tabsRow: { gap: Spacing.sm },
   tab: {
