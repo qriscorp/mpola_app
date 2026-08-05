@@ -27,7 +27,15 @@ import type {
   MonthlyEarning,
   LenderEarnings,
 } from "../models";
-import { apiAuthGet, apiAuthPost, apiAuthPatch, apiAuthUpload } from "./auth";
+import {
+  apiAuthGet,
+  apiAuthPost,
+  apiAuthPatch,
+  apiAuthPut,
+  apiAuthUpload,
+  apiPublicGet,
+  apiPublicPost,
+} from "./auth";
 
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms));
 
@@ -160,6 +168,59 @@ async function fetchWallet(): Promise<Wallet> {
     isWalletSetup: walletRes.is_wallet_setup,
     transactions: txRes.transactions.map(mapWalletTransaction),
   };
+}
+
+// ─── Profile ─────────────────────────────────────────────
+
+interface RawProfile {
+  id: string;
+  full_name: string | null;
+  email: string;
+  phone_number: string | null;
+  nin: string | null;
+  account_type: string;
+  is_kyc_verified: boolean;
+  is_phone_verified: boolean;
+  two_factor_enabled?: boolean;
+  profile_pic: string | null;
+  created_at: string;
+}
+
+function mapProfile(p: RawProfile): User {
+  return {
+    id: p.id,
+    fullName: p.full_name ?? "",
+    email: p.email,
+    phone: p.phone_number ?? "",
+    nin: p.nin ?? "",
+    role: p.account_type === "business" ? "lender" : "borrower",
+    accountType: p.account_type as User["accountType"],
+    kycVerified: p.is_kyc_verified,
+    isPhoneVerified: p.is_phone_verified,
+    twoFactorEnabled: p.two_factor_enabled ?? false,
+    profileImage: p.profile_pic ?? undefined,
+    createdAt: p.created_at,
+  };
+}
+
+export async function fetchProfile(): Promise<User> {
+  const p = await apiAuthGet<RawProfile>("/users/me");
+  return mapProfile(p);
+}
+
+export async function updateProfile(data: {
+  fullName?: string;
+  phone?: string;
+  nin?: string;
+  twoFactorEnabled?: boolean;
+}): Promise<User> {
+  const p = await apiAuthPut<RawProfile>("/users/me", {
+    full_name: data.fullName,
+    phone_number: data.phone,
+    nin: data.nin,
+    two_factor_enabled: data.twoFactorEnabled,
+  });
+  return mapProfile(p);
 }
 
 // ─── Borrower Dashboard ──────────────────────────────────
@@ -465,6 +526,47 @@ export async function addGuarantor(
     phone: data.phone,
     relationship_type: data.relationshipType,
   });
+}
+
+// ─── Guarantor confirmation — public, the guarantor has no account ──
+
+export async function fetchGuarantorInvite(token: string): Promise<{
+  guarantor: { id: string; name: string; status: string };
+  application: {
+    id: string | null;
+    amount: number | null;
+    duration: number | null;
+    loanType: string | null;
+    borrowerName: string | null;
+  };
+}> {
+  const res = await apiPublicGet<{
+    guarantor: { id: string; name: string; status: string };
+    application: {
+      id: string | null;
+      amount: number | null;
+      duration: number | null;
+      loan_type: string | null;
+      borrower_name: string | null;
+    };
+  }>(`/loans/guarantors/${token}`);
+  return {
+    guarantor: res.guarantor,
+    application: {
+      id: res.application.id,
+      amount: res.application.amount,
+      duration: res.application.duration,
+      loanType: res.application.loan_type,
+      borrowerName: res.application.borrower_name,
+    },
+  };
+}
+
+export async function respondToGuarantorInvite(
+  token: string,
+  status: "accepted" | "declined",
+): Promise<{ status: number; message: string }> {
+  return apiPublicPost(`/loans/guarantors/${token}/respond`, { status });
 }
 
 export async function uploadLoanDocument(

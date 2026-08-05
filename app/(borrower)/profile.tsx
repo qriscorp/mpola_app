@@ -6,26 +6,48 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { borrowerUser } from "../../src/services";
-
-const KYC_ITEMS = [
-  { label: "National ID", icon: "document-outline", status: "verified" },
-  { label: "Phone Number", icon: "phone-portrait-outline", status: "verified" },
-  { label: "Bank Statement", icon: "grid-outline", status: "pending" },
-];
+import { useProfileViewModel } from "../../src/viewmodels";
 
 export default function ProfileScreen() {
-  const user = borrowerUser;
-  const initials = user.fullName
+  const { profile, isLoading, signOut } = useProfileViewModel();
+  const [offersNotif, setOffersNotif] = useState(true);
+  const [repayNotif, setRepayNotif] = useState(false);
+
+  if (isLoading || !profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.teal} style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  const initials = profile.fullName
     .split(" ")
     .map((n: string) => n[0])
     .join("");
-  const [offersNotif, setOffersNotif] = useState(true);
-  const [repayNotif, setRepayNotif] = useState(false);
+
+  const kycItems = [
+    {
+      label: "National ID",
+      icon: "document-outline",
+      verified: profile.kycVerified,
+    },
+    {
+      label: "Phone Number",
+      icon: "phone-portrait-outline",
+      verified: !!profile.isPhoneVerified,
+    },
+    {
+      label: "Bank Statement",
+      icon: "grid-outline",
+      verified: profile.kycVerified,
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,19 +71,19 @@ export default function ProfileScreen() {
           <View style={styles.avatar}>
             <Text style={styles.initials}>{initials}</Text>
           </View>
-          <Text style={styles.name}>{user.fullName}</Text>
-          <Text style={styles.sub}>Borrower since Feb 2024</Text>
+          <Text style={styles.name}>{profile.fullName}</Text>
+          <Text style={styles.sub}>{profile.email}</Text>
         </View>
 
         {/* KYC */}
         <Text style={styles.sectionLabel}>KYC STATUS</Text>
         <View style={styles.card}>
-          {KYC_ITEMS.map((item, i) => (
+          {kycItems.map((item, i) => (
             <View
               key={item.label}
               style={[
                 styles.kycRow,
-                i < KYC_ITEMS.length - 1 && styles.kycRowBorder,
+                i < kycItems.length - 1 && styles.kycRowBorder,
               ]}
             >
               <Ionicons
@@ -74,20 +96,16 @@ export default function ProfileScreen() {
               <View
                 style={[
                   styles.kycBadge,
-                  item.status === "verified"
-                    ? styles.kycVerified
-                    : styles.kycPending,
+                  item.verified ? styles.kycVerified : styles.kycPending,
                 ]}
               >
                 <Text
                   style={[
                     styles.kycBadgeText,
-                    item.status === "verified"
-                      ? styles.kycVerifiedText
-                      : styles.kycPendingText,
+                    item.verified ? styles.kycVerifiedText : styles.kycPendingText,
                   ]}
                 >
-                  {item.status === "verified" ? "Verified" : "Pending"}
+                  {item.verified ? "Verified" : "Pending"}
                 </Text>
               </View>
             </View>
@@ -127,7 +145,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>

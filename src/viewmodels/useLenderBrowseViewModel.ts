@@ -87,16 +87,16 @@ export function useMakeOfferViewModel(applicationId: string) {
         if (!errs[key]) errs[key] = issue.message;
       }
       setOfferErrors(errs);
-      return false;
+      return null;
     }
     setOfferErrors({});
-    await offerMutation.mutateAsync({
+    const offer = await offerMutation.mutateAsync({
       applicationId,
       amount: numAmount,
       interestRate: numRate,
       duration: numDuration,
     });
-    return true;
+    return offer;
   };
 
   return {

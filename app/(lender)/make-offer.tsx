@@ -22,8 +22,13 @@ export default function MakeOfferScreen() {
   const vm = useMakeOfferViewModel(applicationId ?? "");
 
   const handleSend = async () => {
-    const success = await vm.sendOffer();
-    if (success) router.push("/(lender)/offer-sent");
+    const offer = await vm.sendOffer();
+    if (offer) {
+      router.push({
+        pathname: "/(lender)/offer-sent",
+        params: { offerId: offer.id },
+      });
+    }
   };
 
   return (

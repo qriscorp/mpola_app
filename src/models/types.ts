@@ -10,6 +10,8 @@ export interface User {
   role: UserRole;
   accountType: AccountType;
   kycVerified: boolean;
+  isPhoneVerified?: boolean;
+  twoFactorEnabled?: boolean;
   profileImage?: string;
   createdAt: string;
 }

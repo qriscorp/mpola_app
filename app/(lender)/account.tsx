@@ -6,26 +6,48 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { lenderUser } from "../../src/services";
-
-const KYC_ITEMS = [
-  { label: "National ID", icon: "document-outline", status: "verified" },
-  { label: "Phone Number", icon: "phone-portrait-outline", status: "verified" },
-  { label: "Bank Statement", icon: "grid-outline", status: "verified" },
-];
+import { useProfileViewModel } from "../../src/viewmodels";
 
 export default function LenderAccountScreen() {
-  const user = lenderUser;
-  const initials = user.fullName
+  const { profile, isLoading, signOut } = useProfileViewModel();
+  const [offersNotif, setOffersNotif] = useState(true);
+  const [repayNotif, setRepayNotif] = useState(true);
+
+  if (isLoading || !profile) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ActivityIndicator size="large" color={Colors.gold} style={{ flex: 1 }} />
+      </SafeAreaView>
+    );
+  }
+
+  const initials = profile.fullName
     .split(" ")
     .map((n: string) => n[0])
     .join("");
-  const [offersNotif, setOffersNotif] = useState(true);
-  const [repayNotif, setRepayNotif] = useState(true);
+
+  const kycItems = [
+    {
+      label: "National ID",
+      icon: "document-outline",
+      verified: profile.kycVerified,
+    },
+    {
+      label: "Phone Number",
+      icon: "phone-portrait-outline",
+      verified: !!profile.isPhoneVerified,
+    },
+    {
+      label: "Bank Statement",
+      icon: "grid-outline",
+      verified: profile.kycVerified,
+    },
+  ];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -49,19 +71,19 @@ export default function LenderAccountScreen() {
           <View style={styles.avatar}>
             <Text style={styles.initials}>{initials}</Text>
           </View>
-          <Text style={styles.name}>{user.fullName}</Text>
-          <Text style={styles.sub}>Mpola Lender since Jan 2024</Text>
+          <Text style={styles.name}>{profile.fullName}</Text>
+          <Text style={styles.sub}>{profile.email}</Text>
         </View>
 
         {/* KYC */}
         <Text style={styles.sectionLabel}>KYC STATUS</Text>
         <View style={styles.card}>
-          {KYC_ITEMS.map((item, i) => (
+          {kycItems.map((item, i) => (
             <View
               key={item.label}
               style={[
                 styles.kycRow,
-                i < KYC_ITEMS.length - 1 && styles.kycRowBorder,
+                i < kycItems.length - 1 && styles.kycRowBorder,
               ]}
             >
               <Ionicons
@@ -71,8 +93,20 @@ export default function LenderAccountScreen() {
                 style={{ marginRight: Spacing.sm }}
               />
               <Text style={styles.kycLabel}>{item.label}</Text>
-              <View style={styles.kycBadge}>
-                <Text style={styles.kycBadgeText}>Verified</Text>
+              <View
+                style={[
+                  styles.kycBadge,
+                  !item.verified && { backgroundColor: Colors.warningBg },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.kycBadgeText,
+                    !item.verified && { color: Colors.warning },
+                  ]}
+                >
+                  {item.verified ? "Verified" : "Pending"}
+                </Text>
               </View>
             </View>
           ))}
@@ -111,7 +145,7 @@ export default function LenderAccountScreen() {
         </View>
 
         {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>

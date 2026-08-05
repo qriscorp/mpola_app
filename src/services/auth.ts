@@ -183,6 +183,14 @@ interface ApiMessageResponse {
 
 // ─── API Helpers ─────────────────────────────────────────
 
+export async function apiPublicGet<T>(path: string): Promise<T> {
+  return apiGet<T>(path);
+}
+
+export async function apiPublicPost<T>(path: string, body: unknown): Promise<T> {
+  return apiPost<T>(path, body);
+}
+
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
@@ -293,6 +301,29 @@ export async function apiAuthPatch<T>(path: string, body: unknown): Promise<T> {
   const token = await getAccessToken();
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
+  });
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new Error("Session expired");
+  }
+  if (!res.ok) {
+    const err = await res
+      .json()
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+    throw new Error(err.detail || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
+export async function apiAuthPut<T>(path: string, body: unknown): Promise<T> {
+  const token = await getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

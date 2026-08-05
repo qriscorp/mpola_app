@@ -1,12 +1,13 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 
 export default function OfferSentScreen() {
   const router = useRouter();
+  const { offerId } = useLocalSearchParams<{ offerId: string }>();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -23,7 +24,7 @@ export default function OfferSentScreen() {
         <View style={styles.refCard}>
           <Text style={styles.refLabel}>Reference Number</Text>
           <Text style={styles.refValue}>
-            LF-OFF-2025-04-{Math.floor(Math.random() * 9000 + 1000)}
+            {offerId ? `#${offerId.slice(0, 10).toUpperCase()}` : "—"}
           </Text>
         </View>
 
