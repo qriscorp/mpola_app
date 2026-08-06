@@ -32,7 +32,20 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/mpola_logo-3.png",
+          "color": "#2BB5A0"
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Allow Mpola to use Face ID to sign you in quickly and securely."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

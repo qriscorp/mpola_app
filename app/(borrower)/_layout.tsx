@@ -1,8 +1,12 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../src/theme";
+import { useRealtimeNotifications, usePushRegistration } from "../../src/services";
 
 export default function BorrowerTabLayout() {
+  useRealtimeNotifications();
+  usePushRegistration();
+
   return (
     <Tabs
       screenOptions={{
@@ -77,6 +81,9 @@ export default function BorrowerTabLayout() {
       <Tabs.Screen name="application-sent" options={{ href: null }} />
       <Tabs.Screen name="guarantor-request" options={{ href: null }} />
       <Tabs.Screen name="notifications" options={{ href: null }} />
+      <Tabs.Screen name="referrals" options={{ href: null }} />
+      <Tabs.Screen name="help" options={{ href: null }} />
+      <Tabs.Screen name="disputes" options={{ href: null }} />
     </Tabs>
   );
 }

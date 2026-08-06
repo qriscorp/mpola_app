@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Card } from "../../src/components";
+import { downloadRepaymentReceipt } from "../../src/services";
 
 const METHOD_LABEL: Record<string, string> = {
   wallet: "Mpola Wallet",
@@ -25,6 +26,7 @@ function formatDateTime(iso: string | undefined): string {
 export default function PaymentSuccessScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{
+    repaymentId?: string;
     transactionId?: string;
     amount?: string;
     paymentMethod?: string;
@@ -80,12 +82,17 @@ export default function PaymentSuccessScreen() {
 
         <Button
           title="⬇ Download Receipt"
-          onPress={() =>
-            Alert.alert(
-              "Coming soon",
-              "Receipt downloads aren't available yet.",
-            )
-          }
+          onPress={async () => {
+            if (!params.repaymentId) {
+              Alert.alert("Receipt unavailable", "This payment has no receipt on file.");
+              return;
+            }
+            try {
+              await downloadRepaymentReceipt(params.repaymentId);
+            } catch {
+              Alert.alert("Couldn't download the receipt", "Please try again.");
+            }
+          }}
           variant="outline"
           color={Colors.teal}
         />

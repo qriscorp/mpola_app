@@ -1,8 +1,12 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../../src/theme";
+import { useRealtimeNotifications, usePushRegistration } from "../../src/services";
 
 export default function LenderTabLayout() {
+  useRealtimeNotifications();
+  usePushRegistration();
+
   return (
     <Tabs
       screenOptions={{
@@ -77,6 +81,9 @@ export default function LenderTabLayout() {
       <Tabs.Screen name="earnings" options={{ href: null }} />
       <Tabs.Screen name="notifications" options={{ href: null }} />
       <Tabs.Screen name="settings" options={{ href: null }} />
+      <Tabs.Screen name="referrals" options={{ href: null }} />
+      <Tabs.Screen name="help" options={{ href: null }} />
+      <Tabs.Screen name="disputes" options={{ href: null }} />
     </Tabs>
   );
 }

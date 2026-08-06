@@ -170,6 +170,7 @@ export default function PaymentScreen() {
               router.push({
                 pathname: "/(borrower)/payment-success",
                 params: {
+                  repaymentId: result.repaymentId,
                   transactionId: result.transactionId,
                   amount: String(result.amount),
                   paymentMethod: result.paymentMethod,

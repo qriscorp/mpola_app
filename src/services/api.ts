@@ -1,7 +1,6 @@
 /**
- * API service layer — simulates network requests with mock data.
- * When connecting real APIs, replace the body of each function
- * with actual fetch/axios calls. The viewmodel hooks stay the same.
+ * API service layer — talks to the real Mpola backend via the
+ * apiAuth/apiPublic helpers in ./auth.
  */
 import type {
   User,
@@ -372,6 +371,32 @@ export async function fetchLoanDetail(
   };
 }
 
+/** Downloads the real PDF receipt for a repayment, then opens the native
+ * share sheet so the user can save or send it — there's no "Downloads
+ * folder" to drop it into directly on either platform.
+ */
+export async function downloadRepaymentReceipt(repaymentId: string): Promise<void> {
+  const FileSystem = await import("expo-file-system");
+  const Sharing = await import("expo-sharing");
+  const { getAccessToken, API_BASE_URL } = await import("./auth");
+
+  const token = await getAccessToken();
+  const fileUri = `${FileSystem.documentDirectory}mpola-receipt-${repaymentId}.pdf`;
+
+  const download = FileSystem.createDownloadResumable(
+    `${API_BASE_URL}/loans/repayments/${repaymentId}/receipt`,
+    fileUri,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  );
+
+  const result = await download.downloadAsync();
+  if (!result) throw new Error("Receipt download failed");
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(result.uri, { mimeType: "application/pdf" });
+  }
+}
+
 export async function makeRepayment(data: {
   loanId: string;
   amount: number;
@@ -379,6 +404,7 @@ export async function makeRepayment(data: {
   phoneNumber?: string;
   carrier?: string;
 }): Promise<{
+  repaymentId: string;
   transactionId: string;
   date: string;
   amount: number;
@@ -406,6 +432,7 @@ export async function makeRepayment(data: {
     carrier: data.carrier,
   });
   return {
+    repaymentId: res.repayment.id,
     transactionId: res.repayment.transaction_id ?? res.repayment.id,
     date: res.repayment.created_at,
     amount: res.repayment.amount,
@@ -822,4 +849,109 @@ export async function markNotificationRead(id: string): Promise<void> {
 
 export async function markAllNotificationsRead(): Promise<void> {
   await apiAuthPost("/notifications/read-all", {});
+}
+
+// ─── Referrals ────────────────────────────────────────────
+
+export interface ReferralInfo {
+  referral_code: string;
+  referral_link: string;
+  total_referred: number;
+  referred_users: { full_name: string | null; role: string; created_at: string }[];
+}
+
+export async function fetchReferralInfo(): Promise<ReferralInfo> {
+  return apiAuthGet("/referrals/me");
+}
+
+// ─── Support tickets ────────────────────────────────────────
+
+export interface SupportMessage {
+  id: string;
+  message: string;
+  is_admin: boolean;
+  sender_name: string | null;
+  created_at: string;
+}
+
+export interface SupportTicket {
+  id: string;
+  subject: string;
+  category: string;
+  status: "open" | "in_progress" | "resolved" | "closed";
+  created_at: string;
+  message_count: number;
+  messages?: SupportMessage[];
+}
+
+export async function createSupportTicket(data: {
+  subject: string;
+  category: string;
+  message: string;
+}): Promise<SupportTicket> {
+  const res = await apiAuthPost<{ ticket: SupportTicket }>("/support", data);
+  return res.ticket;
+}
+
+export async function fetchMySupportTickets(): Promise<SupportTicket[]> {
+  const res = await apiAuthGet<{ tickets: SupportTicket[] }>("/support/mine");
+  return res.tickets;
+}
+
+export async function fetchSupportTicket(id: string): Promise<SupportTicket> {
+  const res = await apiAuthGet<{ ticket: SupportTicket }>(`/support/${id}`);
+  return res.ticket;
+}
+
+export async function replySupportTicket(id: string, message: string): Promise<SupportTicket> {
+  const res = await apiAuthPost<{ ticket: SupportTicket }>(`/support/${id}/messages`, { message });
+  return res.ticket;
+}
+
+// ─── Disputes ───────────────────────────────────────────────
+
+export interface Dispute {
+  id: string;
+  category: string;
+  description: string;
+  status: "open" | "investigating" | "resolved" | "rejected";
+  loan_id: string | null;
+  resolution_note: string | null;
+  resolved_by: string | null;
+  resolved_at: string | null;
+  created_at: string;
+}
+
+export async function fileDispute(data: {
+  category: string;
+  description: string;
+  loan_id?: string;
+}): Promise<Dispute> {
+  const res = await apiAuthPost<{ dispute: Dispute }>("/disputes", data);
+  return res.dispute;
+}
+
+export async function fetchMyDisputes(): Promise<Dispute[]> {
+  const res = await apiAuthGet<{ disputes: Dispute[] }>("/disputes/mine");
+  return res.disputes;
+}
+
+// ─── Login sessions ─────────────────────────────────────────
+
+export interface LoginSessionInfo {
+  id: string;
+  device_label: string | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  created_at: string;
+  is_most_recent: boolean;
+}
+
+export async function fetchLoginSessions(): Promise<LoginSessionInfo[]> {
+  const res = await apiAuthGet<{ sessions: LoginSessionInfo[] }>("/sessions/");
+  return res.sessions;
+}
+
+export async function signOutEverywhere(): Promise<{ status: number; message: string }> {
+  return apiAuthPost("/sessions/sign-out-everywhere", {});
 }

@@ -9,11 +9,31 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
-import { SkeletonHero, SkeletonCard } from "../../src/components";
+import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection } from "../../src/components";
+
+function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+  return (
+    <TouchableOpacity style={menuStyles.row} onPress={onPress}>
+      <View style={menuStyles.left}>
+        <Ionicons name={icon} size={20} color={Colors.textSecondary} />
+        <Text style={menuStyles.label}>{label}</Text>
+      </View>
+      <Ionicons name="chevron-forward" size={18} color={Colors.textMuted} />
+    </TouchableOpacity>
+  );
+}
+
+const menuStyles = StyleSheet.create({
+  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.md },
+  left: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+  label: { ...Typography.bodyMedium, color: Colors.textPrimary },
+});
 
 export default function LenderAccountScreen() {
+  const router = useRouter();
   const { profile, isLoading, error, signOut } = useProfileViewModel();
   const [offersNotif, setOffersNotif] = useState(true);
   const [repayNotif, setRepayNotif] = useState(true);
@@ -158,6 +178,29 @@ export default function LenderAccountScreen() {
               trackColor={{ true: Colors.gold }}
             />
           </View>
+        </View>
+
+        {/* Support & Settings */}
+        <Text style={styles.sectionLabel}>SUPPORT & SETTINGS</Text>
+        <View style={[styles.card, { paddingVertical: 0 }]}>
+          <MenuRow icon="settings-outline" label="Settings" onPress={() => router.push("/(lender)/settings")} />
+          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
+            <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(lender)/referrals")} />
+          </View>
+          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
+            <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => router.push("/(lender)/help")} />
+          </View>
+          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
+            <MenuRow icon="alert-circle-outline" label="Disputes" onPress={() => router.push("/(lender)/disputes")} />
+          </View>
+        </View>
+
+        {/* Security */}
+        <Text style={styles.sectionLabel}>SECURITY</Text>
+        <View style={styles.card}>
+          <BiometricToggle accentColor={Colors.gold} />
+          <View style={{ height: Spacing.md }} />
+          <SessionsSection accentColor={Colors.gold} />
         </View>
 
         {/* Sign out */}

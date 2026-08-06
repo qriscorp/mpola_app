@@ -9,7 +9,7 @@ const ENV_API_URL = (
   globalThis as { process?: { env?: Record<string, string | undefined> } }
 ).process?.env?.EXPO_PUBLIC_API_URL;
 
-const API_BASE_URL =
+export const API_BASE_URL =
   ENV_API_URL ||
   (__DEV__ ? "http://10.0.2.2:8000" : "https://api.mpola.app");
 
@@ -469,6 +469,12 @@ export async function apiRefreshToken(): Promise<string | null> {
 }
 
 export async function apiSignOut() {
+  try {
+    const { clearPushToken } = await import("./push");
+    await clearPushToken();
+  } catch {
+    // best-effort — don't block sign-out on a failed push-token clear
+  }
   await clearAuth();
 }
 

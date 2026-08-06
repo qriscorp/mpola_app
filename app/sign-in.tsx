@@ -1,30 +1,65 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
 import { Button, Input } from "../src/components";
 import { useAuthViewModel } from "../src/viewmodels";
+import { isBiometricSupported, isBiometricLoginEnabled, tryBiometricSignIn } from "../src/services/biometrics";
 
 export default function SignInScreen() {
   const router = useRouter();
   const vm = useAuthViewModel();
+  const [biometricReady, setBiometricReady] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const [supported, enabled] = await Promise.all([
+        isBiometricSupported(),
+        isBiometricLoginEnabled(),
+      ]);
+      setBiometricReady(supported && enabled);
+    })();
+  }, []);
+
+  const routeForRole = (role: string | undefined) => {
+    if (role === "lender") {
+      router.replace("/(lender)/home");
+    } else {
+      router.replace("/(borrower)/home");
+    }
+  };
 
   const handleSignIn = async () => {
     const success = await vm.login();
     if (success) {
-      const role = vm.authUser?.role;
-      if (role === "lender") {
-        router.replace("/(lender)/home");
+      routeForRole(vm.authUser?.role);
+    }
+  };
+
+  const handleBiometricSignIn = async () => {
+    setBiometricLoading(true);
+    try {
+      const user = await tryBiometricSignIn();
+      if (user) {
+        routeForRole(user.role);
       } else {
-        router.replace("/(borrower)/home");
+        Alert.alert(
+          "Biometric sign-in unavailable",
+          "Please sign in with your password to continue.",
+        );
       }
+    } finally {
+      setBiometricLoading(false);
     }
   };
 
@@ -118,6 +153,27 @@ export default function SignInScreen() {
         >
           <Text style={styles.otpText}>Sign in with Phone OTP</Text>
         </TouchableOpacity>
+
+        {biometricReady && (
+          <>
+            <View style={{ height: Spacing.md }} />
+            <TouchableOpacity
+              style={[styles.otpBtn, styles.biometricBtn]}
+              onPress={handleBiometricSignIn}
+              disabled={biometricLoading}
+            >
+              <Ionicons
+                name="finger-print-outline"
+                size={18}
+                color={Colors.textSecondary}
+                style={{ marginRight: Spacing.xs }}
+              />
+              <Text style={styles.otpText}>
+                {biometricLoading ? "Verifying…" : "Sign in with Face ID / Fingerprint"}
+              </Text>
+            </TouchableOpacity>
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -186,4 +242,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   otpText: { ...Typography.bodyMedium, color: Colors.textSecondary },
+  biometricBtn: { flexDirection: "row", justifyContent: "center" },
 });
