@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useOffersViewModel } from "../../src/viewmodels";
+import { SkeletonList } from "../../src/components";
 import type { LoanOffer } from "../../src/models";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
@@ -95,11 +95,9 @@ export default function OffersScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color={Colors.teal}
-          style={{ flex: 1 }}
-        />
+        <View style={styles.scroll}>
+          <SkeletonList count={3} cardHeight={120} />
+        </View>
       ) : !application ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>

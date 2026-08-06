@@ -5,13 +5,18 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge, ProgressBar, StatCard } from "../../src/components";
+import {
+  Badge,
+  ProgressBar,
+  StatCard,
+  SkeletonStatRow,
+  SkeletonList,
+} from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
 
 export default function PortfolioScreen() {
@@ -31,11 +36,10 @@ export default function PortfolioScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.xl }}>
+          <SkeletonStatRow count={4} />
+          <SkeletonList count={3} cardHeight={130} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

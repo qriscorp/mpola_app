@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useNotificationsViewModel } from "../../src/viewmodels";
+import { SkeletonList } from "../../src/components";
 
 const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   loan_offer: {
@@ -57,18 +57,6 @@ export default function NotificationsScreen() {
   const { notifications, unreadCount, isLoading, markRead, markAllRead } =
     useNotificationsViewModel();
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
-      </SafeAreaView>
-    );
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -93,6 +81,11 @@ export default function NotificationsScreen() {
         )}
       </View>
 
+      {isLoading ? (
+        <View style={styles.scroll}>
+          <SkeletonList count={4} cardHeight={76} />
+        </View>
+      ) : (
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
@@ -139,6 +132,7 @@ export default function NotificationsScreen() {
           </View>
         )}
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

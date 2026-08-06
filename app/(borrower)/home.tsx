@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { ProgressBar } from "../../src/components";
+import { ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
 import {
   useBorrowerDashboardViewModel,
   useNotificationsViewModel,
@@ -18,7 +18,7 @@ import {
 
 export default function BorrowerHomeScreen() {
   const router = useRouter();
-  const { user, stats, loan, paymentProgress, walletBalance } =
+  const { user, stats, loan, paymentProgress, walletBalance, isLoading } =
     useBorrowerDashboardViewModel();
   const { unreadCount } = useNotificationsViewModel();
 
@@ -26,6 +26,30 @@ export default function BorrowerHomeScreen() {
     .filter(Boolean)
     .join("")
     .toUpperCase();
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+        >
+          <View style={styles.header}>
+            <View style={styles.logoBox}>
+              <Text style={styles.logoLetter}>M</Text>
+            </View>
+            <Text style={styles.greeting}>Hi</Text>
+          </View>
+          <View style={{ marginBottom: Spacing.xl }}>
+            <SkeletonHero height={150} />
+          </View>
+          <View style={{ marginBottom: Spacing.xl }}>
+            <SkeletonStatRow count={3} />
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -99,9 +123,13 @@ export default function BorrowerHomeScreen() {
             </Text>
             <Text style={styles.statLabel}>Repaid</Text>
           </View>
+          <View style={[styles.statBox, styles.statBorder]}>
+            <Text style={styles.statValue}>{stats.creditScore || "—"}</Text>
+            <Text style={styles.statLabel}>Credit Score</Text>
+          </View>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>{stats.loansTaken ?? "—"}</Text>
-            <Text style={styles.statLabel}>Offers Live</Text>
+            <Text style={styles.statLabel}>Loans Taken</Text>
           </View>
         </View>
 

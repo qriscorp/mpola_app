@@ -5,14 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge, ProgressBar } from "../../src/components";
+import { Badge, ProgressBar, SkeletonCard, SkeletonList } from "../../src/components";
 import { fetchLoanDetail } from "../../src/services";
 
 export default function LoanDetailScreen() {
@@ -40,11 +39,10 @@ export default function LoanDetailScreen() {
   if (isLoading || !loan) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}>
+          <SkeletonCard height={160} />
+          <SkeletonList count={3} cardHeight={64} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

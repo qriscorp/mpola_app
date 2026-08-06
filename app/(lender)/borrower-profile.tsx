@@ -5,13 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Badge } from "../../src/components";
+import { Button, Badge, SkeletonHero, SkeletonCard } from "../../src/components";
 import { useApplicationDetailViewModel } from "../../src/viewmodels";
 
 function initials(name: string | null | undefined): string {
@@ -46,11 +45,10 @@ export default function BorrowerProfileScreen() {
   if (isLoading || !application) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}>
+          <SkeletonHero height={130} />
+          <SkeletonCard height={160} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

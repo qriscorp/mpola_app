@@ -6,12 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
+import { SkeletonHero, SkeletonCard } from "../../src/components";
 
 export default function LenderAccountScreen() {
   const { profile, isLoading, error, signOut } = useProfileViewModel();
@@ -33,7 +33,11 @@ export default function LenderAccountScreen() {
   if (isLoading || !profile) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.gold} style={{ flex: 1 }} />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}>
+          <SkeletonHero height={120} />
+          <SkeletonCard height={140} />
+          <SkeletonCard height={100} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

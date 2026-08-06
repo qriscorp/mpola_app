@@ -6,13 +6,12 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge } from "../../src/components";
+import { Badge, SkeletonList } from "../../src/components";
 import { useBrowseBorrowersViewModel } from "../../src/viewmodels";
 
 function initials(name: string | null | undefined): string {
@@ -81,11 +80,9 @@ export default function BrowseBorrowersScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ marginTop: Spacing.xxxl }}
-        />
+        <View style={styles.scroll}>
+          <SkeletonList count={4} cardHeight={150} />
+        </View>
       ) : (
         <ScrollView
           contentContainerStyle={styles.scroll}

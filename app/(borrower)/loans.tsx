@@ -5,12 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { ProgressBar } from "../../src/components";
+import { ProgressBar, SkeletonBox, SkeletonCard } from "../../src/components";
 import { useActiveLoanViewModel } from "../../src/viewmodels";
 
 const TABS = ["All", "Active", "Pending", "Closed"];
@@ -23,11 +22,15 @@ export default function LoansScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.teal}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <Text style={styles.title}>My Loans</Text>
+          <View style={{ flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.lg }}>
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonBox key={i} width={70} height={30} radius={BorderRadius.full} />
+            ))}
+          </View>
+          <SkeletonCard height={220} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

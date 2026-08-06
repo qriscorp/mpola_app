@@ -16,6 +16,7 @@ import {
   calcMobileMoneyWithdrawalCharges,
   calcBankWithdrawalCharges,
 } from "../services/fees";
+import { SkeletonBox } from "./Skeleton";
 
 function formatUgx(n: number): string {
   return `UGX ${Math.round(n).toLocaleString()}`;
@@ -160,7 +161,11 @@ export function WalletWithdrawModal({
               <Text style={styles.label}>Bank</Text>
               <ScrollView style={styles.bankList} nestedScrollEnabled>
                 {banksLoading ? (
-                  <Text style={styles.hint}>Loading banks…</Text>
+                  <View style={{ gap: Spacing.xs }}>
+                    {[1, 2, 3].map((i) => (
+                      <SkeletonBox key={i} height={40} radius={BorderRadius.md} />
+                    ))}
+                  </View>
                 ) : (
                   banks.map((b) => (
                     <TouchableOpacity

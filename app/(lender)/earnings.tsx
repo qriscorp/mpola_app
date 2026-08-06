@@ -5,13 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing } from "../../src/theme";
-import { Card, StatCard } from "../../src/components";
+import { Card, StatCard, SkeletonStatRow, SkeletonCard } from "../../src/components";
 import { useEarningsViewModel } from "../../src/viewmodels";
 
 export default function EarningsScreen() {
@@ -21,11 +20,10 @@ export default function EarningsScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.xl }}>
+          <SkeletonStatRow count={4} />
+          <SkeletonCard height={220} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

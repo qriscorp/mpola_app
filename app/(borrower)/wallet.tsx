@@ -14,12 +14,15 @@ import {
   WalletSetupModal,
   WalletDepositModal,
   WalletWithdrawModal,
+  SkeletonHero,
+  SkeletonList,
 } from "../../src/components";
 import { useBorrowerWalletViewModel } from "../../src/viewmodels";
 
 export default function WalletScreen() {
   const {
     wallet,
+    isLoading,
     setupWallet,
     isSettingUp,
     depositMobileMoney,
@@ -36,6 +39,7 @@ export default function WalletScreen() {
     setTxPage,
     pagedTransactions,
     pagedTransactionsTotal,
+    pagedTransactionsLoading,
   } = useBorrowerWalletViewModel();
   const totalTxPages = Math.max(1, Math.ceil(pagedTransactionsTotal / 20));
   const [setupVisible, setSetupVisible] = useState(false);
@@ -53,6 +57,23 @@ export default function WalletScreen() {
       );
     }
   };
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scroll}
+        >
+          <Text style={styles.title}>My Wallet</Text>
+          <View style={{ marginBottom: Spacing.xxl }}>
+            <SkeletonHero />
+          </View>
+          <SkeletonList count={4} cardHeight={64} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -135,15 +156,19 @@ export default function WalletScreen() {
           <Text style={styles.txTitle}>Transaction History</Text>
         </View>
 
-        {pagedTransactions.map((tx) => (
-          <TransactionItem
-            key={tx.id}
-            amount={tx.amount}
-            description={tx.description}
-            date={tx.date}
-            type={tx.amount > 0 ? "credit" : "debit"}
-          />
-        ))}
+        {pagedTransactionsLoading ? (
+          <SkeletonList count={4} cardHeight={64} />
+        ) : (
+          pagedTransactions.map((tx) => (
+            <TransactionItem
+              key={tx.id}
+              amount={tx.amount}
+              description={tx.description}
+              date={tx.date}
+              type={tx.amount > 0 ? "credit" : "debit"}
+            />
+          ))
+        )}
 
         {pagedTransactionsTotal > 0 && (
           <View style={styles.paginationRow}>

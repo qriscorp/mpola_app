@@ -10,11 +10,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as WebBrowser from "expo-web-browser";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+
+const MPOLA_WEB_URL = "https://mpola.co";
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const [pushEnabled, setPushEnabled] = useState(true);
   const [emailDigest, setEmailDigest] = useState(false);
 
   return (
@@ -45,18 +47,15 @@ export default function SettingsScreen() {
               <View>
                 <Text style={styles.toggleLabel}>Push Notifications</Text>
                 <Text style={styles.toggleSub}>
-                  Receive alerts for payments, offers & matches
+                  Coming soon — for now, check the bell icon for alerts
                 </Text>
               </View>
             </View>
             <Switch
-              value={pushEnabled}
-              onValueChange={setPushEnabled}
-              trackColor={{
-                false: Colors.border,
-                true: Colors.gold + "80",
-              }}
-              thumbColor={pushEnabled ? Colors.gold : Colors.textMuted}
+              value={false}
+              disabled
+              trackColor={{ false: Colors.border, true: Colors.gold + "80" }}
+              thumbColor={Colors.textMuted}
             />
           </View>
 
@@ -91,7 +90,7 @@ export default function SettingsScreen() {
         {/* Appearance */}
         <Text style={styles.sectionLabel}>APPEARANCE</Text>
         <View style={styles.card}>
-          <TouchableOpacity style={styles.menuRow}>
+          <View style={styles.menuRow}>
             <View style={styles.toggleLeft}>
               <Ionicons
                 name="color-palette-outline"
@@ -100,15 +99,10 @@ export default function SettingsScreen() {
               />
               <View>
                 <Text style={styles.toggleLabel}>Theme</Text>
-                <Text style={styles.toggleSub}>System default</Text>
+                <Text style={styles.toggleSub}>Dark</Text>
               </View>
             </View>
-            <Ionicons
-              name="chevron-forward"
-              size={18}
-              color={Colors.textMuted}
-            />
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* About */}
@@ -124,7 +118,10 @@ export default function SettingsScreen() {
             <Text style={styles.infoValue}>2025.04.001</Text>
           </View>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.menuRow}>
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/platform-terms`)}
+          >
             <Text style={styles.infoLabel}>Terms of Service</Text>
             <Ionicons
               name="chevron-forward"
@@ -133,7 +130,10 @@ export default function SettingsScreen() {
             />
           </TouchableOpacity>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.menuRow}>
+          <TouchableOpacity
+            style={styles.menuRow}
+            onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/privacy-policy`)}
+          >
             <Text style={styles.infoLabel}>Privacy Policy</Text>
             <Ionicons
               name="chevron-forward"

@@ -5,13 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge } from "../../src/components";
+import { Badge, SkeletonHero, SkeletonStatRow, SkeletonList } from "../../src/components";
 import {
   useLenderDashboardViewModel,
   useNotificationsViewModel,
@@ -26,11 +25,15 @@ export default function LenderHomeScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <View style={{ marginTop: Spacing.lg, marginBottom: Spacing.xl }}>
+            <SkeletonHero height={150} />
+          </View>
+          <View style={{ marginBottom: Spacing.xl }}>
+            <SkeletonStatRow count={3} />
+          </View>
+          <SkeletonList count={2} cardHeight={90} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

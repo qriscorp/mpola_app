@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
@@ -80,7 +80,12 @@ export default function PaymentSuccessScreen() {
 
         <Button
           title="⬇ Download Receipt"
-          onPress={() => {}}
+          onPress={() =>
+            Alert.alert(
+              "Coming soon",
+              "Receipt downloads aren't available yet.",
+            )
+          }
           variant="outline"
           color={Colors.teal}
         />

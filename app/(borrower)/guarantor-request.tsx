@@ -1,10 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card } from "../../src/components";
+import { Button, Card, SkeletonHero, SkeletonCard } from "../../src/components";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchGuarantorInvite, respondToGuarantorInvite } from "../../src/services";
 
@@ -46,7 +46,10 @@ export default function GuarantorRequestScreen() {
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color={Colors.teal} style={{ flex: 1 }} />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}>
+          <SkeletonHero height={110} />
+          <SkeletonCard height={140} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

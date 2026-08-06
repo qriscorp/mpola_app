@@ -5,14 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card, Input } from "../../src/components";
+import { Button, Card, Input, SkeletonCard } from "../../src/components";
 import { usePaymentViewModel } from "../../src/viewmodels";
 import type { PaymentMethod } from "../../src/models";
 
@@ -36,11 +35,11 @@ export default function PaymentScreen() {
   if (vm.loanLoading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.teal}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.lg }}>
+          <SkeletonCard height={100} />
+          <SkeletonCard height={60} />
+          <SkeletonCard height={160} />
+        </ScrollView>
       </SafeAreaView>
     );
   }

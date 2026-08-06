@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -17,6 +16,8 @@ import {
   WalletSetupModal,
   WalletDepositModal,
   WalletWithdrawModal,
+  SkeletonHero,
+  SkeletonList,
 } from "../../src/components";
 import { useLenderWalletViewModel } from "../../src/viewmodels";
 
@@ -41,6 +42,7 @@ export default function LenderWalletScreen() {
     setTxPage,
     pagedTransactions,
     pagedTransactionsTotal,
+    pagedTransactionsLoading,
   } = useLenderWalletViewModel();
   const totalTxPages = Math.max(1, Math.ceil(pagedTransactionsTotal / 20));
   const [setupVisible, setSetupVisible] = useState(false);
@@ -74,11 +76,10 @@ export default function LenderWalletScreen() {
   if (isLoading || !wallet) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator
-          size="large"
-          color={Colors.gold}
-          style={{ flex: 1 }}
-        />
+        <ScrollView contentContainerStyle={{ padding: Spacing.lg, gap: Spacing.xl }}>
+          <SkeletonHero />
+          <SkeletonList count={4} cardHeight={64} />
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -183,15 +184,19 @@ export default function LenderWalletScreen() {
           <Text style={styles.txTitle}>Recent Transactions</Text>
         </View>
 
-        {pagedTransactions.map((tx) => (
-          <TransactionItem
-            key={tx.id}
-            amount={tx.amount}
-            description={tx.description}
-            date={tx.date}
-            type={tx.amount > 0 ? "credit" : "debit"}
-          />
-        ))}
+        {pagedTransactionsLoading ? (
+          <SkeletonList count={4} cardHeight={64} />
+        ) : (
+          pagedTransactions.map((tx) => (
+            <TransactionItem
+              key={tx.id}
+              amount={tx.amount}
+              description={tx.description}
+              date={tx.date}
+              type={tx.amount > 0 ? "credit" : "debit"}
+            />
+          ))
+        )}
 
         {pagedTransactionsTotal > 0 && (
           <View style={styles.paginationRow}>
