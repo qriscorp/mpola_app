@@ -21,7 +21,7 @@ export function detectCarrier(phone: string): "MTN" | "AIRTEL" {
     return "MTN";
   }
   if (
-    ["0075", "0074", "0070", "075", "074", "070"].some((pre) =>
+    ["0075", "0074", "0073", "0070", "075", "074", "073", "070"].some((pre) =>
       p.startsWith(pre),
     )
   ) {

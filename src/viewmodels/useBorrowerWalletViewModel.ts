@@ -8,6 +8,7 @@ import {
   setupWallet,
 } from "../services";
 import { useWalletTransactions } from "./useWalletTransactions";
+import { calcPlatformFee } from "../services/fees";
 import type { PaymentMethod } from "../models";
 
 const TX_PAGE_SIZE = 20;
@@ -85,7 +86,7 @@ export function usePaymentViewModel() {
   const totalInstalments = loan?.totalInstalments ?? 0;
   const dueDate = loan?.nextPaymentDate ?? "";
   const walletBalance = wallet?.balance ?? 0;
-  const processingFee = 0;
+  const processingFee = method === "wallet" ? calcPlatformFee(amount) : 0;
   const totalDeducted = amount + processingFee;
   const sufficient = walletBalance >= totalDeducted;
 

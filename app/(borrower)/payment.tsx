@@ -150,8 +150,10 @@ export default function PaymentScreen() {
             </Text>
           </View>
           <View style={styles.breakdownRow}>
-            <Text style={styles.breakdownLabel}>Processing Fee</Text>
-            <Text style={styles.breakdownValue}>{vm.processingFee}</Text>
+            <Text style={styles.breakdownLabel}>Platform Fee (0.5%)</Text>
+            <Text style={styles.breakdownValue}>
+              UGX {vm.processingFee.toLocaleString()}
+            </Text>
           </View>
           <View style={[styles.breakdownRow, styles.breakdownTotal]}>
             <Text style={styles.breakdownTotalLabel}>Total Deducted</Text>

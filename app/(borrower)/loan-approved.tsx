@@ -24,8 +24,7 @@ export default function LoanApprovedScreen() {
 
         <Text style={styles.title}>Offer Accepted!</Text>
         <Text style={styles.sub}>
-          {params.lenderName ?? "Your lender"} will disburse to your mobile
-          money shortly.
+          {params.lenderName ?? "Your lender"} has funded your Mpola wallet.
         </Text>
 
         {/* Details Card */}
