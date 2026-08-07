@@ -32,7 +32,6 @@ import type {
 import {
   apiAuthGet,
   apiAuthPost,
-  apiAuthPatch,
   apiAuthPut,
   apiAuthDelete,
   apiAuthUpload,
@@ -723,7 +722,7 @@ export async function respondToOffer(
   offerId: string,
   status: "accepted" | "declined",
 ): Promise<{ status: number; message: string }> {
-  return apiAuthPatch(`/loans/offers/${offerId}`, { status });
+  return apiAuthPut(`/loans/offers/${offerId}`, { status });
 }
 
 // ─── Lender Dashboard ───────────────────────────────────
@@ -885,7 +884,7 @@ export async function updateOfferTemplate(
   id: string,
   data: Partial<OfferTemplateInput>,
 ): Promise<OfferTemplate> {
-  const res = await apiAuthPatch<{ status: number; message: string; template: RawOfferTemplate }>(
+  const res = await apiAuthPut<{ status: number; message: string; template: RawOfferTemplate }>(
     `/loans/offer-templates/${id}`,
     offerTemplatePayload(data as OfferTemplateInput),
   );
@@ -908,6 +907,17 @@ export async function unfreezeMyOfferTemplate(id: string): Promise<OfferTemplate
   const res = await apiAuthPost<{ status: number; message: string; template: RawOfferTemplate }>(
     `/loans/offer-templates/${id}/unfreeze`,
     {},
+  );
+  return mapOfferTemplate(res.template);
+}
+
+export async function extendOfferTemplateExpiry(
+  id: string,
+  validUntil: string | null,
+): Promise<OfferTemplate> {
+  const res = await apiAuthPut<{ status: number; message: string; template: RawOfferTemplate }>(
+    `/loans/offer-templates/${id}/expiry`,
+    { valid_until: validUntil },
   );
   return mapOfferTemplate(res.template);
 }
@@ -990,7 +1000,7 @@ export async function fetchNotifications(): Promise<Notification[]> {
 }
 
 export async function markNotificationRead(id: string): Promise<void> {
-  await apiAuthPatch(`/notifications/${id}/read`, {});
+  await apiAuthPut(`/notifications/${id}/read`, {});
 }
 
 export async function markAllNotificationsRead(): Promise<void> {

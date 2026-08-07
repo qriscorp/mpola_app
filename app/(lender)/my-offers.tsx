@@ -37,7 +37,9 @@ export default function MyOffersScreen() {
     deleteTemplate,
     freezeTemplate,
     unfreezeTemplate,
+    extendExpiry,
     isMutating,
+    isExtendingExpiry,
   } = useMyOfferTemplatesViewModel();
 
   const handleDelete = (t: OfferTemplate) => {
@@ -75,6 +77,32 @@ export default function MyOffersScreen() {
     } catch (e: any) {
       Alert.alert("Failed to unfreeze", e?.message || "Please try again.");
     }
+  };
+
+  const handleExtendExpiry = (t: OfferTemplate, days: number | null) => {
+    const validUntil =
+      days === null
+        ? null
+        : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    Alert.alert(
+      days === null ? "Clear expiry?" : `Extend expiry by ${days} days?`,
+      days === null
+        ? "This offer will no longer have an expiry date."
+        : `This offer will now expire on ${new Date(validUntil!).toLocaleDateString()}.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Confirm",
+          onPress: async () => {
+            try {
+              await extendExpiry({ id: t.id, validUntil });
+            } catch (e: any) {
+              Alert.alert("Failed to update expiry", e?.message || "Please try again.");
+            }
+          },
+        },
+      ],
+    );
   };
 
   return (
@@ -181,6 +209,48 @@ export default function MyOffersScreen() {
                   )}
                 </View>
               )}
+
+              {t.status === "approved" && (
+                <View style={styles.expiryBlock}>
+                  <Text style={styles.expiryLabel}>
+                    {t.validUntil
+                      ? `Valid until ${new Date(t.validUntil).toLocaleDateString()}`
+                      : "No expiry set"}
+                  </Text>
+                  <View style={styles.expiryRow}>
+                    <TouchableOpacity
+                      style={styles.pillBtn}
+                      disabled={isExtendingExpiry}
+                      onPress={() => handleExtendExpiry(t, 30)}
+                    >
+                      <Text style={styles.pillBtnText}>+30d</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.pillBtn}
+                      disabled={isExtendingExpiry}
+                      onPress={() => handleExtendExpiry(t, 90)}
+                    >
+                      <Text style={styles.pillBtnText}>+90d</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={styles.pillBtn}
+                      disabled={isExtendingExpiry}
+                      onPress={() => handleExtendExpiry(t, 365)}
+                    >
+                      <Text style={styles.pillBtnText}>+1yr</Text>
+                    </TouchableOpacity>
+                    {t.validUntil && (
+                      <TouchableOpacity
+                        style={styles.pillBtn}
+                        disabled={isExtendingExpiry}
+                        onPress={() => handleExtendExpiry(t, null)}
+                      >
+                        <Text style={[styles.pillBtnText, { color: Colors.danger }]}>Clear</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                </View>
+              )}
             </View>
           ))
         )}
@@ -244,4 +314,15 @@ const styles = StyleSheet.create({
   outlineBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
   goldBtn: { backgroundColor: Colors.gold, borderColor: Colors.gold },
   goldBtnText: { ...Typography.smallMedium, color: Colors.white },
+  expiryBlock: { marginTop: Spacing.sm, gap: Spacing.xs },
+  expiryLabel: { ...Typography.small, color: Colors.textMuted },
+  expiryRow: { flexDirection: "row", gap: Spacing.xs },
+  pillBtn: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 4,
+  },
+  pillBtnText: { ...Typography.small, color: Colors.textSecondary },
 });

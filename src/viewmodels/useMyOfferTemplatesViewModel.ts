@@ -4,6 +4,7 @@ import {
   deleteOfferTemplate,
   freezeMyOfferTemplate,
   unfreezeMyOfferTemplate,
+  extendOfferTemplateExpiry,
 } from "../services";
 
 export function useMyOfferTemplatesViewModel() {
@@ -29,6 +30,11 @@ export function useMyOfferTemplatesViewModel() {
     mutationFn: unfreezeMyOfferTemplate,
     onSuccess: invalidate,
   });
+  const extendExpiryMutation = useMutation({
+    mutationFn: ({ id, validUntil }: { id: string; validUntil: string | null }) =>
+      extendOfferTemplateExpiry(id, validUntil),
+    onSuccess: invalidate,
+  });
 
   return {
     templates,
@@ -38,7 +44,12 @@ export function useMyOfferTemplatesViewModel() {
     deleteTemplate: deleteMutation.mutateAsync,
     freezeTemplate: freezeMutation.mutateAsync,
     unfreezeTemplate: unfreezeMutation.mutateAsync,
+    extendExpiry: extendExpiryMutation.mutateAsync,
     isMutating:
-      deleteMutation.isPending || freezeMutation.isPending || unfreezeMutation.isPending,
+      deleteMutation.isPending ||
+      freezeMutation.isPending ||
+      unfreezeMutation.isPending ||
+      extendExpiryMutation.isPending,
+    isExtendingExpiry: extendExpiryMutation.isPending,
   };
 }
