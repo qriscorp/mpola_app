@@ -20,6 +20,7 @@ export function useApplyViewModel() {
   const [duration, setDuration] = useState(6);
   const [loanType, setLoanType] = useState<LoanType>("personal");
   const [purpose, setPurpose] = useState("");
+  const [maxInterestRate, setMaxInterestRate] = useState("");
   const [detailsErrors, setDetailsErrors] = useState<Record<string, string>>(
     {},
   );
@@ -147,6 +148,7 @@ export function useApplyViewModel() {
         duration,
         loanType,
         purpose: purpose || undefined,
+        maxInterestRate: maxInterestRate ? Number(maxInterestRate) : undefined,
       });
       await Promise.all([
         ...guarantors.map((g) =>
@@ -183,6 +185,8 @@ export function useApplyViewModel() {
     loanTypes,
     purpose,
     setPurpose,
+    maxInterestRate,
+    setMaxInterestRate,
     documents,
     uploadDocument,
     guarantors,

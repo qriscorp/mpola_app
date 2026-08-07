@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -31,7 +32,18 @@ export default function PortfolioScreen() {
     totalActive,
     filters,
     isLoading,
+    approveDisbursement,
+    approvingDisbursement,
   } = usePortfolioViewModel();
+
+  const handleApprove = async (loanId: string) => {
+    try {
+      await approveDisbursement(loanId);
+      Alert.alert("Disbursed", "Funds have been sent to the borrower's wallet.");
+    } catch (e: any) {
+      Alert.alert("Couldn't disburse", e?.message || "Please try again.");
+    }
+  };
 
   if (isLoading) {
     return (
@@ -94,7 +106,11 @@ export default function PortfolioScreen() {
                   filter === f && styles.filterTextActive,
                 ]}
               >
-                {f === "all" ? "All" : f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === "all"
+                  ? "All"
+                  : f === "pending_disbursement"
+                    ? "Awaiting Approval"
+                    : f.charAt(0).toUpperCase() + f.slice(1)}
               </Text>
             </TouchableOpacity>
           ))}
@@ -120,42 +136,62 @@ export default function PortfolioScreen() {
                 </Text>
               </View>
               <Badge
-                label={loan.status}
+                label={loan.status === "pending_disbursement" ? "awaiting approval" : loan.status}
                 variant={
-                  loan.status === "active"
-                    ? "success"
-                    : loan.status === "overdue"
-                      ? "danger"
-                      : "default"
+                  loan.status === "pending_disbursement"
+                    ? "warning"
+                    : loan.status === "active"
+                      ? "success"
+                      : loan.status === "overdue"
+                        ? "danger"
+                        : "default"
                 }
               />
             </View>
 
-            <View style={styles.progressSection}>
-              <View style={styles.progressLabelRow}>
-                <Text style={styles.progressLabel}>
-                  {loan.paidInstalments} of {loan.totalInstalments} payments
-                </Text>
-                <Text style={styles.progressPercent}>
-                  {Math.round(loan.progress * 100)}%
-                </Text>
-              </View>
-              <ProgressBar
-                progress={loan.progress}
-                color={loan.status === "overdue" ? Colors.danger : Colors.gold}
-              />
-            </View>
-
-            <View style={styles.loanFooter}>
-              <Text style={styles.footerLabel}>
-                Monthly: UGX {loan.monthlyPayment.toLocaleString()}
+            {loan.status === "pending_disbursement" ? (
+              <Text style={styles.pendingNote}>
+                Not disbursed yet — approve to release funds to the borrower.
               </Text>
-              <Ionicons
-                name="chevron-forward"
-                size={16}
-                color={Colors.textMuted}
-              />
-            </View>
+            ) : (
+              <View style={styles.progressSection}>
+                <View style={styles.progressLabelRow}>
+                  <Text style={styles.progressLabel}>
+                    {loan.paidInstalments} of {loan.totalInstalments} payments
+                  </Text>
+                  <Text style={styles.progressPercent}>
+                    {Math.round(loan.progress * 100)}%
+                  </Text>
+                </View>
+                <ProgressBar
+                  progress={loan.progress}
+                  color={loan.status === "overdue" ? Colors.danger : Colors.gold}
+                />
+              </View>
+            )}
+
+            {loan.status === "pending_disbursement" ? (
+              <TouchableOpacity
+                style={styles.approveBtn}
+                disabled={approvingDisbursement}
+                onPress={() => handleApprove(loan.id)}
+              >
+                <Text style={styles.approveBtnText}>
+                  {approvingDisbursement ? "Approving…" : "Approve Disbursement"}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <View style={styles.loanFooter}>
+                <Text style={styles.footerLabel}>
+                  Monthly: UGX {loan.monthlyPayment.toLocaleString()}
+                </Text>
+                <Ionicons
+                  name="chevron-forward"
+                  size={16}
+                  color={Colors.textMuted}
+                />
+              </View>
+            )}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -201,6 +237,18 @@ const styles = StyleSheet.create({
   loanInfo: {},
   loanName: { ...Typography.h4, color: Colors.textPrimary },
   loanMeta: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
+  pendingNote: {
+    ...Typography.small,
+    color: Colors.warning,
+    marginBottom: Spacing.md,
+  },
+  approveBtn: {
+    backgroundColor: Colors.success,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  approveBtnText: { ...Typography.smallMedium, color: Colors.white },
   progressSection: { marginBottom: Spacing.md },
   progressLabelRow: {
     flexDirection: "row",

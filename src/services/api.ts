@@ -25,12 +25,16 @@ import type {
   Notification,
   MonthlyEarning,
   LenderEarnings,
+  OfferTemplate,
+  OfferTemplateInput,
+  OfferTemplateStatus,
 } from "../models";
 import {
   apiAuthGet,
   apiAuthPost,
   apiAuthPatch,
   apiAuthPut,
+  apiAuthDelete,
   apiAuthUpload,
   apiPublicGet,
   apiPublicPost,
@@ -687,6 +691,7 @@ export async function submitLoanApplication(data: {
   duration: number;
   loanType: string;
   purpose?: string;
+  maxInterestRate?: number;
 }): Promise<{ referenceNumber: string; applicationId: string }> {
   const res = await apiAuthPost<{
     status: number;
@@ -697,6 +702,7 @@ export async function submitLoanApplication(data: {
     duration: data.duration,
     loan_type: data.loanType,
     purpose: data.purpose,
+    max_interest_rate: data.maxInterestRate,
   });
   return {
     referenceNumber: res.application.reference_number,
@@ -806,6 +812,106 @@ export async function makeOffer(data: {
   return mapOffer(res.offer);
 }
 
+// ─── Standing Offer Templates ───────────────────────────
+
+interface RawOfferTemplate {
+  id: string;
+  lender_id: string;
+  max_amount: number;
+  min_amount: number;
+  interest_rate: number;
+  max_duration: number;
+  accepted_loan_types: string[];
+  required_documents: string[];
+  description: string | null;
+  valid_until: string | null;
+  max_concurrent_loans: number | null;
+  status: OfferTemplateStatus;
+  is_frozen: boolean;
+  frozen_by: "lender" | "admin" | null;
+  created_at: string;
+}
+
+function mapOfferTemplate(t: RawOfferTemplate): OfferTemplate {
+  return {
+    id: t.id,
+    lenderId: t.lender_id,
+    maxAmount: t.max_amount,
+    minAmount: t.min_amount,
+    interestRate: t.interest_rate,
+    maxDuration: t.max_duration,
+    acceptedLoanTypes: t.accepted_loan_types,
+    requiredDocuments: t.required_documents,
+    description: t.description,
+    validUntil: t.valid_until,
+    maxConcurrentLoans: t.max_concurrent_loans,
+    status: t.status,
+    isFrozen: t.is_frozen,
+    frozenBy: t.frozen_by,
+    createdAt: t.created_at,
+  };
+}
+
+function offerTemplatePayload(data: OfferTemplateInput) {
+  return {
+    max_amount: data.maxAmount,
+    min_amount: data.minAmount,
+    interest_rate: data.interestRate,
+    max_duration: data.maxDuration,
+    accepted_loan_types: data.acceptedLoanTypes,
+    required_documents: data.requiredDocuments,
+    description: data.description,
+    valid_until: data.validUntil,
+    max_concurrent_loans: data.maxConcurrentLoans,
+  };
+}
+
+export async function createOfferTemplate(
+  data: OfferTemplateInput & { isDraft?: boolean },
+): Promise<OfferTemplate> {
+  const res = await apiAuthPost<{ status: number; message: string; template: RawOfferTemplate }>(
+    "/loans/offer-templates",
+    { ...offerTemplatePayload(data), is_draft: data.isDraft ?? false },
+  );
+  return mapOfferTemplate(res.template);
+}
+
+export async function fetchMyOfferTemplates(): Promise<OfferTemplate[]> {
+  const res = await apiAuthGet<{ templates: RawOfferTemplate[] }>("/loans/offer-templates/mine");
+  return res.templates.map(mapOfferTemplate);
+}
+
+export async function updateOfferTemplate(
+  id: string,
+  data: Partial<OfferTemplateInput>,
+): Promise<OfferTemplate> {
+  const res = await apiAuthPatch<{ status: number; message: string; template: RawOfferTemplate }>(
+    `/loans/offer-templates/${id}`,
+    offerTemplatePayload(data as OfferTemplateInput),
+  );
+  return mapOfferTemplate(res.template);
+}
+
+export async function deleteOfferTemplate(id: string): Promise<void> {
+  await apiAuthDelete(`/loans/offer-templates/${id}`);
+}
+
+export async function freezeMyOfferTemplate(id: string): Promise<OfferTemplate> {
+  const res = await apiAuthPost<{ status: number; message: string; template: RawOfferTemplate }>(
+    `/loans/offer-templates/${id}/freeze`,
+    {},
+  );
+  return mapOfferTemplate(res.template);
+}
+
+export async function unfreezeMyOfferTemplate(id: string): Promise<OfferTemplate> {
+  const res = await apiAuthPost<{ status: number; message: string; template: RawOfferTemplate }>(
+    `/loans/offer-templates/${id}/unfreeze`,
+    {},
+  );
+  return mapOfferTemplate(res.template);
+}
+
 // ─── Portfolio ──────────────────────────────────────────
 
 export async function fetchPortfolio(): Promise<
@@ -819,6 +925,10 @@ export async function fetchPortfolio(): Promise<
     borrowerName: l.borrowerName ?? "Unknown",
     progress: l.totalInstalments ? l.paidInstalments / l.totalInstalments : 0,
   }));
+}
+
+export async function approveDisbursement(loanId: string): Promise<void> {
+  await apiAuthPost(`/loans/active/${loanId}/approve-disbursement`, {});
 }
 
 // ─── Lender Wallet ──────────────────────────────────────

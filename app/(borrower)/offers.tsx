@@ -45,7 +45,7 @@ export default function OffersScreen() {
     }
     Alert.alert(
       "Accept this offer?",
-      `${offer.lenderName ?? "This lender"} will disburse UGX ${offer.amount.toLocaleString()} to your Mpola wallet. You'll need a wallet set up to receive it.`,
+      `${offer.lenderName ?? "This lender"} will be notified to approve and release UGX ${offer.amount.toLocaleString()} to your Mpola wallet — typically fast, but not instant. You'll need a wallet set up to receive it.`,
       [
         { text: "Cancel", style: "cancel" },
         {

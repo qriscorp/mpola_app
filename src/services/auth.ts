@@ -358,6 +358,27 @@ export async function apiAuthPut<T>(path: string, body: unknown): Promise<T> {
   return res.json();
 }
 
+export async function apiAuthDelete<T>(path: string): Promise<T> {
+  const token = await getAccessToken();
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "DELETE",
+    headers: {
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+  });
+  if (res.status === 401) {
+    await handleUnauthorized();
+    throw new Error("Session expired");
+  }
+  if (!res.ok) {
+    const err = await res
+      .json()
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+    throw new Error(err.detail || err.message || `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 function mapSignupDraft(payload: SignupDraftPayload): SignupDraftState {
   return {
     draftId: payload.draft_id,

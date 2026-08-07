@@ -24,6 +24,7 @@ export type LoanType =
   | "emergency";
 export type LoanStatus =
   | "pending"
+  | "pending_disbursement"
   | "active"
   | "approved"
   | "overdue"
@@ -240,4 +241,36 @@ export interface LenderEarnings {
   thisMonthEarned: number;
   avgYield: number;
   monthlyEarnings: MonthlyEarning[];
+}
+
+export type OfferTemplateStatus = "pending_review" | "draft" | "approved" | "rejected";
+
+export interface OfferTemplate {
+  id: string;
+  lenderId: string;
+  maxAmount: number;
+  minAmount: number;
+  interestRate: number;
+  maxDuration: number;
+  acceptedLoanTypes: string[];
+  requiredDocuments: string[];
+  description: string | null;
+  validUntil: string | null;
+  maxConcurrentLoans: number | null;
+  status: OfferTemplateStatus;
+  isFrozen: boolean;
+  frozenBy: "lender" | "admin" | null;
+  createdAt: string;
+}
+
+export interface OfferTemplateInput {
+  maxAmount: number;
+  minAmount: number;
+  interestRate: number;
+  maxDuration: number;
+  acceptedLoanTypes: string[];
+  requiredDocuments: string[];
+  description?: string;
+  validUntil?: string;
+  maxConcurrentLoans?: number;
 }

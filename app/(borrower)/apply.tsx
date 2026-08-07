@@ -177,6 +177,14 @@ export default function ApplyScreen() {
               multiline
             />
 
+            <Input
+              label="Max Interest Rate (%/month, optional)"
+              value={vm.maxInterestRate}
+              onChangeText={vm.setMaxInterestRate}
+              placeholder="e.g. 3 — leave blank to accept any rate"
+              keyboardType="numeric"
+            />
+
             <Card style={styles.estimateCard}>
               <Text style={styles.estimateLabel}>
                 Estimated Repayment ({vm.interestRate}%/month)

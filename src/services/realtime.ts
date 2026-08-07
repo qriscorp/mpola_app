@@ -4,6 +4,7 @@
  * browser's, so no extra dependency is needed.
  */
 import { useEffect, useRef } from "react";
+import { Alert } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAccessToken, API_BASE_URL } from "./auth";
 
@@ -41,6 +42,14 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["borrower", "wallet"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "wallet"] });
           queryClient.invalidateQueries({ queryKey: ["borrower", "activeLoan"] });
+          queryClient.invalidateQueries({ queryKey: ["lender", "portfolio"] });
+          queryClient.invalidateQueries({ queryKey: ["lender", "earnings"] });
+
+          if (msg.type === "loan_pending_disbursement" && msg.title) {
+            Alert.alert(msg.title, msg.message);
+          } else if (msg.type === "loan_disbursed" && msg.title) {
+            Alert.alert(msg.title, msg.message);
+          }
         } catch {
           // ignore malformed frames
         }

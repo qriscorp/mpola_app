@@ -164,6 +164,35 @@ export default function LenderHomeScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/post-offer")}
+          >
+            <Ionicons
+              name="add-circle-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              Post an Offer
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/my-offers")}
+          >
+            <Ionicons
+              name="documents-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              My Standing Offers
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );

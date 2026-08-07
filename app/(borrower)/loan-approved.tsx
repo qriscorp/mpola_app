@@ -24,7 +24,8 @@ export default function LoanApprovedScreen() {
 
         <Text style={styles.title}>Offer Accepted!</Text>
         <Text style={styles.sub}>
-          {params.lenderName ?? "Your lender"} has funded your Mpola wallet.
+          {params.lenderName ?? "Your lender"} has been notified to approve
+          and release the funds to your Mpola wallet.
         </Text>
 
         {/* Details Card */}

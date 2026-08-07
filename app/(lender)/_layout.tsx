@@ -76,6 +76,8 @@ export default function LenderTabLayout() {
       <Tabs.Screen name="register" options={{ href: null }} />
       <Tabs.Screen name="borrower-profile" options={{ href: null }} />
       <Tabs.Screen name="make-offer" options={{ href: null }} />
+      <Tabs.Screen name="post-offer" options={{ href: null }} />
+      <Tabs.Screen name="my-offers" options={{ href: null }} />
       <Tabs.Screen name="offer-sent" options={{ href: null }} />
       <Tabs.Screen name="loan-detail" options={{ href: null }} />
       <Tabs.Screen name="earnings" options={{ href: null }} />

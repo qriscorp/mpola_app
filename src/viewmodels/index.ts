@@ -14,6 +14,13 @@ export {
   useMakeOfferViewModel,
 } from "./useLenderBrowseViewModel";
 export { usePortfolioViewModel } from "./usePortfolioViewModel";
+export {
+  usePostOfferViewModel,
+  LOAN_TYPE_OPTIONS,
+  DOCUMENT_OPTIONS,
+  DURATION_OPTIONS,
+} from "./usePostOfferViewModel";
+export { useMyOfferTemplatesViewModel } from "./useMyOfferTemplatesViewModel";
 export { useLenderWalletViewModel } from "./useLenderWalletViewModel";
 export { useEarningsViewModel } from "./useEarningsViewModel";
 export { useNotificationsViewModel } from "./useNotificationsViewModel";
