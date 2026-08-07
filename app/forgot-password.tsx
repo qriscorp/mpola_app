@@ -218,7 +218,9 @@ export default function ForgotPasswordScreen() {
         {step === "verify" && (
           <>
             <Text style={styles.otpHint}>
-              Code sent to <Text style={styles.bold}>{identifier}</Text>
+              If an account exists for{" "}
+              <Text style={styles.bold}>{identifier}</Text>, a code has been
+              sent to its email or phone.
             </Text>
             <View style={styles.otpRow}>
               {otp.map((digit, i) => (

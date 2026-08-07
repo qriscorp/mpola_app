@@ -64,6 +64,11 @@ export default function VerifyPhoneScreen() {
       if (existing?.phoneNumber) {
         setPhone(withoutCountryCode(existing.phoneNumber));
       }
+      // register_start already dispatched a code (email attempt failed, so
+      // it fell back to SMS) whenever the draft's next step is verify-phone
+      // — skip straight to code entry instead of a redundant manual send
+      // that would silently invalidate the code already texted.
+      setOtpSent(true);
     };
     void loadDraft();
   }, [router]);
@@ -185,7 +190,9 @@ export default function VerifyPhoneScreen() {
 
         <Text style={styles.title}>Verify your phone</Text>
         <Text style={styles.subtitle}>
-          Enter your phone number, request a code, then verify to finish signup.
+          {otpSent
+            ? `We sent a verification code via SMS to +256${phone}. Enter it below to finish signup.`
+            : "Enter your phone number, request a code, then verify to finish signup."}
         </Text>
 
         {error ? (
@@ -201,10 +208,11 @@ export default function VerifyPhoneScreen() {
           placeholder="7XX XXX XXX"
           keyboardType="phone-pad"
           prefix="+256"
+          editable={!otpSent}
         />
 
         <Button
-          title={sending ? "Sending code..." : "Send Code"}
+          title={sending ? "Sending code..." : otpSent ? "Resend Code" : "Send Code"}
           onPress={handleSendCode}
           color={accent}
           loading={sending}
