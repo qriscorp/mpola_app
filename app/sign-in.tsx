@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,6 +21,8 @@ export default function SignInScreen() {
   const vm = useAuthViewModel();
   const [biometricReady, setBiometricReady] = useState(false);
   const [biometricLoading, setBiometricLoading] = useState(false);
+  const [twoFactorCode, setTwoFactorCode] = useState(["", "", "", "", "", ""]);
+  const twoFactorRefs = useRef<(TextInput | null)[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -41,6 +44,31 @@ export default function SignInScreen() {
 
   const handleSignIn = async () => {
     const success = await vm.login();
+    // If this account has 2FA enabled, vm.twoFactorUsername is now set and
+    // the code-entry step below renders instead of navigating away.
+    if (success) {
+      routeForRole(vm.authUser?.role);
+    }
+  };
+
+  const handleTwoFactorDigit = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const next = [...twoFactorCode];
+    next[index] = digit;
+    setTwoFactorCode(next);
+    if (digit && index < 5) {
+      twoFactorRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleTwoFactorKeyPress = (index: number, key: string) => {
+    if (key === "Backspace" && !twoFactorCode[index] && index > 0) {
+      twoFactorRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleVerifyTwoFactor = async () => {
+    const success = await vm.verifyTwoFactor(twoFactorCode.join(""));
     if (success) {
       routeForRole(vm.authUser?.role);
     }
@@ -78,6 +106,55 @@ export default function SignInScreen() {
           <Text style={styles.appName}>Mpola</Text>
         </View>
 
+        {vm.twoFactorUsername ? (
+          <>
+            {/* Title */}
+            <Text style={styles.title}>Two-Factor Verification</Text>
+            <Text style={styles.subtitle}>
+              Enter the 6-digit code we just texted to your phone to finish
+              signing in.
+            </Text>
+
+            {!!vm.errors.code && (
+              <View style={styles.errorBox}>
+                <Text style={styles.errorText}>{vm.errors.code}</Text>
+              </View>
+            )}
+
+            <View style={{ height: Spacing.lg }} />
+
+            <View style={styles.otpRow}>
+              {twoFactorCode.map((digit, i) => (
+                <TextInput
+                  key={i}
+                  ref={(el) => {
+                    twoFactorRefs.current[i] = el;
+                  }}
+                  style={[styles.otpBox, digit ? styles.otpBoxFilled : null]}
+                  value={digit}
+                  onChangeText={(v) => handleTwoFactorDigit(i, v)}
+                  onKeyPress={({ nativeEvent }) =>
+                    handleTwoFactorKeyPress(i, nativeEvent.key)
+                  }
+                  keyboardType="number-pad"
+                  maxLength={1}
+                  textAlign="center"
+                  selectTextOnFocus
+                />
+              ))}
+            </View>
+
+            <View style={{ height: Spacing.lg }} />
+
+            <Button
+              title={vm.loading ? "Verifying…" : "Verify & Sign In"}
+              onPress={handleVerifyTwoFactor}
+              color={Colors.teal}
+              disabled={vm.loading || twoFactorCode.join("").length < 6}
+            />
+          </>
+        ) : (
+          <>
         {/* Title */}
         <Text style={styles.title}>Welcome back</Text>
         <Text style={styles.subtitle}>Sign in to your account</Text>
@@ -174,6 +251,8 @@ export default function SignInScreen() {
             </TouchableOpacity>
           </>
         )}
+          </>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -210,6 +289,30 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   subtitle: { ...Typography.body, color: Colors.textSecondary },
+  errorBox: {
+    backgroundColor: Colors.dangerBg,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+  },
+  errorText: { ...Typography.small, color: Colors.danger },
+  otpRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  otpBox: {
+    flex: 1,
+    height: 56,
+    borderRadius: BorderRadius.md,
+    borderWidth: 2,
+    borderColor: Colors.border,
+    backgroundColor: Colors.surfaceLift,
+    color: Colors.white,
+    fontSize: 24,
+    fontWeight: "700",
+  },
+  otpBoxFilled: { borderColor: Colors.teal },
   fieldLabel: {
     ...Typography.small,
     color: Colors.textMuted,

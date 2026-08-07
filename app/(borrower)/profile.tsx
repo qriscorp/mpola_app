@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
-import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection } from "../../src/components";
+import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   return (
@@ -67,24 +67,6 @@ export default function ProfileScreen() {
     .map((n: string) => n[0])
     .join("");
 
-  const kycItems = [
-    {
-      label: "National ID",
-      icon: "document-outline",
-      verified: profile.kycVerified,
-    },
-    {
-      label: "Phone Number",
-      icon: "phone-portrait-outline",
-      verified: !!profile.isPhoneVerified,
-    },
-    {
-      label: "Bank Statement",
-      icon: "grid-outline",
-      verified: profile.kycVerified,
-    },
-  ];
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -112,40 +94,9 @@ export default function ProfileScreen() {
         </View>
 
         {/* KYC */}
-        <Text style={styles.sectionLabel}>KYC STATUS</Text>
+        <Text style={styles.sectionLabel}>KYC VERIFICATION</Text>
         <View style={styles.card}>
-          {kycItems.map((item, i) => (
-            <View
-              key={item.label}
-              style={[
-                styles.kycRow,
-                i < kycItems.length - 1 && styles.kycRowBorder,
-              ]}
-            >
-              <Ionicons
-                name={item.icon as any}
-                size={20}
-                color={Colors.textSecondary}
-                style={{ marginRight: Spacing.sm }}
-              />
-              <Text style={styles.kycLabel}>{item.label}</Text>
-              <View
-                style={[
-                  styles.kycBadge,
-                  item.verified ? styles.kycVerified : styles.kycPending,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.kycBadgeText,
-                    item.verified ? styles.kycVerifiedText : styles.kycPendingText,
-                  ]}
-                >
-                  {item.verified ? "Verified" : "Pending"}
-                </Text>
-              </View>
-            </View>
-          ))}
+          <KYCUploadSection accentColor={Colors.teal} />
         </View>
 
         {/* Notifications */}

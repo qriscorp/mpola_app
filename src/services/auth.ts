@@ -145,6 +145,21 @@ interface AuthResponse {
   refresh_token: string;
 }
 
+interface RequiresTwoFactorResponse {
+  status: number;
+  requires_2fa: true;
+  username: string;
+  message: string;
+}
+
+// /auth/login returns this shape instead when the account has 2FA enabled —
+// no tokens yet, just a signal that a code was just SMS'd out.
+type LoginApiResponse = AuthResponse | RequiresTwoFactorResponse;
+
+export type LoginResult =
+  | { requires2FA: true; username: string }
+  | { requires2FA: false; user: AuthUser };
+
 interface SignupDraftResponse {
   draft_id: string;
   email: string;
@@ -436,16 +451,34 @@ export async function apiRefreshSignupDraft(): Promise<SignupDraftState | null> 
 export async function apiLogin(data: {
   email: string;
   password: string;
-}): Promise<AuthUser> {
+}): Promise<LoginResult> {
   // If input looks like a phone number, normalize it
   const identifier = /^\d{9,12}$/.test(data.email.replace(/\D/g, ""))
     ? normalizePhone(data.email)
     : data.email;
-  const res = await apiPost<AuthResponse>("/auth/login", {
+  const res = await apiPost<LoginApiResponse>("/auth/login", {
     username: identifier,
     password: data.password,
   });
 
+  if ("requires_2fa" in res) {
+    return { requires2FA: true, username: res.username };
+  }
+
+  await storeTokens(res.access_token, res.refresh_token);
+  await storeUser(res.user);
+  return { requires2FA: false, user: res.user };
+}
+
+/** Completes a login that returned requires2FA — verifies the SMS code and issues tokens. */
+export async function apiVerifyLogin2FA(
+  username: string,
+  code: string,
+): Promise<AuthUser> {
+  const res = await apiPost<AuthResponse>("/auth/verify_login_2fa", {
+    username,
+    code,
+  });
   await storeTokens(res.access_token, res.refresh_token);
   await storeUser(res.user);
   return res.user;

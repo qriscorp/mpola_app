@@ -646,6 +646,42 @@ export async function uploadLoanDocument(
   );
 }
 
+// ─── Account-level KYC documents (separate from per-application ones above) ───
+export type KYCDocumentType =
+  | "national_id"
+  | "passport"
+  | "profile_photo"
+  | "proof_of_address";
+
+export interface KYCDocument {
+  id: string;
+  document_type: KYCDocumentType | string;
+  file_url: string;
+  file_name: string | null;
+  verified: boolean;
+}
+
+export async function getMyKycDocuments(): Promise<KYCDocument[]> {
+  const res = await apiAuthGet<{ documents: KYCDocument[] }>(
+    "/users/me/kyc-documents",
+  );
+  return res.documents;
+}
+
+export async function uploadKycDocument(
+  documentType: KYCDocumentType,
+  file: { uri: string; name: string; mimeType?: string },
+): Promise<{ status: number; message: string; document: KYCDocument }> {
+  const formData = new FormData();
+  formData.append("document_type", documentType);
+  formData.append("file", {
+    uri: file.uri,
+    name: file.name,
+    type: file.mimeType || "application/octet-stream",
+  } as unknown as Blob);
+  return apiAuthUpload("/users/me/kyc-documents", formData);
+}
+
 export async function submitLoanApplication(data: {
   amount: number;
   duration: number;

@@ -5,6 +5,7 @@ import { registerSchema, loginSchema } from "../validation";
 import {
   apiRegister,
   apiLogin,
+  apiVerifyLogin2FA,
   type AuthUser,
   type SignupDraftState,
 } from "../services/auth";
@@ -32,6 +33,7 @@ export function useAuthViewModel() {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [signupDraft, setSignupDraft] = useState<SignupDraftState | null>(null);
+  const [twoFactorUsername, setTwoFactorUsername] = useState<string | null>(null);
 
   const registerMutation = useMutation({
     mutationFn: (params: {
@@ -49,7 +51,22 @@ export function useAuthViewModel() {
   const loginMutation = useMutation({
     mutationFn: (params: { email: string; password: string }) =>
       apiLogin(params),
-    onSuccess: (user) => setAuthUser(user),
+    onSuccess: (result) => {
+      if (result.requires2FA) {
+        setTwoFactorUsername(result.username);
+      } else {
+        setAuthUser(result.user);
+      }
+    },
+  });
+
+  const verifyTwoFactorMutation = useMutation({
+    mutationFn: (params: { username: string; code: string }) =>
+      apiVerifyLogin2FA(params.username, params.code),
+    onSuccess: (user) => {
+      setTwoFactorUsername(null);
+      setAuthUser(user);
+    },
   });
 
   const validate = () => {
@@ -100,10 +117,24 @@ export function useAuthViewModel() {
     }
     setErrors({});
     try {
-      await loginMutation.mutateAsync({ email, password });
-      return true;
+      const loginResult = await loginMutation.mutateAsync({ email, password });
+      // requires2FA: false result → real sign-in, caller should navigate.
+      // requires2FA: true → caller should show the code-entry step instead.
+      return !loginResult.requires2FA;
     } catch (e: any) {
       setErrors({ email: e?.message || "Invalid credentials" });
+      return false;
+    }
+  };
+
+  const verifyTwoFactor = async (code: string) => {
+    if (!twoFactorUsername) return false;
+    setErrors({});
+    try {
+      await verifyTwoFactorMutation.mutateAsync({ username: twoFactorUsername, code });
+      return true;
+    } catch (e: any) {
+      setErrors({ code: e?.message || "Invalid code" });
       return false;
     }
   };
@@ -126,9 +157,14 @@ export function useAuthViewModel() {
     errors,
     authUser,
     signupDraft,
-    loading: registerMutation.isPending || loginMutation.isPending,
+    twoFactorUsername,
+    loading:
+      registerMutation.isPending ||
+      loginMutation.isPending ||
+      verifyTwoFactorMutation.isPending,
     canSubmit,
     register,
     login,
+    verifyTwoFactor,
   };
 }
