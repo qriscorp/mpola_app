@@ -44,10 +44,13 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["borrower", "activeLoan"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "portfolio"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "earnings"] });
+          queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] });
 
           if (msg.type === "loan_pending_disbursement" && msg.title) {
             Alert.alert(msg.title, msg.message);
           } else if (msg.type === "loan_disbursed" && msg.title) {
+            Alert.alert(msg.title, msg.message);
+          } else if (msg.type === "offer_template_expired" && msg.title) {
             Alert.alert(msg.title, msg.message);
           }
         } catch {

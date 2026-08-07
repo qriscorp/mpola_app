@@ -216,6 +216,9 @@ export default function MyOffersScreen() {
                     {t.validUntil
                       ? `Valid until ${new Date(t.validUntil).toLocaleDateString()}`
                       : "No expiry set"}
+                    {t.validUntil && new Date(t.validUntil) < new Date() && (
+                      <Text style={{ color: Colors.danger, fontWeight: "600" }}>  ·  Expired</Text>
+                    )}
                   </Text>
                   <View style={styles.expiryRow}>
                     <TouchableOpacity
