@@ -24,26 +24,34 @@ type Step = "request" | "verify" | "reset";
 export default function ForgotPasswordScreen() {
   const router = useRouter();
   const [step, setStep] = useState<Step>("request");
-  const [identifier, setIdentifier] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  // Which channel actually delivered the code — only known once the account
+  // is confirmed to exist (email AND phone matched the same account), so
+  // it's safe to be specific here.
+  const [sentChannel, setSentChannel] = useState<"email" | "phone" | null>(
+    null,
+  );
 
   const otpRefs = useRef<(TextInput | null)[]>([]);
 
   // ── Step 1: send OTP ──────────────────────────────────────
   const handleSend = async () => {
-    if (!identifier.trim()) {
-      setError("Please enter your email or phone number.");
+    if (!email.trim() || !phone.trim()) {
+      setError("Please enter both your email and phone number.");
       return;
     }
     setError("");
     setLoading(true);
     try {
-      await apiForgotPasswordSend(identifier.trim());
+      const res = await apiForgotPasswordSend(email.trim(), phone.trim());
+      setSentChannel(res.channel);
       setStep("verify");
     } catch (e: any) {
       setError(e?.message || "Could not send reset code. Please try again.");
@@ -62,7 +70,7 @@ export default function ForgotPasswordScreen() {
     setError("");
     setLoading(true);
     try {
-      const res = await apiForgotPasswordVerify(identifier.trim(), code);
+      const res = await apiForgotPasswordVerify(email.trim(), code);
       setResetToken(res.access_token);
       setStep("reset");
     } catch (e: any) {
@@ -139,9 +147,9 @@ export default function ForgotPasswordScreen() {
         <Text style={styles.title}>Forgot Password</Text>
         <Text style={styles.subtitle}>
           {step === "request"
-            ? "Enter your email or phone to receive a reset code."
+            ? "Enter the email and phone number on your account to receive a reset code."
             : step === "verify"
-              ? "Enter the 6-digit code we sent you."
+              ? `Enter the 6-digit code we sent ${sentChannel === "phone" ? "via SMS." : "to your email."}`
               : "Choose a new password for your account."}
         </Text>
 
@@ -197,12 +205,21 @@ export default function ForgotPasswordScreen() {
         {step === "request" && (
           <>
             <Input
-              label="Email or Phone Number"
-              value={identifier}
-              onChangeText={setIdentifier}
-              placeholder="you@email.com or 0772XXXXXX"
+              label="Email Address"
+              value={email}
+              onChangeText={setEmail}
+              placeholder="you@email.com"
               keyboardType="email-address"
               autoCapitalize="none"
+            />
+            <View style={{ height: Spacing.md }} />
+            <Input
+              label="Phone Number"
+              value={phone}
+              onChangeText={setPhone}
+              placeholder="7XX XXX XXX"
+              keyboardType="phone-pad"
+              prefix="+256"
             />
             <View style={{ height: Spacing.lg }} />
             <Button
@@ -218,9 +235,10 @@ export default function ForgotPasswordScreen() {
         {step === "verify" && (
           <>
             <Text style={styles.otpHint}>
-              If an account exists for{" "}
-              <Text style={styles.bold}>{identifier}</Text>, a code has been
-              sent to its email or phone.
+              Code sent {sentChannel === "phone" ? "via SMS to " : "to "}
+              <Text style={styles.bold}>
+                {sentChannel === "phone" ? `+256${phone}` : email}
+              </Text>
             </Text>
             <View style={styles.otpRow}>
               {otp.map((digit, i) => (

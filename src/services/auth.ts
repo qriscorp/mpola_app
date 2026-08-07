@@ -613,15 +613,19 @@ export async function apiVerifySignupPhoneOtp(
 // ─── Forgot Password (OTP flow) ───────────────────────────
 
 export async function apiForgotPasswordSend(
-  identifier: string,
-): Promise<{ status: number; message: string }> {
-  return apiPost("/auth/send_password_reset_code", { identifier });
+  email: string,
+  phoneNumber: string,
+): Promise<{ status: number; message: string; channel: "email" | "phone" }> {
+  return apiPost("/auth/send_password_reset_code", {
+    email,
+    phone_number: normalizePhone(phoneNumber),
+  });
 }
 
 export async function apiForgotPasswordVerify(
   identifier: string,
   code: string,
-): Promise<{ access_token: string }> {
+): Promise<{ access_token: string; role?: string }> {
   return apiPost("/auth/verify_password_reset_code", { identifier, code });
 }
 
