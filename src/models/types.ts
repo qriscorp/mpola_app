@@ -241,6 +241,7 @@ export interface LenderEarnings {
   thisMonthEarned: number;
   avgYield: number;
   monthlyEarnings: MonthlyEarning[];
+  concentrationWarning: { type: "borrower" | "loan_type"; label: string; pct: number } | null;
 }
 
 export type OfferTemplateStatus = "pending_review" | "draft" | "approved" | "rejected";

@@ -5,6 +5,7 @@
  */
 import { useEffect, useRef } from "react";
 import { Alert } from "react-native";
+import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAccessToken, API_BASE_URL } from "./auth";
 
@@ -40,6 +41,7 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["borrower", "notifications"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "notifications"] });
           queryClient.invalidateQueries({ queryKey: ["borrower", "wallet"] });
+          queryClient.invalidateQueries({ queryKey: ["borrower", "dashboard"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "wallet"] });
           queryClient.invalidateQueries({ queryKey: ["borrower", "activeLoan"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "portfolio"] });
@@ -52,6 +54,11 @@ export function useRealtimeNotifications() {
             Alert.alert(msg.title, msg.message);
           } else if (msg.type === "offer_template_expired" && msg.title) {
             Alert.alert(msg.title, msg.message);
+          } else if (msg.type === "low_wallet_balance" && msg.title) {
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "Top up", onPress: () => router.push("/(lender)/wallet") },
+            ]);
           }
         } catch {
           // ignore malformed frames

@@ -957,6 +957,7 @@ interface RawLenderEarnings {
   this_month_earned: number;
   avg_yield: number;
   monthly_earnings: MonthlyEarning[];
+  concentration_warning: { type: "borrower" | "loan_type"; label: string; pct: number } | null;
 }
 
 export async function fetchLenderEarnings(): Promise<LenderEarnings> {
@@ -969,6 +970,7 @@ export async function fetchLenderEarnings(): Promise<LenderEarnings> {
     thisMonthEarned: raw.this_month_earned,
     avgYield: raw.avg_yield,
     monthlyEarnings: raw.monthly_earnings,
+    concentrationWarning: raw.concentration_warning,
   };
 }
 

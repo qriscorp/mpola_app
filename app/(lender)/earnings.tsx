@@ -43,6 +43,20 @@ export default function EarningsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
+        {earnings?.concentrationWarning && (
+          <View style={styles.warningBanner}>
+            <Ionicons name="warning-outline" size={18} color={Colors.warning} />
+            <Text style={styles.warningText}>
+              <Text style={{ fontWeight: "700" }}>{earnings.concentrationWarning.pct}%</Text> of
+              your active lending is concentrated in{" "}
+              {earnings.concentrationWarning.type === "borrower"
+                ? `one borrower (${earnings.concentrationWarning.label})`
+                : `one loan type (${earnings.concentrationWarning.label})`}
+              {" "}— consider diversifying.
+            </Text>
+          </View>
+        )}
+
         {/* Summary Stats */}
         <View style={styles.statsRow}>
           <StatCard
@@ -117,6 +131,16 @@ const styles = StyleSheet.create({
   headerTitle: { ...Typography.h3, color: Colors.white },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
   statsRow: { flexDirection: "row", marginBottom: Spacing.lg },
+  warningBanner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: Spacing.sm,
+    backgroundColor: Colors.warningBg,
+    borderRadius: 12,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  warningText: { ...Typography.small, color: Colors.warningLight, flex: 1 },
   chartCard: { backgroundColor: Colors.surface, marginBottom: Spacing.lg },
   chartTitle: {
     ...Typography.h4,
