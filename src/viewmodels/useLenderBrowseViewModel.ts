@@ -70,7 +70,7 @@ export function useBrowseBorrowersViewModel() {
 export function useMakeOfferViewModel(applicationId: string) {
   const queryClient = useQueryClient();
   const [amount, setAmount] = useState("8000000");
-  const [rate, setRate] = useState("15");
+  const [rate, setRate] = useState("3");
   const [duration, setDuration] = useState("18");
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
 
@@ -78,7 +78,7 @@ export function useMakeOfferViewModel(applicationId: string) {
   const numRate = Number(rate) || 0;
   const numDuration = Number(duration) || 1;
 
-  const totalInterest = numAmount * (numRate / 100) * (numDuration / 12);
+  const totalInterest = numAmount * (numRate / 100) * numDuration;
   const totalRepayable = numAmount + totalInterest;
   const monthlyPayment =
     numDuration > 0 ? Math.round(totalRepayable / numDuration) : 0;

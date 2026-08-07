@@ -133,7 +133,7 @@ export default function LenderHomeScreen() {
               />
             </View>
             <Text style={styles.offerSub}>
-              {item.interestRate}% p.a. · {item.duration ?? "—"} months
+              {item.interestRate}%/month · {item.duration ?? "—"} months
             </Text>
             <Text style={styles.offerMeta}>
               {item.borrowerName ?? "Unknown borrower"}

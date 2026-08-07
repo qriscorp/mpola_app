@@ -42,7 +42,7 @@ export default function LoanApprovedScreen() {
             },
             {
               label: "Rate",
-              value: `${params.interestRate ?? "—"}% p.a.`,
+              value: `${params.interestRate ?? "—"}%/month`,
               color: Colors.teal,
             },
             {

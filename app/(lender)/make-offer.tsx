@@ -62,7 +62,7 @@ export default function MakeOfferScreen() {
         )}
 
         <Input
-          label="Interest Rate (% p.a.)"
+          label="Interest Rate (%/month)"
           value={vm.rate}
           onChangeText={vm.setRate}
           placeholder="e.g. 15"

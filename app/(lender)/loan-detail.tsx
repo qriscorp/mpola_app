@@ -99,7 +99,7 @@ export default function LoanDetailScreen() {
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Interest Rate</Text>
-            <Text style={styles.cardValue}>{loan.interestRate}% p.a.</Text>
+            <Text style={styles.cardValue}>{loan.interestRate}%/month</Text>
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Duration</Text>

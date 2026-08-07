@@ -159,7 +159,7 @@ export default function OffersScreen() {
                       </Text>
                     </View>
                     <Text style={styles.offerRate}>
-                      {offer.interestRate}% p.a.
+                      {offer.interestRate}%/month
                     </Text>
                   </View>
                   <Text style={styles.offerDetails}>

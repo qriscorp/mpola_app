@@ -11,8 +11,8 @@ interface PickedFile {
   mimeType?: string;
 }
 
-// Matches mpola_api's default platform rate (routers/loans.py: rate = 15.0, annual %).
-const PLATFORM_RATE_PA = 15;
+// Matches mpola_api's default platform rate (routers/loans.py: rate = 3.0, % per month).
+const PLATFORM_RATE_PER_MONTH = 3;
 
 export function useApplyViewModel() {
   const [step, setStep] = useState<ApplicationStep>(1);
@@ -63,7 +63,7 @@ export function useApplyViewModel() {
   const [guarantors, setGuarantors] = useState<Guarantor[]>([]);
 
   const numAmount = Number(amount) || 0;
-  const totalInterest = numAmount * (PLATFORM_RATE_PA / 100) * (duration / 12);
+  const totalInterest = numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
   const totalRepayable = numAmount + totalInterest;
   const monthlyPayment = duration > 0 ? Math.round(totalRepayable / duration) : 0;
 
@@ -188,7 +188,7 @@ export function useApplyViewModel() {
     guarantors,
     addGuarantor: addGuarantorLocal,
     removeGuarantor,
-    interestRate: PLATFORM_RATE_PA,
+    interestRate: PLATFORM_RATE_PER_MONTH,
     monthlyPayment,
     totalRepayable,
     detailsErrors,

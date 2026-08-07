@@ -179,7 +179,7 @@ export default function ApplyScreen() {
 
             <Card style={styles.estimateCard}>
               <Text style={styles.estimateLabel}>
-                Estimated Repayment ({vm.interestRate}% p.a.)
+                Estimated Repayment ({vm.interestRate}%/month)
               </Text>
               <Text style={styles.estimateAmount}>
                 ~UGX {vm.monthlyPayment.toLocaleString()}/month
@@ -342,7 +342,7 @@ export default function ApplyScreen() {
               </View>
               <View style={[styles.reviewRow, { borderBottomWidth: 0 }]}>
                 <Text style={styles.reviewLabel}>Rate</Text>
-                <Text style={styles.reviewValue}>{vm.interestRate}% p.a.</Text>
+                <Text style={styles.reviewValue}>{vm.interestRate}%/month</Text>
               </View>
             </Card>
 
