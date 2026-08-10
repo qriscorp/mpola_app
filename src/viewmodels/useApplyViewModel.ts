@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import * as DocumentPicker from "expo-document-picker";
-import type { LoanType, ApplicationStep, Document } from "../models";
+import type { LoanType, ApplicationStep } from "../models";
 import {
   submitLoanApplication,
   updateApplication,
@@ -9,7 +8,6 @@ import {
   fetchDraftApplication,
   searchGuarantorCandidate,
   attachGuarantors,
-  uploadLoanDocument,
 } from "../services";
 import { loanDetailsSchema } from "../validation";
 
@@ -21,14 +19,6 @@ interface StagedGuarantor {
 
 // Matches mpola_api's default platform rate (routers/loans.py: rate = 3.0, % per month).
 const PLATFORM_RATE_PER_MONTH = 3;
-
-// Genuinely loan-specific documents — identity (national_id, passport,
-// profile_photo, proof_of_address) is handled entirely on the Profile
-// screen, reusing whatever's already verified on the account.
-const INITIAL_DOCUMENTS: Document[] = [
-  { id: "d1", type: "bank_statement", name: "Bank Statement (3 months)", status: "pending", required: true },
-  { id: "d2", type: "business_registration", name: "Business Registration", status: "pending", required: true },
-];
 
 export function useApplyViewModel() {
   const queryClient = useQueryClient();
@@ -59,11 +49,11 @@ export function useApplyViewModel() {
     {},
   );
 
-  const [documents, setDocuments] = useState<Document[]>(INITIAL_DOCUMENTS);
-
   // Guarantors — found by email+phone search and staged locally, attached
   // to the application (as real Guarantor rows, which fire a real-time
-  // request to each) only at final submission, not before.
+  // request to each) only at final submission, not before. There's no
+  // documents step anymore — each lender's offer lists what it needs, and
+  // the borrower provides those when accepting a specific offer.
   const [guarantors, setGuarantors] = useState<StagedGuarantor[]>([]);
   const [guarantorError, setGuarantorError] = useState<string | null>(null);
   const [searchingGuarantor, setSearchingGuarantor] = useState(false);
@@ -76,7 +66,8 @@ export function useApplyViewModel() {
   // Resume-where-you-left-off: runs once, the first time the draft check
   // resolves. An application that exists but has no guarantors attached
   // yet is, by definition, an unfinished draft — everything about it is
-  // already real, persisted data, so resuming is just loading it in.
+  // already real, persisted data, so resuming is just loading it in,
+  // straight to Guarantors (there's no documents step to check anymore).
   useEffect(() => {
     if (draftLoading || hydratedRef.current) return;
     hydratedRef.current = true;
@@ -90,14 +81,7 @@ export function useApplyViewModel() {
       setPurpose(draft.purpose ?? "");
       setMaxInterestRate(draft.maxInterestRate != null ? String(draft.maxInterestRate) : "");
       setValidUntil(draft.validUntil);
-
-      const uploadedTypes = new Set(draft.documents.map((d) => d.document_type));
-      setDocuments((prev) =>
-        prev.map((d) => (uploadedTypes.has(d.type) ? { ...d, status: "uploaded" as const } : d)),
-      );
-
-      const docsComplete = INITIAL_DOCUMENTS.filter((d) => d.required).every((d) => uploadedTypes.has(d.type));
-      setStep(docsComplete ? 3 : 2);
+      setStep(2);
     }
     setResuming(false);
   }, [draft, draftLoading]);
@@ -130,10 +114,6 @@ export function useApplyViewModel() {
     setDetailsErrors({});
     return true;
   };
-
-  const documentsComplete = documents
-    .filter((d) => d.required)
-    .every((d) => d.status === "uploaded");
 
   const saveStep1Mutation = useMutation({
     mutationFn: async () => {
@@ -169,44 +149,9 @@ export function useApplyViewModel() {
       setStep(2);
       return;
     }
-    if (step === 2 && !documentsComplete) return;
-    setStep((s) => Math.min(s + 1, 4) as ApplicationStep);
+    setStep((s) => Math.min(s + 1, 3) as ApplicationStep);
   };
   const prevStep = () => setStep((s) => Math.max(s - 1, 1) as ApplicationStep);
-
-  const uploadDocument = async (docId: string) => {
-    const doc = documents.find((d) => d.id === docId);
-    if (!doc || !applicationId) return;
-
-    const result = await DocumentPicker.getDocumentAsync({
-      type: ["application/pdf", "image/*"],
-      copyToCacheDirectory: true,
-    });
-    if (result.canceled || !result.assets?.[0]) return;
-
-    const asset = result.assets[0];
-    setDocuments((prev) =>
-      prev.map((d) => (d.id === docId ? { ...d, status: "uploading" as const, error: undefined } : d)),
-    );
-    try {
-      await uploadLoanDocument(
-        applicationId,
-        { uri: asset.uri, name: asset.name, mimeType: asset.mimeType },
-        doc.type,
-      );
-      setDocuments((prev) =>
-        prev.map((d) => (d.id === docId ? { ...d, status: "uploaded" as const, uri: asset.uri } : d)),
-      );
-    } catch (e) {
-      setDocuments((prev) =>
-        prev.map((d) =>
-          d.id === docId
-            ? { ...d, status: "pending" as const, error: e instanceof Error ? e.message : "Upload failed" }
-            : d,
-        ),
-      );
-    }
-  };
 
   // Returns whether the add succeeded — the caller (the screen) uses this
   // return value to decide whether to clear its inputs, rather than reading
@@ -268,7 +213,6 @@ export function useApplyViewModel() {
       setPurpose("");
       setMaxInterestRate("");
       setValidUntil(null);
-      setDocuments(INITIAL_DOCUMENTS);
       setGuarantors([]);
       setStep(1);
       queryClient.invalidateQueries({ queryKey: ["borrower", "apply-draft"] });
@@ -299,9 +243,6 @@ export function useApplyViewModel() {
     setMaxInterestRate,
     validUntil,
     setValidUntil,
-    documents,
-    documentsComplete,
-    uploadDocument,
     guarantors,
     addGuarantorByContact,
     removeGuarantor,

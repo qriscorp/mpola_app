@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useOffersViewModel } from "../../src/viewmodels";
-import { SkeletonList, InfoTip } from "../../src/components";
+import { SkeletonList, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
 import type { LoanOffer } from "../../src/models";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
@@ -20,8 +20,15 @@ const REQUIRED_ACCEPTED_GUARANTORS = 2;
 export default function OffersScreen() {
   const router = useRouter();
   const { applicationId } = useLocalSearchParams<{ applicationId?: string }>();
-  const { application, offers, isLoading, respondToOffer, responding } =
-    useOffersViewModel(applicationId);
+  const {
+    application,
+    offers,
+    isLoading,
+    respondToOffer,
+    responding,
+    uploadRequiredDocument,
+    uploadingDocumentType,
+  } = useOffersViewModel(applicationId);
 
   const acceptedGuarantors = (application?.guarantors ?? []).filter(
     (g) => g.status === "accepted",
@@ -40,6 +47,14 @@ export default function OffersScreen() {
       Alert.alert(
         "Guarantors needed",
         `You need ${REQUIRED_ACCEPTED_GUARANTORS} guarantors to confirm before this loan can be disbursed — ${acceptedGuarantors} of ${application?.guarantors?.length ?? 0} confirmed so far.`,
+      );
+      return;
+    }
+    const missingDocs = offer.requiredDocumentsStatus.filter((d) => !d.satisfied);
+    if (missingDocs.length > 0) {
+      Alert.alert(
+        "Documents needed",
+        `This lender requires: ${missingDocs.map((d) => d.label).join(", ")}. Upload or provide them below before accepting.`,
       );
       return;
     }
@@ -170,6 +185,18 @@ export default function OffersScreen() {
                     {(offer.totalRepayable ?? 0).toLocaleString()}
                   </Text>
 
+                  {offer.status === "pending" && offer.requiredDocumentsStatus.length > 0 && (
+                    <View style={styles.docsSection}>
+                      <Text style={styles.docsHeading}>Documents this lender requires</Text>
+                      <RequiredDocumentsChecklist
+                        items={offer.requiredDocumentsStatus}
+                        onUpload={uploadRequiredDocument}
+                        uploadingType={uploadingDocumentType}
+                        onGoToProfile={() => router.push("/(borrower)/profile")}
+                      />
+                    </View>
+                  )}
+
                   {offer.status === "pending" ? (
                     <View style={styles.actionsRow}>
                       <TouchableOpacity
@@ -289,6 +316,12 @@ const styles = StyleSheet.create({
     ...Typography.small,
     color: Colors.textMuted,
     marginBottom: Spacing.md,
+  },
+  docsSection: { marginBottom: Spacing.md },
+  docsHeading: {
+    ...Typography.smallMedium,
+    color: Colors.textSecondary,
+    marginBottom: Spacing.xs,
   },
   actionsRow: { flexDirection: "row", gap: Spacing.sm },
   applyBtn: {

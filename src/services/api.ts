@@ -13,6 +13,7 @@ import type {
   MarketplaceApplication,
   LoanOffer,
   OfferStatus,
+  RequiredDocumentStatus,
   Guarantor,
   GuarantorRequest,
   Wallet,
@@ -304,6 +305,8 @@ interface RawLoan {
   status: string;
   disbursed_at: string | null;
   created_at: string;
+  required_documents: string[];
+  required_documents_status: RawRequiredDocumentStatus[];
 }
 
 interface RawRepayment {
@@ -336,6 +339,8 @@ function mapLoan(raw: RawLoan): Loan {
     nextPaymentDate: raw.next_payment_date ?? undefined,
     nextPaymentAmount: raw.next_payment_amount ?? undefined,
     createdAt: raw.created_at,
+    requiredDocuments: raw.required_documents ?? [],
+    requiredDocumentsStatus: (raw.required_documents_status ?? []).map(mapRequiredDocumentStatus),
   };
 }
 
@@ -453,6 +458,16 @@ interface RawApplicationBorrower {
   credit_score: number;
 }
 
+interface RawRequiredDocumentStatus {
+  label: string;
+  type: string | null;
+  source: "kyc" | "borrower_doc" | null;
+  satisfied: boolean;
+  file_url: string | null;
+  file_name: string | null;
+  verified: boolean;
+}
+
 interface RawOffer {
   id: string;
   application_id: string;
@@ -464,7 +479,21 @@ interface RawOffer {
   monthly_payment: number | null;
   total_repayable: number | null;
   status: string;
+  required_documents: string[];
+  required_documents_status: RawRequiredDocumentStatus[];
   created_at: string;
+}
+
+function mapRequiredDocumentStatus(d: RawRequiredDocumentStatus): RequiredDocumentStatus {
+  return {
+    label: d.label,
+    type: d.type,
+    source: d.source,
+    satisfied: d.satisfied,
+    fileUrl: d.file_url,
+    fileName: d.file_name,
+    verified: d.verified,
+  };
 }
 
 interface RawGuarantor {
@@ -511,6 +540,8 @@ function mapOffer(o: RawOffer): LoanOffer {
     monthlyPayment: o.monthly_payment,
     totalRepayable: o.total_repayable,
     status: o.status as OfferStatus,
+    requiredDocuments: o.required_documents,
+    requiredDocumentsStatus: (o.required_documents_status ?? []).map(mapRequiredDocumentStatus),
     createdAt: o.created_at,
   };
 }
@@ -644,36 +675,7 @@ export async function fetchGuarantorRequests(status?: string): Promise<Guarantor
   }));
 }
 
-export async function uploadLoanDocument(
-  applicationId: string,
-  file: { uri: string; name: string; mimeType?: string },
-  documentType: string,
-): Promise<{
-  status: number;
-  message: string;
-  document: {
-    id: string;
-    document_type: string;
-    file_url: string;
-    file_name: string | null;
-    verified: boolean;
-  };
-}> {
-  const formData = new FormData();
-  formData.append("document_type", documentType);
-  // React Native's FormData expects this shape for files, not a real Blob.
-  formData.append("file", {
-    uri: file.uri,
-    name: file.name,
-    type: file.mimeType || "application/octet-stream",
-  } as unknown as Blob);
-  return apiAuthUpload(
-    `/loans/applications/${applicationId}/documents`,
-    formData,
-  );
-}
-
-// ─── Account-level KYC documents (separate from per-application ones above) ───
+// ─── Account-level KYC documents ───
 export type KYCDocumentType =
   | "national_id"
   | "passport"
@@ -707,6 +709,39 @@ export async function uploadKycDocument(
     type: file.mimeType || "application/octet-stream",
   } as unknown as Blob);
   return apiAuthUpload("/users/me/kyc-documents", formData);
+}
+
+// Account-wide, reusable supporting documents (bank statement, payslip/
+// business proof, land title, URA TIN) — separate from KYCDocument
+// (identity) and satisfy a lender's required_documents once uploaded, for
+// every current and future offer that asks for the same thing.
+export type BorrowerDocumentType = "bank_statement" | "business_proof" | "land_title" | "ura_tin";
+
+export interface BorrowerDocument {
+  id: string;
+  document_type: BorrowerDocumentType | string;
+  file_url: string;
+  file_name: string | null;
+  verified: boolean;
+}
+
+export async function getMyBorrowerDocuments(): Promise<BorrowerDocument[]> {
+  const res = await apiAuthGet<{ documents: BorrowerDocument[] }>("/users/me/documents");
+  return res.documents;
+}
+
+export async function uploadBorrowerDocument(
+  documentType: BorrowerDocumentType,
+  file: { uri: string; name: string; mimeType?: string },
+): Promise<{ status: number; message: string; document: BorrowerDocument }> {
+  const formData = new FormData();
+  formData.append("document_type", documentType);
+  formData.append("file", {
+    uri: file.uri,
+    name: file.name,
+    type: file.mimeType || "application/octet-stream",
+  } as unknown as Blob);
+  return apiAuthUpload("/users/me/documents", formData);
 }
 
 export async function submitLoanApplication(data: {
@@ -780,25 +815,13 @@ export async function unfreezeApplication(id: string): Promise<LoanApplication> 
   return mapApplication(res.application);
 }
 
-interface RawDraftDocument {
-  id: string;
-  document_type: string;
-  file_url: string;
-  file_name: string | null;
-  verified: boolean;
-}
-
 // The apply wizard's resume-where-you-left-off check — an application that
 // exists but hasn't had its guarantors attached yet is, by definition, an
 // unfinished draft (see GET /loans/applications/draft on the backend).
-export async function fetchDraftApplication(): Promise<
-  (LoanApplication & { documents: RawDraftDocument[] }) | null
-> {
-  const res = await apiAuthGet<{ draft: (RawApplication & { documents: RawDraftDocument[] }) | null }>(
-    "/loans/applications/draft",
-  );
+export async function fetchDraftApplication(): Promise<LoanApplication | null> {
+  const res = await apiAuthGet<{ draft: RawApplication | null }>("/loans/applications/draft");
   if (!res.draft) return null;
-  return { ...mapApplication(res.draft), documents: res.draft.documents };
+  return mapApplication(res.draft);
 }
 
 // ─── Offers ──────────────────────────────────────────────

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -17,11 +17,13 @@ import {
   StatCard,
   SkeletonStatRow,
   SkeletonList,
+  RequiredDocumentsChecklist,
 } from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
 
 export default function PortfolioScreen() {
   const router = useRouter();
+  const [expandedLoanId, setExpandedLoanId] = useState<string | null>(null);
   const {
     filter,
     setFilter,
@@ -150,9 +152,40 @@ export default function PortfolioScreen() {
             </View>
 
             {loan.status === "pending_disbursement" ? (
-              <Text style={styles.pendingNote}>
-                Not disbursed yet — approve to release funds to the borrower.
-              </Text>
+              <>
+                <Text style={styles.pendingNote}>
+                  Not disbursed yet — approve to release funds to the borrower.
+                </Text>
+                {loan.requiredDocumentsStatus.length > 0 && (
+                  <View style={styles.docsSection}>
+                    <TouchableOpacity
+                      style={styles.docsToggle}
+                      onPress={() =>
+                        setExpandedLoanId(
+                          expandedLoanId === loan.id ? null : loan.id,
+                        )
+                      }
+                    >
+                      <Text style={styles.docsToggleText}>
+                        {expandedLoanId === loan.id ? "Hide documents" : "Review documents"}
+                      </Text>
+                      <Ionicons
+                        name={expandedLoanId === loan.id ? "chevron-up" : "chevron-down"}
+                        size={14}
+                        color={Colors.teal}
+                      />
+                    </TouchableOpacity>
+                    {expandedLoanId === loan.id && (
+                      <View style={styles.docsChecklist}>
+                        <RequiredDocumentsChecklist
+                          items={loan.requiredDocumentsStatus}
+                          readOnly
+                        />
+                      </View>
+                    )}
+                  </View>
+                )}
+              </>
             ) : (
               <View style={styles.progressSection}>
                 <View style={styles.progressLabelRow}>
@@ -242,6 +275,15 @@ const styles = StyleSheet.create({
     color: Colors.warning,
     marginBottom: Spacing.md,
   },
+  docsSection: { marginBottom: Spacing.md },
+  docsToggle: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    alignSelf: "flex-start",
+  },
+  docsToggleText: { ...Typography.smallMedium, color: Colors.teal },
+  docsChecklist: { marginTop: Spacing.sm },
   approveBtn: {
     backgroundColor: Colors.success,
     borderRadius: BorderRadius.md,

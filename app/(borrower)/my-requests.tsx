@@ -342,8 +342,63 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
   );
 }
 
+function DiscardDraftLink({ applicationId }: { applicationId: string }) {
+  const { deleteApplication, isDeleting } = useMyApplicationsViewModel();
+  const handleDiscard = () => {
+    Alert.alert("Discard this unfinished request?", "This can't be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Discard",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteApplication(applicationId);
+          } catch (e: any) {
+            Alert.alert("Failed to discard", e?.message || "Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+  return (
+    <TouchableOpacity onPress={handleDiscard} disabled={isDeleting} style={{ marginTop: Spacing.sm }}>
+      <Text style={styles.discardDraftText}>Discard draft</Text>
+    </TouchableOpacity>
+  );
+}
+
 function ApplicationCard({ app }: { app: LoanApplication }) {
   const router = useRouter();
+
+  // The apply wizard now creates the real application at step 1 and only
+  // attaches guarantors at the very end — so a request that's
+  // "awaiting_guarantors" with literally none attached yet isn't waiting
+  // on anyone, it's just an unfinished wizard session. Shown distinctly so
+  // it doesn't look like a broken submitted request with no guarantors.
+  const isDraft = app.status === "awaiting_guarantors" && (!app.guarantors || app.guarantors.length === 0);
+
+  if (isDraft) {
+    return (
+      <View style={[styles.card, styles.draftCard]}>
+        <View style={styles.cardHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.amount}>UGX {app.amount.toLocaleString()}</Text>
+            <Text style={styles.subInfo}>{app.loanType} · {app.duration} months</Text>
+            <Text style={styles.draftNote}>Not yet submitted.</Text>
+          </View>
+          <Badge label="Draft" variant="default" />
+        </View>
+        <TouchableOpacity
+          style={styles.viewOffersBtn}
+          onPress={() => router.push("/(borrower)/apply")}
+        >
+          <Text style={styles.viewOffersText}>Continue Application</Text>
+        </TouchableOpacity>
+        <DiscardDraftLink applicationId={app.id} />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHeader}>
@@ -491,6 +546,9 @@ const styles = StyleSheet.create({
   amount: { ...Typography.h4, color: Colors.textPrimary },
   subInfo: { ...Typography.small, color: Colors.textMuted, marginTop: 2, textTransform: "capitalize" },
   awaitingNote: { ...Typography.caption, color: Colors.warning, marginTop: Spacing.sm },
+  draftCard: { borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed" },
+  draftNote: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
+  discardDraftText: { ...Typography.caption, color: Colors.textMuted, textAlign: "center" },
   guarantorSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
   guarantorRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   guarantorName: { ...Typography.small, color: Colors.textPrimary },

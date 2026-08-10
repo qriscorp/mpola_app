@@ -30,7 +30,7 @@ export type LoanStatus =
   | "overdue"
   | "completed"
   | "rejected";
-export type ApplicationStep = 1 | 2 | 3 | 4;
+export type ApplicationStep = 1 | 2 | 3;
 
 export interface Loan {
   id: string;
@@ -51,6 +51,8 @@ export interface Loan {
   nextPaymentDate?: string;
   nextPaymentAmount?: number;
   createdAt: string;
+  requiredDocuments: string[];
+  requiredDocumentsStatus: RequiredDocumentStatus[];
 }
 
 export interface LoanRepaymentRecord {
@@ -103,22 +105,6 @@ export interface LoanApplication {
   guarantors?: Guarantor[];
 }
 
-// Identity documents (national_id, passport, profile_photo, proof_of_address)
-// are handled entirely by KYCUploadSection, reusing the account's KYC
-// records — these are genuinely loan-specific, unrelated to identity.
-export type DocumentType = "bank_statement" | "business_registration";
-export type DocumentStatus = "pending" | "uploading" | "uploaded" | "verified";
-
-export interface Document {
-  id: string;
-  type: DocumentType;
-  name: string;
-  status: DocumentStatus;
-  uri?: string;
-  required: boolean;
-  error?: string;
-}
-
 export interface Guarantor {
   id: string;
   guarantorUserId: string;
@@ -141,6 +127,16 @@ export interface GuarantorRequest {
 
 export type OfferStatus = "pending" | "accepted" | "declined" | "expired";
 
+export interface RequiredDocumentStatus {
+  label: string;
+  type: string | null;
+  source: "kyc" | "borrower_doc" | null;
+  satisfied: boolean;
+  fileUrl: string | null;
+  fileName: string | null;
+  verified: boolean;
+}
+
 export interface LoanOffer {
   id: string;
   applicationId: string;
@@ -152,6 +148,8 @@ export interface LoanOffer {
   monthlyPayment: number | null;
   totalRepayable: number | null;
   status: OfferStatus;
+  requiredDocuments: string[];
+  requiredDocumentsStatus: RequiredDocumentStatus[];
   createdAt: string;
 }
 

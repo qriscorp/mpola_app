@@ -44,7 +44,7 @@ export default function ApplyScreen() {
   const [guarantorPhone, setGuarantorPhone] = useState("");
   const [expiryPreset, setExpiryPreset] = useState<string | null>(null);
 
-  const stepLabels = ["Details", "Docs", "Guarantors", "Review"];
+  const stepLabels = ["Details", "Guarantors", "Review"];
 
   const handleAddGuarantor = async () => {
     if (!guarantorEmail.trim() || !guarantorPhone.trim()) return;
@@ -188,7 +188,8 @@ export default function ApplyScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.infoRowText}>
                 Here&apos;s the flow: submit this request, your 2 guarantors approve it, then lenders can
-                send offers — you pick the one you like.
+                send offers. Each offer lists what documents that lender needs — you provide those
+                when you accept.
               </Text>
               <View style={{ marginTop: 2 }}>
                 <InfoTip text="Nothing is funded until you accept an offer. Your request stays hidden from lenders until both guarantors approve, and you can edit or withdraw it any time before that." />
@@ -305,7 +306,7 @@ export default function ApplyScreen() {
             </Card>
 
             <Button
-              title={vm.savingStep1 ? "Saving…" : "Next: Upload Documents →"}
+              title={vm.savingStep1 ? "Saving…" : "Next: Add Guarantors →"}
               onPress={handleNext}
               color={Colors.teal}
               loading={vm.savingStep1}
@@ -313,74 +314,8 @@ export default function ApplyScreen() {
           </>
         )}
 
-        {/* Step 2: Documents */}
+        {/* Step 2: Guarantors */}
         {vm.step === 2 && (
-          <>
-            <Text style={styles.sectionLabel}>Loan Documents</Text>
-            <Text style={styles.docsNote}>Required to submit your application.</Text>
-
-            <TouchableOpacity
-              style={styles.kycNote}
-              onPress={() => router.push("/(borrower)/profile")}
-            >
-              <Text style={styles.kycNoteText}>
-                Haven&apos;t completed identity verification (KYC) yet?{" "}
-                <Text style={styles.kycNoteLink}>Upload it from your Profile</Text>. Otherwise,
-                continue below with the documents required for this loan.
-              </Text>
-            </TouchableOpacity>
-
-            {vm.documents.map((doc) => (
-              <View key={doc.id} style={styles.docRow}>
-                <View style={styles.docInfo}>
-                  <Text style={styles.docName}>{doc.name}</Text>
-                  <Text
-                    style={[
-                      styles.docStatus,
-                      {
-                        color:
-                          doc.status === "uploaded"
-                            ? Colors.success
-                            : doc.status === "uploading"
-                              ? Colors.textMuted
-                              : Colors.danger,
-                      },
-                    ]}
-                  >
-                    {doc.status === "uploaded"
-                      ? "✓ Done"
-                      : doc.status === "uploading"
-                        ? "Uploading…"
-                        : "Required"}
-                  </Text>
-                  {doc.error && <Text style={styles.docError}>{doc.error}</Text>}
-                </View>
-                {doc.status !== "uploaded" && (
-                  <TouchableOpacity
-                    style={styles.uploadBtn}
-                    onPress={() => vm.uploadDocument(doc.id)}
-                    disabled={doc.status === "uploading"}
-                  >
-                    <Text style={styles.uploadBtnText}>
-                      {doc.status === "uploading" ? "…" : doc.error ? "Retry" : "Upload"}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            ))}
-
-            <View style={{ height: Spacing.xxl }} />
-            <Button
-              title="Next: Add Guarantors →"
-              onPress={handleNext}
-              color={Colors.teal}
-              disabled={!vm.documentsComplete}
-            />
-          </>
-        )}
-
-        {/* Step 3: Guarantors */}
-        {vm.step === 3 && (
           <>
             <View style={styles.infoRow}>
               <Text style={styles.infoRowText}>
@@ -438,7 +373,7 @@ export default function ApplyScreen() {
             )}
 
             <Button
-              title="Continue →"
+              title="Next: Review →"
               onPress={handleNext}
               color={Colors.teal}
               disabled={vm.guarantors.length < 2}
@@ -446,8 +381,8 @@ export default function ApplyScreen() {
           </>
         )}
 
-        {/* Step 4: Review */}
-        {vm.step === 4 && (
+        {/* Step 3: Review */}
+        {vm.step === 3 && (
           <>
             <Card style={{ marginBottom: Spacing.md }}>
               <View style={styles.reviewRow}>
@@ -480,13 +415,12 @@ export default function ApplyScreen() {
               </View>
             </Card>
 
-            <Card style={{ marginBottom: Spacing.md }}>
-              <Text style={styles.reviewSection}>Documents</Text>
-              <Text style={styles.reviewDetail}>
-                {vm.documents.filter((d) => d.status === "uploaded").length}{" "}
-                uploaded
+            <View style={styles.docsHint}>
+              <Text style={styles.docsHintText}>
+                Once lenders send offers, each one will list the documents it needs — you provide
+                those (or reuse ones already on file) when you accept a specific offer.
               </Text>
-            </Card>
+            </View>
 
             <Card style={{ marginBottom: Spacing.xxl }}>
               <Text style={styles.reviewSection}>Guarantors</Text>
@@ -586,19 +520,13 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     flex: 1,
   },
-  docsNote: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.lg,
-  },
-  kycNote: {
+  docsHint: {
     backgroundColor: "#1A2A40",
     borderRadius: BorderRadius.md,
     padding: Spacing.md,
-    marginBottom: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  kycNoteText: { ...Typography.small, color: Colors.info, lineHeight: 20 },
-  kycNoteLink: { fontWeight: "700", textDecorationLine: "underline" },
+  docsHintText: { ...Typography.small, color: Colors.info, lineHeight: 20 },
   chips: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -658,25 +586,6 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
-  docRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  docInfo: { flex: 1 },
-  docName: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  docStatus: { ...Typography.small, marginTop: 2 },
-  docError: { ...Typography.caption, color: Colors.danger, marginTop: 2 },
-  uploadBtn: {
-    backgroundColor: Colors.teal + "25",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.sm,
-  },
-  uploadBtnText: { ...Typography.smallMedium, color: Colors.teal },
   guarantorCard: { marginBottom: Spacing.md },
   guarantorHeader: {
     flexDirection: "row",
