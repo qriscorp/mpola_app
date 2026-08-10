@@ -224,7 +224,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         keyboardType="numeric"
       />
 
-      <Text style={styles.editLabel}>Need it by</Text>
+      <Text style={styles.editLabel}>Valid Until</Text>
       <View style={styles.pillRow}>
         {EDIT_EXPIRY_PRESETS.map((preset) => (
           <TouchableOpacity

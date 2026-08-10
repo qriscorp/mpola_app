@@ -780,6 +780,27 @@ export async function unfreezeApplication(id: string): Promise<LoanApplication> 
   return mapApplication(res.application);
 }
 
+interface RawDraftDocument {
+  id: string;
+  document_type: string;
+  file_url: string;
+  file_name: string | null;
+  verified: boolean;
+}
+
+// The apply wizard's resume-where-you-left-off check — an application that
+// exists but hasn't had its guarantors attached yet is, by definition, an
+// unfinished draft (see GET /loans/applications/draft on the backend).
+export async function fetchDraftApplication(): Promise<
+  (LoanApplication & { documents: RawDraftDocument[] }) | null
+> {
+  const res = await apiAuthGet<{ draft: (RawApplication & { documents: RawDraftDocument[] }) | null }>(
+    "/loans/applications/draft",
+  );
+  if (!res.draft) return null;
+  return { ...mapApplication(res.draft), documents: res.draft.documents };
+}
+
 // ─── Offers ──────────────────────────────────────────────
 
 export async function fetchBorrowerOffers(

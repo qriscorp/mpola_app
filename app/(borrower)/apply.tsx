@@ -6,12 +6,13 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card, Input, KYCUploadSection, InfoTip } from "../../src/components";
+import { Button, Card, Input, InfoTip } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
 
@@ -69,6 +70,48 @@ export default function ApplyScreen() {
     }
   };
 
+  const handleNext = async () => {
+    try {
+      await vm.nextStep();
+    } catch (e) {
+      Alert.alert("Failed to save", e instanceof Error ? e.message : "Please try again.");
+    }
+  };
+
+  const handleDiscard = () => {
+    Alert.alert("Discard this loan request and start over?", "This can't be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Discard",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await vm.discardDraft();
+          } catch (e: any) {
+            Alert.alert("Failed to discard", e?.message || "Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
+  if (vm.resuming) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Apply for a Loan</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.resumingBox}>
+          <ActivityIndicator color={Colors.teal} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
@@ -79,8 +122,22 @@ export default function ApplyScreen() {
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Apply for a Loan</Text>
-        <View style={{ width: 24 }} />
+        {vm.applicationId ? (
+          <TouchableOpacity onPress={handleDiscard} disabled={vm.discardingDraft}>
+            <Text style={styles.discardText}>Discard</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={{ width: 24 }} />
+        )}
       </View>
+
+      {vm.resumedFromDraft && (
+        <View style={styles.resumeBanner}>
+          <Text style={styles.resumeBannerText}>
+            Continuing your unfinished loan request right where you left off.
+          </Text>
+        </View>
+      )}
 
       {/* Stepper */}
       <View style={styles.stepper}>
@@ -205,7 +262,7 @@ export default function ApplyScreen() {
               keyboardType="numeric"
             />
 
-            <Text style={styles.sectionLabel}>Need it by (optional)</Text>
+            <Text style={styles.sectionLabel}>Valid Until (optional)</Text>
             <View style={styles.typeGrid}>
               {EXPIRY_PRESETS.map((preset) => {
                 const isActive = expiryPreset === preset.label;
@@ -248,9 +305,10 @@ export default function ApplyScreen() {
             </Card>
 
             <Button
-              title="Next: Upload Documents →"
-              onPress={vm.nextStep}
+              title={vm.savingStep1 ? "Saving…" : "Next: Upload Documents →"}
+              onPress={handleNext}
               color={Colors.teal}
+              loading={vm.savingStep1}
             />
           </>
         )}
@@ -258,25 +316,20 @@ export default function ApplyScreen() {
         {/* Step 2: Documents */}
         {vm.step === 2 && (
           <>
-            <View style={styles.sectionLabelRow}>
-              <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 0 }]}>
-                Identity Documents
-              </Text>
-              <InfoTip text="These are account-wide, not per-loan — once verified here, you won't need to upload them again for future loan requests." />
-            </View>
-            <Text style={styles.docsNote}>
-              Pulled from your account KYC — already verified documents are
-              used automatically. Anything missing or still pending review
-              needs uploading here once.
-            </Text>
-            <KYCUploadSection accentColor={Colors.teal} />
+            <Text style={styles.sectionLabel}>Loan Documents</Text>
+            <Text style={styles.docsNote}>Required to submit your application.</Text>
 
-            <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>
-              Loan Documents
-            </Text>
-            <Text style={styles.docsNote}>
-              Optional for now — not required to submit your application.
-            </Text>
+            <TouchableOpacity
+              style={styles.kycNote}
+              onPress={() => router.push("/(borrower)/profile")}
+            >
+              <Text style={styles.kycNoteText}>
+                Haven&apos;t completed identity verification (KYC) yet?{" "}
+                <Text style={styles.kycNoteLink}>Upload it from your Profile</Text>. Otherwise,
+                continue below with the documents required for this loan.
+              </Text>
+            </TouchableOpacity>
+
             {vm.documents.map((doc) => (
               <View key={doc.id} style={styles.docRow}>
                 <View style={styles.docInfo}>
@@ -288,27 +341,40 @@ export default function ApplyScreen() {
                         color:
                           doc.status === "uploaded"
                             ? Colors.success
-                            : Colors.textMuted,
+                            : doc.status === "uploading"
+                              ? Colors.textMuted
+                              : Colors.danger,
                       },
                     ]}
                   >
-                    {doc.status === "uploaded" ? "✓ Done" : "Optional"}
+                    {doc.status === "uploaded"
+                      ? "✓ Done"
+                      : doc.status === "uploading"
+                        ? "Uploading…"
+                        : "Required"}
                   </Text>
+                  {doc.error && <Text style={styles.docError}>{doc.error}</Text>}
                 </View>
-                <TouchableOpacity
-                  style={styles.uploadBtn}
-                  onPress={() => vm.uploadDocument(doc.id)}
-                >
-                  <Text style={styles.uploadBtnText}>Upload</Text>
-                </TouchableOpacity>
+                {doc.status !== "uploaded" && (
+                  <TouchableOpacity
+                    style={styles.uploadBtn}
+                    onPress={() => vm.uploadDocument(doc.id)}
+                    disabled={doc.status === "uploading"}
+                  >
+                    <Text style={styles.uploadBtnText}>
+                      {doc.status === "uploading" ? "…" : doc.error ? "Retry" : "Upload"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ))}
 
             <View style={{ height: Spacing.xxl }} />
             <Button
               title="Next: Add Guarantors →"
-              onPress={vm.nextStep}
+              onPress={handleNext}
               color={Colors.teal}
+              disabled={!vm.documentsComplete}
             />
           </>
         )}
@@ -373,7 +439,7 @@ export default function ApplyScreen() {
 
             <Button
               title="Continue →"
-              onPress={vm.nextStep}
+              onPress={handleNext}
               color={Colors.teal}
               disabled={vm.guarantors.length < 2}
             />
@@ -405,7 +471,7 @@ export default function ApplyScreen() {
                 <Text style={styles.reviewValue}>{vm.interestRate}%/month</Text>
               </View>
               <View style={[styles.reviewRow, { borderBottomWidth: 0 }]}>
-                <Text style={styles.reviewLabel}>Needed By</Text>
+                <Text style={styles.reviewLabel}>Valid Until</Text>
                 <Text style={styles.reviewValue}>
                   {vm.validUntil
                     ? new Date(vm.validUntil).toLocaleDateString()
@@ -459,6 +525,16 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   headerTitle: { ...Typography.h3, color: Colors.white },
+  discardText: { ...Typography.smallMedium, color: Colors.danger },
+  resumingBox: { flex: 1, alignItems: "center", justifyContent: "center" },
+  resumeBanner: {
+    marginHorizontal: Spacing.lg,
+    marginBottom: Spacing.sm,
+    backgroundColor: "#1A2A40",
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+  },
+  resumeBannerText: { ...Typography.small, color: Colors.info },
   stepper: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -498,14 +574,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     textTransform: "uppercase",
   },
-  sectionLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-    marginTop: Spacing.sm,
-  },
   infoRow: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -523,6 +591,14 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginBottom: Spacing.lg,
   },
+  kycNote: {
+    backgroundColor: "#1A2A40",
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  kycNoteText: { ...Typography.small, color: Colors.info, lineHeight: 20 },
+  kycNoteLink: { fontWeight: "700", textDecorationLine: "underline" },
   chips: {
     flexDirection: "row",
     flexWrap: "wrap",
@@ -593,6 +669,7 @@ const styles = StyleSheet.create({
   docInfo: { flex: 1 },
   docName: { ...Typography.bodyMedium, color: Colors.textPrimary },
   docStatus: { ...Typography.small, marginTop: 2 },
+  docError: { ...Typography.caption, color: Colors.danger, marginTop: 2 },
   uploadBtn: {
     backgroundColor: Colors.teal + "25",
     paddingHorizontal: Spacing.md,

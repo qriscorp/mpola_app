@@ -107,7 +107,7 @@ export interface LoanApplication {
 // are handled entirely by KYCUploadSection, reusing the account's KYC
 // records — these are genuinely loan-specific, unrelated to identity.
 export type DocumentType = "bank_statement" | "business_registration";
-export type DocumentStatus = "pending" | "uploaded" | "verified";
+export type DocumentStatus = "pending" | "uploading" | "uploaded" | "verified";
 
 export interface Document {
   id: string;
@@ -116,6 +116,7 @@ export interface Document {
   status: DocumentStatus;
   uri?: string;
   required: boolean;
+  error?: string;
 }
 
 export interface Guarantor {
