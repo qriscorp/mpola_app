@@ -116,6 +116,7 @@ export default function PostOfferScreen() {
           onChangeText={vm.setInterestRate}
           placeholder="2"
           keyboardType="numeric"
+          error={vm.rateInvalid ? "Must be between 0.1% and 25%" : undefined}
         />
 
         <Text style={styles.fieldLabel}>Max Duration</Text>
@@ -183,7 +184,7 @@ export default function PostOfferScreen() {
             onPress={handleSubmit}
             color={Colors.gold}
             loading={vm.submitting}
-            disabled={vm.editDataLoading || vm.amountRangeInvalid}
+            disabled={vm.editDataLoading || vm.amountRangeInvalid || vm.rateInvalid}
             style={{ marginTop: Spacing.md }}
           />
         ) : (
@@ -193,13 +194,13 @@ export default function PostOfferScreen() {
               onPress={handleSubmit}
               color={Colors.gold}
               loading={vm.submitting}
-              disabled={vm.amountRangeInvalid}
+              disabled={vm.amountRangeInvalid || vm.rateInvalid}
               style={{ marginTop: Spacing.md }}
             />
             <TouchableOpacity
               style={styles.draftLink}
               onPress={handleSaveDraft}
-              disabled={vm.submitting || vm.amountRangeInvalid}
+              disabled={vm.submitting || vm.amountRangeInvalid || vm.rateInvalid}
             >
               <Text style={styles.draftText}>Save as Draft</Text>
             </TouchableOpacity>

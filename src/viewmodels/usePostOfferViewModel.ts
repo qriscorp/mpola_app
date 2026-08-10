@@ -92,6 +92,7 @@ export function usePostOfferViewModel(editId?: string) {
 
   const amountRangeInvalid =
     minAmount !== "" && maxAmount !== "" && Number(minAmount) >= Number(maxAmount);
+  const rateInvalid = interestRate !== "" && (Number(interestRate) < 0.1 || Number(interestRate) > 25);
 
   const buildFields = () => ({
     maxAmount: Number(maxAmount),
@@ -109,6 +110,9 @@ export function usePostOfferViewModel(editId?: string) {
       if (amountRangeInvalid) {
         throw new Error("Min loan amount must be less than max loan amount");
       }
+      if (interestRate === "" || rateInvalid) {
+        throw new Error("Interest rate must be between 0.1% and 25%");
+      }
       return createOfferTemplate({ ...buildFields(), isDraft });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] }),
@@ -118,6 +122,9 @@ export function usePostOfferViewModel(editId?: string) {
     mutationFn: () => {
       if (amountRangeInvalid) {
         throw new Error("Min loan amount must be less than max loan amount");
+      }
+      if (interestRate === "" || rateInvalid) {
+        throw new Error("Interest rate must be between 0.1% and 25%");
       }
       return updateOfferTemplate(editId!, buildFields());
     },
@@ -134,6 +141,7 @@ export function usePostOfferViewModel(editId?: string) {
     amountRangeInvalid,
     interestRate,
     setInterestRate,
+    rateInvalid,
     maxDuration,
     setMaxDuration,
     acceptedLoanTypes,

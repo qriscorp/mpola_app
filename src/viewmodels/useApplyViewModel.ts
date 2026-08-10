@@ -87,7 +87,11 @@ export function useApplyViewModel() {
   }, [draft, draftLoading]);
 
   const numAmount = Number(amount) || 0;
-  const step1Valid = amount.trim() !== "" && numAmount >= 1000 && numAmount <= 50000000;
+  const maxRateInvalid =
+    maxInterestRate.trim() !== "" &&
+    (Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
+  const step1Valid =
+    amount.trim() !== "" && numAmount >= 1000 && numAmount <= 50000000 && !maxRateInvalid;
   const totalInterest = numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
   const totalRepayable = numAmount + totalInterest;
   const monthlyPayment = duration > 0 ? Math.round(totalRepayable / duration) : 0;
@@ -103,17 +107,18 @@ export function useApplyViewModel() {
 
   const validateDetails = () => {
     const result = loanDetailsSchema.safeParse({ amount, duration, loanType });
+    const errs: Record<string, string> = {};
     if (!result.success) {
-      const errs: Record<string, string> = {};
       for (const issue of result.error.issues) {
         const key = issue.path[0] as string;
         if (!errs[key]) errs[key] = issue.message;
       }
-      setDetailsErrors(errs);
-      return false;
     }
-    setDetailsErrors({});
-    return true;
+    if (maxRateInvalid) {
+      errs.maxInterestRate = "Must be between 0.1% and 25%, or left blank";
+    }
+    setDetailsErrors(errs);
+    return Object.keys(errs).length === 0;
   };
 
   const saveStep1Mutation = useMutation({

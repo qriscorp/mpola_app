@@ -163,7 +163,14 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
   );
   const [validUntil, setValidUntil] = useState<string | null>(app.validUntil);
 
+  const numAmount = Number(amount);
+  const amountInvalid = !amount.trim() || Number.isNaN(numAmount) || numAmount < 1000 || numAmount > 50000000;
+  const rateInvalid =
+    maxInterestRate.trim() !== "" &&
+    (Number.isNaN(Number(maxInterestRate)) || Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
+
   const handleSave = async () => {
+    if (amountInvalid || rateInvalid) return;
     try {
       await updateApplication({
         id: app.id,
@@ -188,7 +195,13 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
 
   return (
     <View style={styles.editBox}>
-      <Input label="Amount (UGX)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+      <Input
+        label="Amount (UGX)"
+        value={amount}
+        onChangeText={setAmount}
+        keyboardType="numeric"
+        error={amountInvalid ? "Between UGX 1,000 and UGX 50,000,000" : undefined}
+      />
 
       <Text style={styles.editLabel}>Duration</Text>
       <View style={styles.pillRow}>
@@ -222,6 +235,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         value={maxInterestRate}
         onChangeText={setMaxInterestRate}
         keyboardType="numeric"
+        error={rateInvalid ? "Between 0.1% and 25%, or leave blank" : undefined}
       />
 
       <Text style={styles.editLabel}>Valid Until</Text>
@@ -248,7 +262,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         <TouchableOpacity style={styles.cancelBtn} onPress={onDone}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.replaceBtn} onPress={handleSave} disabled={isUpdating || !amount}>
+        <TouchableOpacity style={styles.replaceBtn} onPress={handleSave} disabled={isUpdating || amountInvalid || rateInvalid}>
           <Text style={styles.replaceText}>{isUpdating ? "Saving…" : "Save Changes"}</Text>
         </TouchableOpacity>
       </View>

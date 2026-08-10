@@ -262,6 +262,7 @@ export default function ApplyScreen() {
               onChangeText={vm.setMaxInterestRate}
               placeholder="e.g. 3 — leave blank to accept any rate"
               keyboardType="numeric"
+              error={vm.detailsErrors.maxInterestRate}
             />
 
             <Text style={styles.sectionLabel}>Valid Until (optional)</Text>
