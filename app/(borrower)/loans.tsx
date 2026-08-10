@@ -136,6 +136,13 @@ export default function LoansScreen() {
             <Text style={styles.viewOffersText}>View Offers</Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          style={styles.receiptsLink}
+          onPress={() => router.push("/(borrower)/receipts")}
+        >
+          <Text style={styles.receiptsLinkText}>View Payment Receipts →</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -209,4 +216,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   viewOffersText: { ...Typography.buttonSmall, color: Colors.teal },
+  receiptsLink: { alignItems: "center", marginTop: Spacing.lg },
+  receiptsLinkText: { ...Typography.smallMedium, color: Colors.textSecondary },
 });

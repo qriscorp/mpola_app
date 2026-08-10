@@ -378,6 +378,40 @@ export async function fetchLoanDetail(
   };
 }
 
+interface RawRepaymentHistoryItem extends RawRepayment {
+  loan_id: string;
+  lender_name: string | null;
+}
+
+export interface RepaymentHistoryItem {
+  id: string;
+  loanId: string;
+  amount: number;
+  instalmentNumber: number;
+  status: string;
+  paymentMethod: string | null;
+  transactionId: string | null;
+  createdAt: string;
+  lenderName: string | null;
+}
+
+export async function fetchMyRepayments(
+  skip = 0,
+  limit = 20,
+): Promise<{ total: number; repayments: RepaymentHistoryItem[] }> {
+  const res = await apiAuthGet<{ total: number; repayments: RawRepaymentHistoryItem[] }>(
+    `/loans/repayments/mine?skip=${skip}&limit=${limit}`,
+  );
+  return {
+    total: res.total,
+    repayments: res.repayments.map((r) => ({
+      ...mapRepayment(r),
+      loanId: r.loan_id,
+      lenderName: r.lender_name,
+    })),
+  };
+}
+
 /** Downloads the real PDF receipt for a repayment, then opens the native
  * share sheet so the user can save or send it — there's no "Downloads
  * folder" to drop it into directly on either platform.

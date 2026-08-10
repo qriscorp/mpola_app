@@ -78,6 +78,7 @@ export default function BorrowerTabLayout() {
       <Tabs.Screen name="payment" options={{ href: null }} />
       <Tabs.Screen name="payment-success" options={{ href: null }} />
       <Tabs.Screen name="payment-failed" options={{ href: null }} />
+      <Tabs.Screen name="receipts" options={{ href: null }} />
       <Tabs.Screen name="loan-approved" options={{ href: null }} />
       <Tabs.Screen name="application-sent" options={{ href: null }} />
       <Tabs.Screen name="my-requests" options={{ href: null }} />
