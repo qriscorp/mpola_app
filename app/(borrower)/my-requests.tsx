@@ -283,12 +283,24 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
     ]);
   };
 
-  const handleFreeze = async () => {
-    try {
-      await freezeApplication(app.id);
-    } catch (e: any) {
-      Alert.alert("Failed to freeze", e?.message || "Please try again.");
-    }
+  const handleFreeze = () => {
+    Alert.alert(
+      "Freeze this loan request?",
+      "Lenders won't be able to match or send new offers on it until you unfreeze it. You can unfreeze any time.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Freeze",
+          onPress: async () => {
+            try {
+              await freezeApplication(app.id);
+            } catch (e: any) {
+              Alert.alert("Failed to freeze", e?.message || "Please try again.");
+            }
+          },
+        },
+      ],
+    );
   };
 
   const handleUnfreeze = async () => {
