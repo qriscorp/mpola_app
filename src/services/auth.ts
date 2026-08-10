@@ -198,14 +198,6 @@ interface ApiMessageResponse {
 
 // ─── API Helpers ─────────────────────────────────────────
 
-export async function apiPublicGet<T>(path: string): Promise<T> {
-  return apiGet<T>(path);
-}
-
-export async function apiPublicPost<T>(path: string, body: unknown): Promise<T> {
-  return apiPost<T>(path, body);
-}
-
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",

@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card, Input } from "../../src/components";
+import { Button, Card, Input, KYCUploadSection } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
 
@@ -27,20 +27,18 @@ export default function ApplyScreen() {
   const router = useRouter();
   const vm = useApplyViewModel();
 
-  const [guarantorName, setGuarantorName] = useState("");
+  const [guarantorEmail, setGuarantorEmail] = useState("");
   const [guarantorPhone, setGuarantorPhone] = useState("");
 
   const stepLabels = ["Details", "Docs", "Guarantors", "Review"];
 
-  const handleAddGuarantor = () => {
-    if (!guarantorName.trim() || !guarantorPhone.trim()) return;
-    vm.addGuarantor({
-      name: guarantorName,
-      phone: guarantorPhone,
-      relationshipType: "Other",
-    });
-    setGuarantorName("");
-    setGuarantorPhone("");
+  const handleAddGuarantor = async () => {
+    if (!guarantorEmail.trim() || !guarantorPhone.trim()) return;
+    const added = await vm.addGuarantorByContact(guarantorEmail.trim(), guarantorPhone.trim());
+    if (added) {
+      setGuarantorEmail("");
+      setGuarantorPhone("");
+    }
   };
 
   const handleSubmit = async () => {
@@ -208,64 +206,46 @@ export default function ApplyScreen() {
         {/* Step 2: Documents */}
         {vm.step === 2 && (
           <>
-            <Text style={styles.sectionLabel}>Required Documents</Text>
+            <Text style={styles.sectionLabel}>Identity Documents</Text>
+            <Text style={styles.docsNote}>
+              Pulled from your account KYC — already verified documents are
+              used automatically. Anything missing or still pending review
+              needs uploading here once.
+            </Text>
+            <KYCUploadSection accentColor={Colors.teal} />
+
+            <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>
+              Loan Documents
+            </Text>
             <Text style={styles.docsNote}>
               Optional for now — not required to submit your application.
             </Text>
-            {vm.documents
-              .filter((d) => d.required)
-              .map((doc) => (
-                <View key={doc.id} style={styles.docRow}>
-                  <View style={styles.docInfo}>
-                    <Text style={styles.docName}>{doc.name}</Text>
-                    <Text
-                      style={[
-                        styles.docStatus,
-                        {
-                          color:
-                            doc.status === "uploaded"
-                              ? Colors.success
-                              : Colors.warning,
-                        },
-                      ]}
-                    >
-                      {doc.status === "uploaded" ? "✓ Done" : "Upload"}
-                    </Text>
-                  </View>
-                  {doc.status === "pending" && (
-                    <TouchableOpacity
-                      style={styles.uploadBtn}
-                      onPress={() => vm.uploadDocument(doc.id)}
-                    >
-                      <Text style={styles.uploadBtnText}>Upload</Text>
-                    </TouchableOpacity>
-                  )}
-                </View>
-              ))}
-
-            <Text style={[styles.sectionLabel, { marginTop: Spacing.xxl }]}>
-              Optional
-            </Text>
-            {vm.documents
-              .filter((d) => !d.required)
-              .map((doc) => (
-                <View key={doc.id} style={styles.docRow}>
-                  <View style={styles.docInfo}>
-                    <Text style={styles.docName}>{doc.name}</Text>
-                    <Text
-                      style={[styles.docStatus, { color: Colors.textMuted }]}
-                    >
-                      Optional
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.uploadBtn}
-                    onPress={() => vm.uploadDocument(doc.id)}
+            {vm.documents.map((doc) => (
+              <View key={doc.id} style={styles.docRow}>
+                <View style={styles.docInfo}>
+                  <Text style={styles.docName}>{doc.name}</Text>
+                  <Text
+                    style={[
+                      styles.docStatus,
+                      {
+                        color:
+                          doc.status === "uploaded"
+                            ? Colors.success
+                            : Colors.textMuted,
+                      },
+                    ]}
                   >
-                    <Text style={styles.uploadBtnText}>Upload</Text>
-                  </TouchableOpacity>
+                    {doc.status === "uploaded" ? "✓ Done" : "Optional"}
+                  </Text>
                 </View>
-              ))}
+                <TouchableOpacity
+                  style={styles.uploadBtn}
+                  onPress={() => vm.uploadDocument(doc.id)}
+                >
+                  <Text style={styles.uploadBtnText}>Upload</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
 
             <View style={{ height: Spacing.xxl }} />
             <Button
@@ -280,50 +260,60 @@ export default function ApplyScreen() {
         {vm.step === 3 && (
           <>
             <Text style={styles.docsNote}>
-              Add at least 2 guarantors. They&apos;ll be attached to your
-              application when you submit.
+              Add exactly 2 guarantors — they must already have a Mpola
+              account. They&apos;ll each get a request to approve or decline
+              once you submit, and your application won&apos;t be shown to
+              lenders until both accept.
             </Text>
 
             {vm.guarantors.map((g) => (
-              <Card key={g.id} style={styles.guarantorCard}>
+              <Card key={g.userId} style={styles.guarantorCard}>
                 <View style={styles.guarantorHeader}>
-                  <Text style={styles.guarantorName}>{g.name}</Text>
-                  <TouchableOpacity onPress={() => vm.removeGuarantor(g.id)}>
+                  <Text style={styles.guarantorName}>{g.fullName ?? g.username}</Text>
+                  <TouchableOpacity onPress={() => vm.removeGuarantor(g.userId)}>
                     <Text style={styles.removeText}>Remove</Text>
                   </TouchableOpacity>
                 </View>
-                <Text style={styles.guarantorPhone}>
-                  {g.phone} · {g.relationshipType}
-                </Text>
+                <Text style={styles.guarantorPhone}>@{g.username}</Text>
               </Card>
             ))}
 
-            <Card style={styles.addGuarantorCard}>
-              <Input
-                label="Full Name"
-                value={guarantorName}
-                onChangeText={setGuarantorName}
-                placeholder="Guarantor full name"
-              />
-              <Input
-                label="Phone Number"
-                value={guarantorPhone}
-                onChangeText={setGuarantorPhone}
-                placeholder="+256 7XX XXX XXX"
-                keyboardType="phone-pad"
-              />
-              <Button
-                title="Add Guarantor"
-                onPress={handleAddGuarantor}
-                color={Colors.teal}
-                variant="outline"
-              />
-            </Card>
+            {vm.guarantors.length < 2 && (
+              <Card style={styles.addGuarantorCard}>
+                <Input
+                  label="Guarantor's Email"
+                  value={guarantorEmail}
+                  onChangeText={setGuarantorEmail}
+                  placeholder="their.email@example.com"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+                <Input
+                  label="Guarantor's Phone"
+                  value={guarantorPhone}
+                  onChangeText={setGuarantorPhone}
+                  prefix="+256"
+                  placeholder="700 000 000"
+                  keyboardType="phone-pad"
+                />
+                {vm.guarantorError && (
+                  <Text style={styles.guarantorErrorText}>{vm.guarantorError}</Text>
+                )}
+                <Button
+                  title={vm.searchingGuarantor ? "Searching…" : "Add Guarantor"}
+                  onPress={handleAddGuarantor}
+                  color={Colors.teal}
+                  variant="outline"
+                  loading={vm.searchingGuarantor}
+                />
+              </Card>
+            )}
 
             <Button
               title="Continue →"
               onPress={vm.nextStep}
               color={Colors.teal}
+              disabled={vm.guarantors.length < 2}
             />
           </>
         )}
@@ -368,8 +358,8 @@ export default function ApplyScreen() {
                 <Text style={styles.reviewDetail}>None added</Text>
               ) : (
                 vm.guarantors.map((g) => (
-                  <Text key={g.id} style={styles.reviewDetail}>
-                    {g.name} — {g.phone}
+                  <Text key={g.userId} style={styles.reviewDetail}>
+                    {g.fullName ?? g.username} — @{g.username}
                   </Text>
                 ))
               )}
@@ -380,6 +370,7 @@ export default function ApplyScreen() {
               onPress={handleSubmit}
               color={Colors.teal}
               loading={vm.submitting}
+              disabled={vm.guarantors.length < 2}
             />
           </>
         )}
@@ -521,6 +512,7 @@ const styles = StyleSheet.create({
   },
   guarantorName: { ...Typography.h4, color: Colors.textPrimary },
   removeText: { ...Typography.smallMedium, color: Colors.danger },
+  guarantorErrorText: { ...Typography.small, color: Colors.danger },
   guarantorPhone: {
     ...Typography.body,
     color: Colors.textSecondary,

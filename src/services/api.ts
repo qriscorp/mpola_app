@@ -14,6 +14,7 @@ import type {
   LoanOffer,
   OfferStatus,
   Guarantor,
+  GuarantorRequest,
   Wallet,
   Transaction,
   TransactionType,
@@ -35,8 +36,6 @@ import {
   apiAuthPut,
   apiAuthDelete,
   apiAuthUpload,
-  apiPublicGet,
-  apiPublicPost,
 } from "./auth";
 
 const delay = (ms = 800) => new Promise((r) => setTimeout(r, ms));
@@ -470,8 +469,9 @@ interface RawOffer {
 
 interface RawGuarantor {
   id: string;
-  name: string;
-  phone: string;
+  guarantor_user_id: string;
+  full_name: string | null;
+  username: string;
   relationship_type: string | null;
   status: string;
 }
@@ -514,8 +514,9 @@ function mapOffer(o: RawOffer): LoanOffer {
 function mapGuarantor(g: RawGuarantor): Guarantor {
   return {
     id: g.id,
-    name: g.name,
-    phone: g.phone,
+    guarantorUserId: g.guarantor_user_id,
+    fullName: g.full_name,
+    username: g.username,
     relationshipType: g.relationship_type,
     status: g.status as Guarantor["status"],
   };
@@ -568,56 +569,67 @@ export async function fetchApplicationDetail(
   return mapApplication(res);
 }
 
-export async function addGuarantor(
+export async function searchGuarantorCandidate(
+  email: string,
+  phoneNumber: string,
+): Promise<{ id: string; username: string; fullName: string | null; role: string }> {
+  const params = new URLSearchParams({ email, phone_number: phoneNumber });
+  const res = await apiAuthGet<{ id: string; username: string; full_name: string | null; role: string }>(
+    `/users/search-guarantor-candidate?${params.toString()}`,
+  );
+  return { id: res.id, username: res.username, fullName: res.full_name, role: res.role };
+}
+
+export async function attachGuarantors(
   applicationId: string,
-  data: { name: string; phone: string; relationshipType?: string },
+  guarantorUserIds: string[],
 ): Promise<{ status: number; message: string }> {
   return apiAuthPost(`/loans/applications/${applicationId}/guarantors`, {
-    name: data.name,
-    phone: data.phone,
-    relationship_type: data.relationshipType,
+    guarantor_user_ids: guarantorUserIds,
   });
 }
 
-// ─── Guarantor confirmation — public, the guarantor has no account ──
-
-export async function fetchGuarantorInvite(token: string): Promise<{
-  guarantor: { id: string; name: string; status: string };
-  application: {
-    id: string | null;
-    amount: number | null;
-    duration: number | null;
-    loanType: string | null;
-    borrowerName: string | null;
-  };
-}> {
-  const res = await apiPublicGet<{
-    guarantor: { id: string; name: string; status: string };
-    application: {
-      id: string | null;
-      amount: number | null;
-      duration: number | null;
-      loan_type: string | null;
-      borrower_name: string | null;
-    };
-  }>(`/loans/guarantors/${token}`);
-  return {
-    guarantor: res.guarantor,
-    application: {
-      id: res.application.id,
-      amount: res.application.amount,
-      duration: res.application.duration,
-      loanType: res.application.loan_type,
-      borrowerName: res.application.borrower_name,
-    },
-  };
-}
-
-export async function respondToGuarantorInvite(
-  token: string,
+export async function respondToGuarantorRequest(
+  guarantorId: string,
   status: "accepted" | "declined",
 ): Promise<{ status: number; message: string }> {
-  return apiPublicPost(`/loans/guarantors/${token}/respond`, { status });
+  return apiAuthPut(`/guarantors/${guarantorId}/respond`, { status });
+}
+
+export async function replaceGuarantor(
+  applicationId: string,
+  guarantorId: string,
+  newGuarantorUserId: string,
+): Promise<{ status: number; message: string }> {
+  return apiAuthPut(`/guarantors/applications/${applicationId}/${guarantorId}/replace`, {
+    new_guarantor_user_id: newGuarantorUserId,
+  });
+}
+
+interface RawGuarantorRequest {
+  id: string;
+  application_id: string;
+  status: "pending" | "accepted" | "declined";
+  amount: number | null;
+  loan_type: string | null;
+  duration: number | null;
+  borrower_name: string | null;
+  created_at: string;
+}
+
+export async function fetchGuarantorRequests(status?: string): Promise<GuarantorRequest[]> {
+  const query = status ? `?status=${status}` : "";
+  const res = await apiAuthGet<{ requests: RawGuarantorRequest[] }>(`/guarantors/requests${query}`);
+  return res.requests.map((r) => ({
+    id: r.id,
+    applicationId: r.application_id,
+    status: r.status,
+    amount: r.amount,
+    loanType: r.loan_type,
+    duration: r.duration,
+    borrowerName: r.borrower_name,
+    createdAt: r.created_at,
+  }));
 }
 
 export async function uploadLoanDocument(

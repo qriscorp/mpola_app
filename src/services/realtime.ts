@@ -47,6 +47,7 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["lender", "portfolio"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "earnings"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] });
+          queryClient.invalidateQueries({ queryKey: ["guarantor-requests"] });
 
           if (msg.type === "loan_pending_disbursement" && msg.title) {
             Alert.alert(msg.title, msg.message);
@@ -59,6 +60,18 @@ export function useRealtimeNotifications() {
               { text: "Later", style: "cancel" },
               { text: "Top up", onPress: () => router.push("/(lender)/wallet") },
             ]);
+          } else if (msg.type === "guarantor_invite_received" && msg.title) {
+            // Relative push (no leading slash) resolves within whichever
+            // role's Tabs navigator this hook is currently mounted in
+            // (registered separately per layout — see (borrower)/_layout.tsx
+            // and (lender)/_layout.tsx), so this lands on the right
+            // notifications screen without needing to detect the active role.
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "Respond", onPress: () => router.push("notifications") },
+            ]);
+          } else if (msg.type === "guarantor_response" && msg.title) {
+            Alert.alert(msg.title, msg.message);
           }
         } catch {
           // ignore malformed frames

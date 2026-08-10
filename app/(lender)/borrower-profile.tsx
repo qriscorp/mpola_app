@@ -141,7 +141,7 @@ export default function BorrowerProfileScreen() {
                   i === arr.length - 1 && { borderBottomWidth: 0 },
                 ]}
               >
-                <Text style={styles.cardLabel}>{g.name}</Text>
+                <Text style={styles.cardLabel}>{g.fullName ?? g.username}</Text>
                 <Text style={styles.cardValue}>{g.relationshipType ?? "—"}</Text>
               </View>
             ))

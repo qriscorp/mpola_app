@@ -1,9 +1,15 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
-import type { LoanType, ApplicationStep, Document, Guarantor } from "../models";
-import { submitLoanApplication, addGuarantor, uploadLoanDocument } from "../services";
+import type { LoanType, ApplicationStep, Document } from "../models";
+import { submitLoanApplication, searchGuarantorCandidate, attachGuarantors, uploadLoanDocument } from "../services";
 import { loanDetailsSchema } from "../validation";
+
+interface StagedGuarantor {
+  userId: string;
+  fullName: string | null;
+  username: string;
+}
 
 interface PickedFile {
   uri: string;
@@ -29,30 +35,19 @@ export function useApplyViewModel() {
   const [pickedFiles, setPickedFiles] = useState<Record<string, PickedFile>>(
     {},
   );
+  // Genuinely loan-specific documents — identity (national_id, passport,
+  // profile_photo, proof_of_address) is handled entirely by
+  // KYCUploadSection, reusing whatever's already verified on the account.
   const [documents, setDocuments] = useState<Document[]>([
     {
       id: "d1",
-      type: "national_id",
-      name: "National ID",
+      type: "bank_statement",
+      name: "Bank Statement (3 months)",
       status: "pending",
-      required: true,
+      required: false,
     },
     {
       id: "d2",
-      type: "payslip",
-      name: "Payslip / Bank Statement",
-      status: "pending",
-      required: true,
-    },
-    {
-      id: "d3",
-      type: "proof_of_residence",
-      name: "Proof of Residence",
-      status: "pending",
-      required: true,
-    },
-    {
-      id: "d4",
       type: "business_registration",
       name: "Business Registration",
       status: "pending",
@@ -60,8 +55,12 @@ export function useApplyViewModel() {
     },
   ]);
 
-  // Guarantors — collected locally, attached to the application once it's created.
-  const [guarantors, setGuarantors] = useState<Guarantor[]>([]);
+  // Guarantors — found by email+phone search and staged locally, attached
+  // to the application (as real Guarantor rows, which fire a real-time
+  // request to each) once it's created.
+  const [guarantors, setGuarantors] = useState<StagedGuarantor[]>([]);
+  const [guarantorError, setGuarantorError] = useState<string | null>(null);
+  const [searchingGuarantor, setSearchingGuarantor] = useState(false);
 
   const numAmount = Number(amount) || 0;
   const totalInterest = numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
@@ -124,21 +123,36 @@ export function useApplyViewModel() {
     );
   };
 
-  const addGuarantorLocal = (data: { name: string; phone: string; relationshipType: string }) => {
-    setGuarantors((prev) => [
-      ...prev,
-      {
-        id: `local-${prev.length}`,
-        name: data.name,
-        phone: data.phone,
-        relationshipType: data.relationshipType,
-        status: "pending",
-      },
-    ]);
+  // Returns whether the add succeeded — the caller (the screen) uses this
+  // return value to decide whether to clear its inputs, rather than reading
+  // `guarantorError` state right after awaiting, which can still reflect
+  // the previous render (React doesn't guarantee the state update from
+  // inside this function is visible synchronously to the caller).
+  const addGuarantorByContact = async (email: string, phone: string): Promise<boolean> => {
+    setGuarantorError(null);
+    if (guarantors.length >= 2) return false;
+    setSearchingGuarantor(true);
+    try {
+      const candidate = await searchGuarantorCandidate(email, `+256${phone}`);
+      if (guarantors.some((g) => g.userId === candidate.id)) {
+        setGuarantorError("Already added as a guarantor.");
+        return false;
+      }
+      setGuarantors((prev) => [
+        ...prev,
+        { userId: candidate.id, fullName: candidate.fullName, username: candidate.username },
+      ]);
+      return true;
+    } catch (e) {
+      setGuarantorError(e instanceof Error ? e.message : "No account found matching that email and phone");
+      return false;
+    } finally {
+      setSearchingGuarantor(false);
+    }
   };
 
-  const removeGuarantor = (id: string) => {
-    setGuarantors((prev) => prev.filter((g) => g.id !== id));
+  const removeGuarantor = (userId: string) => {
+    setGuarantors((prev) => prev.filter((g) => g.userId !== userId));
   };
 
   const submitMutation = useMutation({
@@ -151,13 +165,7 @@ export function useApplyViewModel() {
         maxInterestRate: maxInterestRate ? Number(maxInterestRate) : undefined,
       });
       await Promise.all([
-        ...guarantors.map((g) =>
-          addGuarantor(res.applicationId, {
-            name: g.name,
-            phone: g.phone,
-            relationshipType: g.relationshipType ?? undefined,
-          }),
-        ),
+        attachGuarantors(res.applicationId, guarantors.map((g) => g.userId)),
         ...Object.entries(pickedFiles).map(([documentType, file]) =>
           uploadLoanDocument(res.applicationId, file, documentType),
         ),
@@ -190,8 +198,10 @@ export function useApplyViewModel() {
     documents,
     uploadDocument,
     guarantors,
-    addGuarantor: addGuarantorLocal,
+    addGuarantorByContact,
     removeGuarantor,
+    guarantorError,
+    searchingGuarantor,
     interestRate: PLATFORM_RATE_PER_MONTH,
     monthlyPayment,
     totalRepayable,

@@ -64,6 +64,7 @@ export interface LoanRepaymentRecord {
 }
 
 export type ApplicationStatus =
+  | "awaiting_guarantors"
   | "pending"
   | "approved"
   | "rejected"
@@ -97,11 +98,10 @@ export interface LoanApplication {
   guarantors?: Guarantor[];
 }
 
-export type DocumentType =
-  | "national_id"
-  | "payslip"
-  | "proof_of_residence"
-  | "business_registration";
+// Identity documents (national_id, passport, profile_photo, proof_of_address)
+// are handled entirely by KYCUploadSection, reusing the account's KYC
+// records — these are genuinely loan-specific, unrelated to identity.
+export type DocumentType = "bank_statement" | "business_registration";
 export type DocumentStatus = "pending" | "uploaded" | "verified";
 
 export interface Document {
@@ -115,10 +115,22 @@ export interface Document {
 
 export interface Guarantor {
   id: string;
-  name: string;
-  phone: string;
+  guarantorUserId: string;
+  fullName: string | null;
+  username: string;
   relationshipType: string | null;
   status: "pending" | "accepted" | "declined";
+}
+
+export interface GuarantorRequest {
+  id: string;
+  applicationId: string;
+  status: "pending" | "accepted" | "declined";
+  amount: number | null;
+  loanType: string | null;
+  duration: number | null;
+  borrowerName: string | null;
+  createdAt: string;
 }
 
 export type OfferStatus = "pending" | "accepted" | "declined" | "expired";
