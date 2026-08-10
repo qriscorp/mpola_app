@@ -53,7 +53,7 @@ export default function PaymentScreen() {
           <Text style={styles.headerTitle}>Make a Payment</Text>
           <View style={{ width: 24 }} />
         </View>
-        <Text style={styles.noLoanText}>You don&apos;t have an active loan.</Text>
+        <Text style={styles.noLoanText}>You don't have an active loan.</Text>
       </SafeAreaView>
     );
   }

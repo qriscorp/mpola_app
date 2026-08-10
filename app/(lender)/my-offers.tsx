@@ -126,7 +126,7 @@ export default function MyOffersScreen() {
         ) : templates.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>
-              You haven&apos;t posted any standing offers yet.
+              You haven't posted any standing offers yet.
             </Text>
             <TouchableOpacity
               style={styles.emptyBtn}

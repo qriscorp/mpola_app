@@ -66,7 +66,7 @@ export default function ReceiptsScreen() {
       ) : vm.repayments.length === 0 ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            You haven&apos;t made any repayments yet — once you do, every
+            You haven't made any repayments yet — once you do, every
             receipt shows up here for download.
           </Text>
         </View>

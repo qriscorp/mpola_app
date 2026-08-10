@@ -41,7 +41,7 @@ export default function LoansScreen() {
         <ScrollView contentContainerStyle={styles.scroll}>
           <Text style={styles.title}>My Loans</Text>
           <Text style={styles.noLoanText}>
-            You don&apos;t have any loans yet.
+            You don't have any loans yet.
           </Text>
         </ScrollView>
       </SafeAreaView>

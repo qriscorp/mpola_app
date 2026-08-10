@@ -66,7 +66,7 @@ export default function LenderWalletScreen() {
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.lg }}>
           <Text style={{ color: Colors.textMuted }}>
-            Couldn&apos;t load your wallet. Please try again.
+            Couldn't load your wallet. Please try again.
           </Text>
         </View>
       </SafeAreaView>

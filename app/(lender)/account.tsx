@@ -43,7 +43,7 @@ export default function LenderAccountScreen() {
       <SafeAreaView style={styles.container}>
         <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.lg }}>
           <Text style={{ color: Colors.textMuted }}>
-            Couldn&apos;t load your account. Please try again.
+            Couldn't load your account. Please try again.
           </Text>
         </View>
       </SafeAreaView>

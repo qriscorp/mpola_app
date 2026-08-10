@@ -2,7 +2,12 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Colors } from "../../src/theme";
-import { useRealtimeNotifications, usePushRegistration, fetchGuarantorRequests } from "../../src/services";
+import {
+  useRealtimeNotifications,
+  usePushRegistration,
+  fetchGuarantorRequests,
+  fetchMarketplace,
+} from "../../src/services";
 
 export default function LenderTabLayout() {
   useRealtimeNotifications();
@@ -10,6 +15,10 @@ export default function LenderTabLayout() {
   const { data: pendingApprovals = [] } = useQuery({
     queryKey: ["guarantor-requests", "pending"],
     queryFn: () => fetchGuarantorRequests("pending"),
+  });
+  const { data: marketplace } = useQuery({
+    queryKey: ["lender", "marketplace", "inbox"],
+    queryFn: () => fetchMarketplace(1, 50),
   });
 
   return (
@@ -47,6 +56,16 @@ export default function LenderTabLayout() {
           title: "Browse",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="search-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="applications"
+        options={{
+          title: "Applications",
+          tabBarBadge: marketplace?.total || undefined,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="file-tray-full-outline" size={size} color={color} />
           ),
         }}
       />

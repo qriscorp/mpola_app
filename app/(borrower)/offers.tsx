@@ -58,35 +58,10 @@ export default function OffersScreen() {
       );
       return;
     }
-    Alert.alert(
-      "Accept this offer?",
-      `${offer.lenderName ?? "This lender"} will be notified to approve and release UGX ${offer.amount.toLocaleString()} to your Mpola wallet — typically fast, but not instant. You'll need a wallet set up to receive it.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Accept",
-          onPress: async () => {
-            try {
-              await respondToOffer(offer.id, "accepted");
-              router.push({
-                pathname: "/(borrower)/loan-approved",
-                params: {
-                  lenderName: offer.lenderName ?? "Lender",
-                  amount: String(offer.amount),
-                  interestRate: String(offer.interestRate),
-                  totalRepayable: String(offer.totalRepayable ?? 0),
-                },
-              });
-            } catch (e) {
-              Alert.alert(
-                "Failed to accept offer",
-                e instanceof Error ? e.message : "Please try again.",
-              );
-            }
-          },
-        },
-      ],
-    );
+    router.push({
+      pathname: "/(borrower)/sign-agreement",
+      params: { offerId: offer.id, applicationId: application?.id ?? "" },
+    });
   };
 
   const handleDecline = (offer: LoanOffer) => {
@@ -116,7 +91,7 @@ export default function OffersScreen() {
       ) : !application ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            You don&apos;t have a pending loan request yet.
+            You don't have a pending loan request yet.
           </Text>
         </View>
       ) : (
@@ -211,7 +186,7 @@ export default function OffersScreen() {
                         onPress={() => handleAccept(offer)}
                         disabled={responding}
                       >
-                        <Text style={styles.applyBtnText}>Accept Offer</Text>
+                        <Text style={styles.applyBtnText}>Review & Accept</Text>
                       </TouchableOpacity>
                     </View>
                   ) : (

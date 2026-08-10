@@ -46,7 +46,7 @@ export default function ApplicationSentScreen() {
 
         <Text style={styles.title}>Application{"\n"}Submitted!</Text>
         <Text style={styles.sub}>
-          Your application is live on the marketplace. You&apos;ll be
+          Your application is live on the marketplace. You'll be
           notified when lenders make offers.
         </Text>
 

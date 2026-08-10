@@ -934,6 +934,10 @@ export async function fetchMarketplace(
   return { applications: res.applications.map(mapApplication), total: res.total };
 }
 
+export async function skipApplication(applicationId: string): Promise<{ status: number; message: string }> {
+  return apiAuthPost(`/loans/marketplace/${applicationId}/skip`, {});
+}
+
 export async function fetchMyOffers(): Promise<LoanOffer[]> {
   const res = await apiAuthGet<{ total: number; offers: RawOffer[] }>(
     "/loans/offers/mine",

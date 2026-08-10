@@ -187,7 +187,7 @@ export default function ApplyScreen() {
           <>
             <View style={styles.infoRow}>
               <Text style={styles.infoRowText}>
-                Here&apos;s the flow: submit this request, your 2 guarantors approve it, then lenders can
+                Here's the flow: submit this request, your 2 guarantors approve it, then lenders can
                 send offers. Each offer lists what documents that lender needs — you provide those
                 when you accept.
               </Text>
@@ -323,8 +323,8 @@ export default function ApplyScreen() {
             <View style={styles.infoRow}>
               <Text style={styles.infoRowText}>
                 Add exactly 2 guarantors — they must already have a Mpola
-                account. They&apos;ll each get a request to approve or decline
-                once you submit, and your application won&apos;t be shown to
+                account. They'll each get a request to approve or decline
+                once you submit, and your application won't be shown to
                 lenders until both accept.
               </Text>
               <View style={{ marginTop: 2 }}>
