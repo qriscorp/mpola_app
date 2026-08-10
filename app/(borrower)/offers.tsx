@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useOffersViewModel } from "../../src/viewmodels";
-import { SkeletonList } from "../../src/components";
+import { SkeletonList, InfoTip } from "../../src/components";
 import type { LoanOffer } from "../../src/models";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
@@ -109,10 +109,13 @@ export default function OffersScreen() {
           contentContainerStyle={styles.scroll}
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.appSummary}>
-            UGX {application.amount.toLocaleString()} · {application.loanType} ·{" "}
-            {application.duration} months
-          </Text>
+          <View style={styles.summaryRow}>
+            <Text style={styles.appSummary}>
+              UGX {application.amount.toLocaleString()} · {application.loanType} ·{" "}
+              {application.duration} months
+            </Text>
+            <InfoTip text="Accepting an offer immediately funds this loan and declines every other offer on it automatically — you can only accept one, and it requires both guarantors to have already approved." />
+          </View>
 
           {!guarantorsReady && (
             <View style={styles.guarantorWarning}>
@@ -219,10 +222,17 @@ const styles = StyleSheet.create({
   logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
   headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
   liveCount: { ...Typography.bodyMedium, color: Colors.teal },
+  summaryRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
   appSummary: {
     ...Typography.small,
     color: Colors.textMuted,
-    marginBottom: Spacing.lg,
+    flex: 1,
   },
   guarantorWarning: {
     backgroundColor: Colors.warningBg,

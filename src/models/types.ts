@@ -91,8 +91,11 @@ export interface LoanApplication {
   interestRate: number | null;
   monthlyPayment: number | null;
   totalRepayable: number | null;
+  maxInterestRate: number | null;
   createdAt: string;
   validUntil: string | null;
+  isFrozen: boolean;
+  frozenBy: "borrower" | "admin" | null;
   borrower: ApplicationBorrower | null;
   offersCount: number;
   pendingOffersCount: number;

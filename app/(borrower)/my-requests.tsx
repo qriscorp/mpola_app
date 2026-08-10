@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge, Input, SkeletonList } from "../../src/components";
+import { Badge, Input, SkeletonList, InfoTip } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import type { LoanApplication, Guarantor } from "../../src/models";
 
@@ -136,6 +136,206 @@ function GuarantorRow({ applicationId, guarantor }: { applicationId: string; gua
   );
 }
 
+const EDIT_DURATIONS = [3, 4, 6, 12];
+const EDIT_LOAN_TYPES: { label: string; value: LoanApplication["loanType"] }[] = [
+  { label: "Personal", value: "personal" },
+  { label: "Business", value: "business" },
+  { label: "Education", value: "education" },
+  { label: "Agricultural", value: "agricultural" },
+  { label: "Emergency", value: "emergency" },
+];
+const EDIT_EXPIRY_PRESETS: { label: string; days: number | null }[] = [
+  { label: "3 days", days: 3 },
+  { label: "1 week", days: 7 },
+  { label: "2 weeks", days: 14 },
+  { label: "1 month", days: 30 },
+  { label: "No rush", days: null },
+];
+
+function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: () => void }) {
+  const { updateApplication, isUpdating } = useMyApplicationsViewModel();
+  const [amount, setAmount] = useState(String(app.amount));
+  const [duration, setDuration] = useState(app.duration);
+  const [loanType, setLoanType] = useState(app.loanType);
+  const [purpose, setPurpose] = useState(app.purpose ?? "");
+  const [maxInterestRate, setMaxInterestRate] = useState(
+    app.maxInterestRate != null ? String(app.maxInterestRate) : "",
+  );
+  const [validUntil, setValidUntil] = useState<string | null>(app.validUntil);
+
+  const hadGuarantorResponse = (app.guarantors ?? []).some((g) => g.status !== "pending");
+  const termsChanged =
+    Number(amount) !== app.amount || duration !== app.duration || loanType !== app.loanType;
+
+  const handleSave = async () => {
+    try {
+      await updateApplication({
+        id: app.id,
+        data: {
+          amount: Number(amount),
+          duration,
+          loanType,
+          purpose: purpose || undefined,
+          maxInterestRate: maxInterestRate ? Number(maxInterestRate) : undefined,
+          validUntil,
+        },
+      });
+      onDone();
+    } catch (e) {
+      Alert.alert("Failed to update", e instanceof Error ? e.message : "Please try again.");
+    }
+  };
+
+  return (
+    <View style={styles.editBox}>
+      {termsChanged && hadGuarantorResponse && (
+        <Text style={styles.editWarning}>
+          Changing the amount, duration, or type resets any guarantor who already responded — they&apos;ll
+          need to approve the new terms again.
+        </Text>
+      )}
+      <Input label="Amount (UGX)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
+
+      <Text style={styles.editLabel}>Duration</Text>
+      <View style={styles.pillRow}>
+        {EDIT_DURATIONS.map((d) => (
+          <TouchableOpacity
+            key={d}
+            style={[styles.pill, duration === d && styles.pillActive]}
+            onPress={() => setDuration(d)}
+          >
+            <Text style={[styles.pillText, duration === d && styles.pillTextActive]}>{d} mo</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Text style={styles.editLabel}>Loan Type</Text>
+      <View style={styles.pillRow}>
+        {EDIT_LOAN_TYPES.map((t) => (
+          <TouchableOpacity
+            key={t.value}
+            style={[styles.pill, loanType === t.value && styles.pillActive]}
+            onPress={() => setLoanType(t.value)}
+          >
+            <Text style={[styles.pillText, loanType === t.value && styles.pillTextActive]}>{t.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Input label="Purpose (optional)" value={purpose} onChangeText={setPurpose} />
+      <Input
+        label="Max Interest Rate (%/month, optional)"
+        value={maxInterestRate}
+        onChangeText={setMaxInterestRate}
+        keyboardType="numeric"
+      />
+
+      <Text style={styles.editLabel}>Need it by</Text>
+      <View style={styles.pillRow}>
+        {EDIT_EXPIRY_PRESETS.map((preset) => (
+          <TouchableOpacity
+            key={preset.label}
+            style={styles.pill}
+            onPress={() =>
+              setValidUntil(
+                preset.days === null ? null : new Date(Date.now() + preset.days * 24 * 60 * 60 * 1000).toISOString(),
+              )
+            }
+          >
+            <Text style={styles.pillText}>{preset.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      <Text style={styles.editHint}>
+        {validUntil ? `Currently: ${new Date(validUntil).toLocaleDateString()}` : "Currently: no deadline"}
+      </Text>
+
+      <View style={styles.replaceActions}>
+        <TouchableOpacity style={styles.cancelBtn} onPress={onDone}>
+          <Text style={styles.cancelText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.replaceBtn} onPress={handleSave} disabled={isUpdating || !amount}>
+          <Text style={styles.replaceText}>{isUpdating ? "Saving…" : "Save Changes"}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+function ApplicationActions({ app }: { app: LoanApplication }) {
+  const { deleteApplication, isDeleting, freezeApplication, isFreezing, unfreezeApplication, isUnfreezing } =
+    useMyApplicationsViewModel();
+  const [editing, setEditing] = useState(false);
+
+  const handleWithdraw = () => {
+    Alert.alert("Withdraw this loan request?", "This can't be undone.", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Withdraw",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteApplication(app.id);
+          } catch (e: any) {
+            Alert.alert("Failed to withdraw", e?.message || "Please try again.");
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleFreeze = async () => {
+    try {
+      await freezeApplication(app.id);
+    } catch (e: any) {
+      Alert.alert("Failed to freeze", e?.message || "Please try again.");
+    }
+  };
+
+  const handleUnfreeze = async () => {
+    try {
+      await unfreezeApplication(app.id);
+    } catch (e: any) {
+      Alert.alert("Failed to unfreeze", e?.message || "Please try again.");
+    }
+  };
+
+  if (editing) {
+    return <EditApplicationForm app={app} onDone={() => setEditing(false)} />;
+  }
+
+  return (
+    <View style={styles.actionsSection}>
+      <View style={styles.actionsRow}>
+        <TouchableOpacity style={styles.outlineBtn} onPress={() => setEditing(true)}>
+          <Text style={styles.outlineBtnText}>Edit</Text>
+        </TouchableOpacity>
+        {app.isFrozen ? (
+          <TouchableOpacity
+            style={styles.primaryBtn}
+            onPress={handleUnfreeze}
+            disabled={isUnfreezing || app.frozenBy === "admin"}
+          >
+            <Text style={styles.primaryBtnText}>Unfreeze</Text>
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity style={styles.outlineBtn} onPress={handleFreeze} disabled={isFreezing}>
+            <Text style={styles.outlineBtnText}>Freeze</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity style={styles.outlineBtnDanger} onPress={handleWithdraw} disabled={isDeleting}>
+          <Text style={styles.outlineBtnDangerText}>Withdraw</Text>
+        </TouchableOpacity>
+      </View>
+      {app.isFrozen && (
+        <Text style={styles.frozenNote}>
+          Frozen {app.frozenBy === "admin" ? "by an admin — only they can unfreeze it" : "by you"}
+        </Text>
+      )}
+    </View>
+  );
+}
+
 function ApplicationCard({ app }: { app: LoanApplication }) {
   const router = useRouter();
   return (
@@ -174,6 +374,10 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
           <Text style={styles.viewOffersText}>View Offers</Text>
         </TouchableOpacity>
       )}
+
+      {(app.status === "awaiting_guarantors" || app.status === "pending") && (
+        <ApplicationActions app={app} />
+      )}
     </View>
   );
 }
@@ -200,6 +404,11 @@ export default function MyRequestsScreen() {
         <TouchableOpacity onPress={() => router.push("/(borrower)/apply")}>
           <Ionicons name="add" size={26} color={Colors.teal} />
         </TouchableOpacity>
+      </View>
+
+      <View style={styles.flowNoteRow}>
+        <Text style={styles.flowNoteText}>Awaiting Guarantors → Pending → Funded</Text>
+        <InfoTip text="Awaiting Guarantors: waiting on your 2 chosen guarantors to approve. Pending: both approved, visible to lenders. Funded: you accepted an offer. You can edit, freeze, or withdraw a request any time before it's funded." />
       </View>
 
       <View style={styles.tabsRow}>
@@ -242,6 +451,14 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
   },
   headerTitle: { ...Typography.h3, color: Colors.white },
+  flowNoteRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.sm,
+  },
+  flowNoteText: { ...Typography.small, color: Colors.textMuted },
   tabsRow: { flexDirection: "row", gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
   tab: {
     paddingHorizontal: Spacing.md,
@@ -298,4 +515,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   viewOffersText: { ...Typography.buttonSmall, color: Colors.teal },
+  actionsSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
+  actionsRow: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
+  outlineBtn: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  outlineBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
+  outlineBtnDanger: {
+    borderWidth: 1,
+    borderColor: Colors.danger,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  outlineBtnDangerText: { ...Typography.smallMedium, color: Colors.danger },
+  primaryBtn: {
+    backgroundColor: Colors.teal,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+  },
+  primaryBtnText: { ...Typography.smallMedium, color: Colors.white },
+  frozenNote: { ...Typography.caption, color: Colors.textMuted },
+  editBox: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
+  editWarning: {
+    ...Typography.caption,
+    color: Colors.warning,
+    backgroundColor: Colors.warningBg,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+  },
+  editLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: Spacing.xs },
+  pillRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs },
+  pill: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.xs,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  pillActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
+  pillText: { ...Typography.caption, color: Colors.textSecondary },
+  pillTextActive: { color: Colors.teal, fontWeight: "600" },
+  editHint: { ...Typography.caption, color: Colors.textMuted },
 });

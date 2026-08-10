@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge, SkeletonList } from "../../src/components";
+import { Badge, SkeletonList, InfoTip } from "../../src/components";
 import { useBrowseBorrowersViewModel } from "../../src/viewmodels";
 
 function initials(name: string | null | undefined): string {
@@ -44,7 +44,10 @@ export default function BrowseBorrowersScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Browse Marketplace</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title}>Browse Marketplace</Text>
+          <InfoTip text="Only requests whose 2 guarantors have both already approved show up here. Making an offer doesn't commit any money — the borrower still has to accept it, and only one offer per request ever gets accepted." />
+        </View>
         <Text style={styles.subtitle}>{totalCount} loan applications</Text>
       </View>
 
@@ -189,6 +192,7 @@ export default function BrowseBorrowersScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   header: { paddingHorizontal: Spacing.lg, paddingTop: Spacing.lg },
+  titleRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
   title: { ...Typography.h2, color: Colors.white },
   subtitle: { ...Typography.body, color: Colors.textSecondary, marginTop: 2 },
   searchRow: { paddingHorizontal: Spacing.lg, marginTop: Spacing.lg },

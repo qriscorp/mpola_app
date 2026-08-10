@@ -487,8 +487,11 @@ interface RawApplication {
   interest_rate: number | null;
   monthly_payment: number | null;
   total_repayable: number | null;
+  max_interest_rate: number | null;
   created_at: string;
   valid_until: string | null;
+  is_frozen: boolean;
+  frozen_by: "borrower" | "admin" | null;
   borrower: RawApplicationBorrower | null;
   offers_count: number;
   pending_offers_count: number;
@@ -546,8 +549,11 @@ function mapApplication(a: RawApplication): LoanApplication {
     interestRate: a.interest_rate,
     monthlyPayment: a.monthly_payment,
     totalRepayable: a.total_repayable,
+    maxInterestRate: a.max_interest_rate,
     createdAt: a.created_at,
     validUntil: a.valid_until,
+    isFrozen: a.is_frozen,
+    frozenBy: a.frozen_by,
     borrower: a.borrower ? mapApplicationBorrower(a.borrower) : null,
     offersCount: a.offers_count,
     pendingOffersCount: a.pending_offers_count,
@@ -727,6 +733,51 @@ export async function submitLoanApplication(data: {
     referenceNumber: res.application.reference_number,
     applicationId: res.application.id,
   };
+}
+
+export async function updateApplication(
+  id: string,
+  data: Partial<{
+    amount: number;
+    duration: number;
+    loanType: string;
+    purpose: string;
+    maxInterestRate: number;
+    validUntil: string | null;
+  }>,
+): Promise<LoanApplication> {
+  const res = await apiAuthPut<{ status: number; message: string; application: RawApplication }>(
+    `/loans/applications/${id}`,
+    {
+      amount: data.amount,
+      duration: data.duration,
+      loan_type: data.loanType,
+      purpose: data.purpose,
+      max_interest_rate: data.maxInterestRate,
+      valid_until: data.validUntil,
+    },
+  );
+  return mapApplication(res.application);
+}
+
+export async function deleteApplication(id: string): Promise<void> {
+  await apiAuthDelete(`/loans/applications/${id}`);
+}
+
+export async function freezeApplication(id: string): Promise<LoanApplication> {
+  const res = await apiAuthPost<{ status: number; message: string; application: RawApplication }>(
+    `/loans/applications/${id}/freeze`,
+    {},
+  );
+  return mapApplication(res.application);
+}
+
+export async function unfreezeApplication(id: string): Promise<LoanApplication> {
+  const res = await apiAuthPost<{ status: number; message: string; application: RawApplication }>(
+    `/loans/applications/${id}/unfreeze`,
+    {},
+  );
+  return mapApplication(res.application);
 }
 
 // ─── Offers ──────────────────────────────────────────────

@@ -23,3 +23,4 @@ export { DisputesScreenContent } from "./DisputesScreenContent";
 export { SessionsSection } from "./SessionsSection";
 export { KYCUploadSection } from "./KYCUploadSection";
 export { PendingGuarantorRequests } from "./PendingGuarantorRequests";
+export { InfoTip } from "./InfoTip";

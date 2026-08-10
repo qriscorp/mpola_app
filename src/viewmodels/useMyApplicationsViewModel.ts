@@ -4,6 +4,10 @@ import {
   remindGuarantor,
   replaceGuarantor,
   searchGuarantorCandidate,
+  updateApplication,
+  deleteApplication,
+  freezeApplication,
+  unfreezeApplication,
 } from "../services";
 
 export function useMyApplicationsViewModel() {
@@ -43,6 +47,39 @@ export function useMyApplicationsViewModel() {
     return replaceMutation.mutateAsync({ applicationId, guarantorId, newGuarantorUserId: candidate.id });
   };
 
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<{
+        amount: number;
+        duration: number;
+        loanType: string;
+        purpose: string;
+        maxInterestRate: number;
+        validUntil: string | null;
+      }>;
+    }) => updateApplication(id, data),
+    onSuccess: invalidate,
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteApplication(id),
+    onSuccess: invalidate,
+  });
+
+  const freezeMutation = useMutation({
+    mutationFn: (id: string) => freezeApplication(id),
+    onSuccess: invalidate,
+  });
+
+  const unfreezeMutation = useMutation({
+    mutationFn: (id: string) => unfreezeApplication(id),
+    onSuccess: invalidate,
+  });
+
   return {
     applications,
     isLoading,
@@ -51,5 +88,13 @@ export function useMyApplicationsViewModel() {
     isReminding: remindMutation.isPending,
     replaceGuarantorByContact,
     isReplacing: replaceMutation.isPending,
+    updateApplication: updateMutation.mutateAsync,
+    isUpdating: updateMutation.isPending,
+    deleteApplication: deleteMutation.mutateAsync,
+    isDeleting: deleteMutation.isPending,
+    freezeApplication: freezeMutation.mutateAsync,
+    isFreezing: freezeMutation.isPending,
+    unfreezeApplication: unfreezeMutation.mutateAsync,
+    isUnfreezing: unfreezeMutation.isPending,
   };
 }

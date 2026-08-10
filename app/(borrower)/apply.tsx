@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card, Input, KYCUploadSection } from "../../src/components";
+import { Button, Card, Input, KYCUploadSection, InfoTip } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
 
@@ -128,6 +128,15 @@ export default function ApplyScreen() {
         {/* Step 1: Details */}
         {vm.step === 1 && (
           <>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoRowText}>
+                Here&apos;s the flow: submit this request, your 2 guarantors approve it, then lenders can
+                send offers — you pick the one you like.
+              </Text>
+              <View style={{ marginTop: 2 }}>
+                <InfoTip text="Nothing is funded until you accept an offer. Your request stays hidden from lenders until both guarantors approve, and you can edit or withdraw it any time before that." />
+              </View>
+            </View>
             <Input
               label="Loan Amount"
               value={vm.amount}
@@ -249,7 +258,12 @@ export default function ApplyScreen() {
         {/* Step 2: Documents */}
         {vm.step === 2 && (
           <>
-            <Text style={styles.sectionLabel}>Identity Documents</Text>
+            <View style={styles.sectionLabelRow}>
+              <Text style={[styles.sectionLabel, { marginBottom: 0, marginTop: 0 }]}>
+                Identity Documents
+              </Text>
+              <InfoTip text="These are account-wide, not per-loan — once verified here, you won't need to upload them again for future loan requests." />
+            </View>
             <Text style={styles.docsNote}>
               Pulled from your account KYC — already verified documents are
               used automatically. Anything missing or still pending review
@@ -302,12 +316,17 @@ export default function ApplyScreen() {
         {/* Step 3: Guarantors */}
         {vm.step === 3 && (
           <>
-            <Text style={styles.docsNote}>
-              Add exactly 2 guarantors — they must already have a Mpola
-              account. They&apos;ll each get a request to approve or decline
-              once you submit, and your application won&apos;t be shown to
-              lenders until both accept.
-            </Text>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoRowText}>
+                Add exactly 2 guarantors — they must already have a Mpola
+                account. They&apos;ll each get a request to approve or decline
+                once you submit, and your application won&apos;t be shown to
+                lenders until both accept.
+              </Text>
+              <View style={{ marginTop: 2 }}>
+                <InfoTip text="If one declines, you can search for a replacement from My Requests after submitting. And if you ever edit the amount, duration, or type later, both guarantors are asked to approve again." />
+              </View>
+            </View>
 
             {vm.guarantors.map((g) => (
               <Card key={g.userId} style={styles.guarantorCard}>
@@ -478,6 +497,26 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     letterSpacing: 0.8,
     textTransform: "uppercase",
+  },
+  sectionLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  infoRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  infoRowText: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    flex: 1,
   },
   docsNote: {
     ...Typography.small,
