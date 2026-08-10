@@ -163,10 +163,6 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
   );
   const [validUntil, setValidUntil] = useState<string | null>(app.validUntil);
 
-  const hadGuarantorResponse = (app.guarantors ?? []).some((g) => g.status !== "pending");
-  const termsChanged =
-    Number(amount) !== app.amount || duration !== app.duration || loanType !== app.loanType;
-
   const handleSave = async () => {
     try {
       await updateApplication({
@@ -192,12 +188,6 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
 
   return (
     <View style={styles.editBox}>
-      {termsChanged && hadGuarantorResponse && (
-        <Text style={styles.editWarning}>
-          Changing the amount, duration, or type resets any guarantor who already responded — they&apos;ll
-          need to approve the new terms again.
-        </Text>
-      )}
       <Input label="Amount (UGX)" value={amount} onChangeText={setAmount} keyboardType="numeric" />
 
       <Text style={styles.editLabel}>Duration</Text>
@@ -271,6 +261,11 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
     useMyApplicationsViewModel();
   const [editing, setEditing] = useState(false);
 
+  // A guarantor's acceptance covers the exact terms they saw — once one has
+  // committed, editing is locked (matches the backend guard in
+  // PUT /loans/applications/{id}), though freeze/withdraw stay available.
+  const editLocked = (app.guarantors ?? []).some((g) => g.status === "accepted");
+
   const handleWithdraw = () => {
     Alert.alert("Withdraw this loan request?", "This can't be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -311,9 +306,11 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
   return (
     <View style={styles.actionsSection}>
       <View style={styles.actionsRow}>
-        <TouchableOpacity style={styles.outlineBtn} onPress={() => setEditing(true)}>
-          <Text style={styles.outlineBtnText}>Edit</Text>
-        </TouchableOpacity>
+        {!editLocked && (
+          <TouchableOpacity style={styles.outlineBtn} onPress={() => setEditing(true)}>
+            <Text style={styles.outlineBtnText}>Edit</Text>
+          </TouchableOpacity>
+        )}
         {app.isFrozen ? (
           <TouchableOpacity
             style={styles.primaryBtn}
@@ -334,6 +331,11 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
       {app.isFrozen && (
         <Text style={styles.frozenNote}>
           Frozen {app.frozenBy === "admin" ? "by an admin — only they can unfreeze it" : "by you"}
+        </Text>
+      )}
+      {editLocked && (
+        <Text style={styles.frozenNote}>
+          A guarantor has already approved — editing is locked, but you can still freeze or withdraw.
         </Text>
       )}
     </View>
@@ -412,7 +414,7 @@ export default function MyRequestsScreen() {
 
       <View style={styles.flowNoteRow}>
         <Text style={styles.flowNoteText}>Awaiting Guarantors → Pending → Funded</Text>
-        <InfoTip text="Awaiting Guarantors: waiting on your 2 chosen guarantors to approve. Pending: both approved, visible to lenders. Funded: you accepted an offer. You can edit, freeze, or withdraw a request any time before it's funded." />
+        <InfoTip text="Awaiting Guarantors: waiting on your 2 chosen guarantors to approve. Pending: both approved, visible to lenders. Funded: you accepted an offer. You can freeze or withdraw a request any time before it's funded — editing is only possible until a guarantor actually approves, since their approval covers the exact terms they saw." />
       </View>
 
       <View style={styles.tabsRow}>
@@ -546,13 +548,6 @@ const styles = StyleSheet.create({
   primaryBtnText: { ...Typography.smallMedium, color: Colors.white },
   frozenNote: { ...Typography.caption, color: Colors.textMuted },
   editBox: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
-  editWarning: {
-    ...Typography.caption,
-    color: Colors.warning,
-    backgroundColor: Colors.warningBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
-  },
   editLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: Spacing.xs },
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs },
   pill: {

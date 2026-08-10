@@ -324,7 +324,7 @@ export default function ApplyScreen() {
                 lenders until both accept.
               </Text>
               <View style={{ marginTop: 2 }}>
-                <InfoTip text="If one declines, you can search for a replacement from My Requests after submitting. And if you ever edit the amount, duration, or type later, both guarantors are asked to approve again." />
+                <InfoTip text="If one declines, you can search for a replacement from My Requests after submitting. You can still edit the amount, duration, or type later — but only until a guarantor actually approves; once someone has committed to these exact terms, editing locks and you'd need to withdraw and resubmit instead." />
               </View>
             </View>
 
