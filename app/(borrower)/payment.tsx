@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -180,10 +179,15 @@ export default function PaymentScreen() {
                 },
               });
             } catch (e) {
-              Alert.alert(
-                "Payment failed",
-                e instanceof Error ? e.message : "Please try again.",
-              );
+              router.push({
+                pathname: "/(borrower)/payment-failed",
+                params: {
+                  reason: e instanceof Error ? e.message : "Please try again.",
+                  amount: String(vm.amount),
+                  paymentMethod: vm.method,
+                  loanId: vm.loan?.id ?? "",
+                },
+              });
             }
           }}
           color={Colors.teal}
