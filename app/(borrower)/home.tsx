@@ -176,6 +176,17 @@ export default function BorrowerHomeScreen() {
             />
             <Text style={styles.actionLabel}>Wallet</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCell}
+            onPress={() => router.push("/(borrower)/my-requests")}
+          >
+            <Ionicons
+              name="list-outline"
+              size={22}
+              color={Colors.textSecondary}
+            />
+            <Text style={styles.actionLabel}>My Requests</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>

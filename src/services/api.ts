@@ -606,6 +606,10 @@ export async function replaceGuarantor(
   });
 }
 
+export async function remindGuarantor(guarantorId: string): Promise<{ status: number; message: string }> {
+  return apiAuthPost(`/guarantors/${guarantorId}/remind`, {});
+}
+
 interface RawGuarantorRequest {
   id: string;
   application_id: string;

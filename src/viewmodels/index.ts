@@ -1,6 +1,7 @@
 export { useAuthViewModel } from "./useAuthViewModel";
 export { useBorrowerDashboardViewModel } from "./useBorrowerDashboardViewModel";
 export { useApplyViewModel } from "./useApplyViewModel";
+export { useMyApplicationsViewModel } from "./useMyApplicationsViewModel";
 export {
   useBorrowerWalletViewModel,
   useActiveLoanViewModel,

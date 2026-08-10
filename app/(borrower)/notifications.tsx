@@ -39,6 +39,11 @@ const iconMap: Record<string, { name: string; color: string; bg: string }> = {
     color: Colors.teal,
     bg: Colors.teal + "25",
   },
+  guarantor_still_pending: {
+    name: "time-outline",
+    color: Colors.warning,
+    bg: Colors.warningBg,
+  },
   repayment: {
     name: "cash-outline",
     color: Colors.teal,

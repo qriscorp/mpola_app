@@ -72,6 +72,11 @@ export function useRealtimeNotifications() {
             ]);
           } else if (msg.type === "guarantor_response" && msg.title) {
             Alert.alert(msg.title, msg.message);
+          } else if (msg.type === "guarantor_still_pending" && msg.title) {
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "View", onPress: () => router.push("/(borrower)/my-requests") },
+            ]);
           }
         } catch {
           // ignore malformed frames
