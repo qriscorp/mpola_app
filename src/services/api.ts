@@ -912,6 +912,7 @@ export async function makeOffer(data: {
   amount: number;
   interestRate: number;
   duration: number;
+  requiredDocuments?: string[];
 }): Promise<LoanOffer> {
   const res = await apiAuthPost<{
     status: number;
@@ -922,6 +923,7 @@ export async function makeOffer(data: {
     amount: data.amount,
     interest_rate: data.interestRate,
     duration: data.duration,
+    required_documents: data.requiredDocuments ?? [],
   });
   return mapOffer(res.offer);
 }

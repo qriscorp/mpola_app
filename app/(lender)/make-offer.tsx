@@ -11,7 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Input, Card } from "../../src/components";
-import { useMakeOfferViewModel } from "../../src/viewmodels";
+import { useMakeOfferViewModel, DOCUMENT_OPTIONS } from "../../src/viewmodels";
 
 export default function MakeOfferScreen() {
   const router = useRouter();
@@ -83,6 +83,24 @@ export default function MakeOfferScreen() {
           <Text style={styles.error}>{vm.offerErrors.duration}</Text>
         )}
 
+        <Text style={styles.sectionLabel}>Documents required to accept (optional)</Text>
+        <View style={styles.docChipRow}>
+          {DOCUMENT_OPTIONS.map((label) => {
+            const selected = vm.requiredDocuments.includes(label);
+            return (
+              <TouchableOpacity
+                key={label}
+                style={[styles.docChip, selected && styles.docChipSelected]}
+                onPress={() => vm.toggleRequiredDocument(label)}
+              >
+                <Text style={[styles.docChipText, selected && styles.docChipTextSelected]}>
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         {/* Calculation Preview */}
         <Card style={styles.previewCard}>
           <Text style={styles.previewTitle}>Offer Summary</Text>
@@ -146,6 +164,28 @@ const styles = StyleSheet.create({
     marginTop: -Spacing.sm,
     marginBottom: Spacing.md,
   },
+  sectionLabel: {
+    ...Typography.smallMedium,
+    color: Colors.textSecondary,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  docChipRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.xs,
+    marginBottom: Spacing.md,
+  },
+  docChip: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  docChipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+  docChipText: { ...Typography.caption, color: Colors.textSecondary },
+  docChipTextSelected: { color: Colors.white, fontWeight: "600" },
   previewCard: {
     backgroundColor: Colors.surface,
     borderWidth: 1,

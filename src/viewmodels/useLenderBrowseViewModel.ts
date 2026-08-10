@@ -72,7 +72,14 @@ export function useMakeOfferViewModel(applicationId: string) {
   const [amount, setAmount] = useState("8000000");
   const [rate, setRate] = useState("3");
   const [duration, setDuration] = useState("18");
+  const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
+
+  const toggleRequiredDocument = (label: string) => {
+    setRequiredDocuments((prev) =>
+      prev.includes(label) ? prev.filter((d) => d !== label) : [...prev, label],
+    );
+  };
 
   const numAmount = Number(amount) || 0;
   const numRate = Number(rate) || 0;
@@ -110,6 +117,7 @@ export function useMakeOfferViewModel(applicationId: string) {
       amount: numAmount,
       interestRate: numRate,
       duration: numDuration,
+      requiredDocuments,
     });
     return offer;
   };
@@ -121,6 +129,8 @@ export function useMakeOfferViewModel(applicationId: string) {
     setRate,
     duration,
     setDuration,
+    requiredDocuments,
+    toggleRequiredDocument,
     monthlyPayment,
     totalEarnings: Math.round(totalInterest),
     totalRepayable: Math.round(totalRepayable),
