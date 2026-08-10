@@ -38,6 +38,17 @@ export async function registerForPushNotifications(): Promise<string | null> {
       importance: Notifications.AndroidImportance.DEFAULT,
       lightColor: "#2BB5A0",
     });
+    // Action-needed pushes (e.g. a guarantor request) — the backend targets
+    // this channel via `channelId: "urgent"` (see utils/push.py's
+    // send_expo_push) for anything in URGENT_NOTIFICATION_TYPES. MAX
+    // importance heads-up/pops the alert even over a locked screen, unlike
+    // the default channel above.
+    await Notifications.setNotificationChannelAsync("urgent", {
+      name: "Action needed",
+      importance: Notifications.AndroidImportance.MAX,
+      lightColor: "#2BB5A0",
+      vibrationPattern: [0, 250, 250, 250],
+    });
   }
 
   try {

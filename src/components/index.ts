@@ -22,6 +22,6 @@ export { HelpScreenContent } from "./HelpScreenContent";
 export { DisputesScreenContent } from "./DisputesScreenContent";
 export { SessionsSection } from "./SessionsSection";
 export { KYCUploadSection } from "./KYCUploadSection";
-export { PendingGuarantorRequests } from "./PendingGuarantorRequests";
+export { ApprovalsList } from "./ApprovalsList";
 export { InfoTip } from "./InfoTip";
 export { RequiredDocumentsChecklist } from "./RequiredDocumentsChecklist";

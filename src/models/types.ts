@@ -121,6 +121,7 @@ export interface GuarantorRequest {
   amount: number | null;
   loanType: string | null;
   duration: number | null;
+  purpose: string | null;
   borrowerName: string | null;
   createdAt: string;
 }

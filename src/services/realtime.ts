@@ -65,10 +65,10 @@ export function useRealtimeNotifications() {
             // role's Tabs navigator this hook is currently mounted in
             // (registered separately per layout — see (borrower)/_layout.tsx
             // and (lender)/_layout.tsx), so this lands on the right
-            // notifications screen without needing to detect the active role.
+            // Approvals tab without needing to detect the active role.
             Alert.alert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              { text: "Respond", onPress: () => router.push("notifications") },
+              { text: "Respond", onPress: () => router.push("approvals") },
             ]);
           } else if (msg.type === "guarantor_response" && msg.title) {
             Alert.alert(msg.title, msg.message);

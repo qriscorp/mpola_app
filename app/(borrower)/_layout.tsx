@@ -1,11 +1,16 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { Colors } from "../../src/theme";
-import { useRealtimeNotifications, usePushRegistration } from "../../src/services";
+import { useRealtimeNotifications, usePushRegistration, fetchGuarantorRequests } from "../../src/services";
 
 export default function BorrowerTabLayout() {
   useRealtimeNotifications();
   usePushRegistration();
+  const { data: pendingApprovals = [] } = useQuery({
+    queryKey: ["guarantor-requests", "pending"],
+    queryFn: () => fetchGuarantorRequests("pending"),
+  });
 
   return (
     <Tabs
@@ -60,6 +65,16 @@ export default function BorrowerTabLayout() {
           title: "Wallet",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="card-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="approvals"
+        options={{
+          title: "Approvals",
+          tabBarBadge: pendingApprovals.length || undefined,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="checkmark-done-outline" size={size} color={color} />
           ),
         }}
       />

@@ -690,6 +690,7 @@ interface RawGuarantorRequest {
   amount: number | null;
   loan_type: string | null;
   duration: number | null;
+  purpose: string | null;
   borrower_name: string | null;
   created_at: string;
 }
@@ -704,6 +705,7 @@ export async function fetchGuarantorRequests(status?: string): Promise<Guarantor
     amount: r.amount,
     loanType: r.loan_type,
     duration: r.duration,
+    purpose: r.purpose,
     borrowerName: r.borrower_name,
     createdAt: r.created_at,
   }));

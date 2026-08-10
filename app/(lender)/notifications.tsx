@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useNotificationsViewModel } from "../../src/viewmodels";
-import { SkeletonList, PendingGuarantorRequests } from "../../src/components";
+import { SkeletonList } from "../../src/components";
 
 const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   loan_offer: {
@@ -110,7 +110,6 @@ export default function NotificationsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        <PendingGuarantorRequests />
         {notifications.map((n) => {
           const icon = (n.type && iconMap[n.type]) || iconMap.general;
           return (
