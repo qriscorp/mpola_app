@@ -2,27 +2,20 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import * as DocumentPicker from "expo-document-picker";
 import {
-  fetchApplications,
   fetchApplicationDetail,
+  fetchAllOffersReceived,
   respondToOffer,
   uploadBorrowerDocument,
 } from "../services";
 import type { BorrowerDocumentType } from "../services";
 
-export function useOffersViewModel(applicationId?: string) {
+/** One application's offers — guarantor readiness, document upload, and
+ * accept/decline all scoped to that single request. For "every offer I've
+ * ever received across all requests," see useAllOffersViewModel below
+ * (mirrors mpola_website's split between /dashboard/offers-received?
+ * applicationId=X and its no-param "all offers" default view). */
+export function useOffersViewModel(applicationId: string) {
   const queryClient = useQueryClient();
-
-  const { data: applications } = useQuery({
-    queryKey: ["borrower", "applications"],
-    queryFn: fetchApplications,
-    enabled: !applicationId,
-  });
-
-  // No specific application passed in (e.g. a generic "Browse Offers" quick
-  // action) — default to the borrower's most recent pending application.
-  const resolvedApplicationId =
-    applicationId ??
-    applications?.find((a) => a.status === "pending")?.id;
 
   const {
     data: application,
@@ -30,9 +23,9 @@ export function useOffersViewModel(applicationId?: string) {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["application", resolvedApplicationId],
-    queryFn: () => fetchApplicationDetail(resolvedApplicationId as string),
-    enabled: !!resolvedApplicationId,
+    queryKey: ["application", applicationId],
+    queryFn: () => fetchApplicationDetail(applicationId),
+    enabled: !!applicationId,
   });
 
   const respondMutation = useMutation({
@@ -40,7 +33,7 @@ export function useOffersViewModel(applicationId?: string) {
       respondToOffer(vars.offerId, vars.status),
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["application", resolvedApplicationId],
+        queryKey: ["application", applicationId],
       });
       queryClient.invalidateQueries({ queryKey: ["borrower"] });
     },
@@ -52,7 +45,7 @@ export function useOffersViewModel(applicationId?: string) {
     onSuccess: () => {
       // A newly-uploaded document can be exactly what this application's
       // offers were waiting on — refresh so each accept-gate re-evaluates.
-      queryClient.invalidateQueries({ queryKey: ["application", resolvedApplicationId] });
+      queryClient.invalidateQueries({ queryKey: ["application", applicationId] });
     },
   });
 
@@ -90,4 +83,24 @@ export function useOffersViewModel(applicationId?: string) {
     uploadRequiredDocument,
     uploadingDocumentType: uploadingType,
   };
+}
+
+/** Every offer the borrower has ever received, across every application —
+ * the "Browse Offers" screen's default view when opened with no specific
+ * request selected. Read-only (no accept/decline here); each row links
+ * into useOffersViewModel(applicationId) for the real accept/document flow. */
+export function useAllOffersViewModel() {
+  const { data: offers = [], isLoading, error } = useQuery({
+    queryKey: ["borrower", "offers-received", "all"],
+    queryFn: fetchAllOffersReceived,
+  });
+
+  const bestOfferId = offers.reduce<string | null>((bestId, o) => {
+    if (o.status !== "pending") return bestId;
+    if (!bestId) return o.id;
+    const best = offers.find((x) => x.id === bestId);
+    return best && o.interestRate < best.interestRate ? o.id : bestId;
+  }, null);
+
+  return { offers, isLoading, error, bestOfferId };
 }

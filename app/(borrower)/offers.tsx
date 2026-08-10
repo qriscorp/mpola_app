@@ -10,16 +10,97 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { useOffersViewModel } from "../../src/viewmodels";
+import { useOffersViewModel, useAllOffersViewModel } from "../../src/viewmodels";
 import { SkeletonList, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
 import type { LoanOffer } from "../../src/models";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
 const REQUIRED_ACCEPTED_GUARANTORS = 2;
 
-export default function OffersScreen() {
+/** Every offer ever received, across every application — shown when this
+ * screen is opened with no specific request selected (e.g. Home's "Browse
+ * Offers" quick action). Mirrors mpola_website's /dashboard/offers-received
+ * default view. Read-only; "View & Respond" re-opens this same screen
+ * scoped to that one request for the real accept/decline/document flow. */
+function AllOffersView() {
   const router = useRouter();
-  const { applicationId } = useLocalSearchParams<{ applicationId?: string }>();
+  const { offers, isLoading, bestOfferId } = useAllOffersViewModel();
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.logoBox}>
+          <Text style={styles.logoLetter}>M</Text>
+        </View>
+        <Text style={styles.headerTitle}>Offers Received</Text>
+        <Text style={styles.liveCount}>{offers.length} offer{offers.length === 1 ? "" : "s"}</Text>
+      </View>
+
+      {isLoading ? (
+        <View style={styles.scroll}>
+          <SkeletonList count={3} cardHeight={120} />
+        </View>
+      ) : offers.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>
+            No offers yet — lenders will see your requests once you apply for a loan.
+          </Text>
+        </View>
+      ) : (
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          {offers.map((offer) => {
+            const isBest = offer.id === bestOfferId;
+            return (
+              <TouchableOpacity
+                key={offer.id}
+                style={[styles.offerCard, isBest && styles.offerCardFeatured]}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(borrower)/offers",
+                    params: { applicationId: offer.applicationId },
+                  })
+                }
+              >
+                {isBest && (
+                  <View style={styles.bestRateBadge}>
+                    <Text style={styles.bestRateText}>Best Rate</Text>
+                  </View>
+                )}
+                <View style={styles.offerTop}>
+                  <View style={styles.offerAvatar}>
+                    <Text style={styles.offerAvatarText}>
+                      {(offer.lenderName ?? "?")[0].toUpperCase()}
+                    </Text>
+                  </View>
+                  <View style={styles.offerInfo}>
+                    <Text style={styles.offerName}>{offer.lenderName ?? "Lender"}</Text>
+                    <Text style={styles.offerSub}>
+                      {offer.duration} months
+                      {offer.loanType ? ` · ${offer.loanType}` : ""}
+                      {offer.applicationReference ? ` · #${offer.applicationReference}` : ""}
+                    </Text>
+                  </View>
+                  <Text style={styles.offerRate}>{offer.interestRate}%/month</Text>
+                </View>
+                <Text style={styles.offerDetails}>
+                  UGX {offer.amount.toLocaleString()} · Total repayable UGX{" "}
+                  {(offer.totalRepayable ?? 0).toLocaleString()}
+                </Text>
+                <Text style={styles.statusText}>Status: {offer.status}</Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      )}
+    </SafeAreaView>
+  );
+}
+
+/** One application's offers, with the full accept flow — guarantor
+ * readiness, required-document upload, and Review & Accept into the
+ * Loan Agreement screen. */
+function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
+  const router = useRouter();
   const {
     application,
     offers,
@@ -91,7 +172,7 @@ export default function OffersScreen() {
       ) : !application ? (
         <View style={styles.emptyState}>
           <Text style={styles.emptyText}>
-            You don't have a pending loan request yet.
+            Request not found.
           </Text>
         </View>
       ) : (
@@ -201,6 +282,15 @@ export default function OffersScreen() {
         </ScrollView>
       )}
     </SafeAreaView>
+  );
+}
+
+export default function OffersScreen() {
+  const { applicationId } = useLocalSearchParams<{ applicationId?: string }>();
+  return applicationId ? (
+    <SingleApplicationOffers applicationId={applicationId} />
+  ) : (
+    <AllOffersView />
   );
 }
 

@@ -141,6 +141,9 @@ export interface RequiredDocumentStatus {
 export interface LoanOffer {
   id: string;
   applicationId: string;
+  applicationReference: string | null;
+  loanType: LoanType | null;
+  applicationStatus: ApplicationStatus | null;
   lenderId: string;
   lenderName: string | null;
   amount: number;

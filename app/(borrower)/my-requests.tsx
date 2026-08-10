@@ -456,7 +456,12 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
       {app.status === "pending" && (
         <TouchableOpacity
           style={styles.viewOffersBtn}
-          onPress={() => router.push("/(borrower)/offers")}
+          onPress={() =>
+            router.push({
+              pathname: "/(borrower)/offers",
+              params: { applicationId: app.id },
+            })
+          }
         >
           <Text style={styles.viewOffersText}>View Offers</Text>
         </TouchableOpacity>

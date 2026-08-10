@@ -505,6 +505,9 @@ interface RawRequiredDocumentStatus {
 interface RawOffer {
   id: string;
   application_id: string;
+  application_reference: string | null;
+  loan_type: string | null;
+  application_status: string | null;
   lender_id: string;
   lender_name: string | null;
   amount: number;
@@ -566,6 +569,9 @@ function mapOffer(o: RawOffer): LoanOffer {
   return {
     id: o.id,
     applicationId: o.application_id,
+    applicationReference: o.application_reference,
+    loanType: (o.loan_type as LoanOffer["loanType"]) ?? null,
+    applicationStatus: (o.application_status as LoanOffer["applicationStatus"]) ?? null,
     lenderId: o.lender_id,
     lenderName: o.lender_name,
     amount: o.amount,
@@ -867,6 +873,16 @@ export async function fetchBorrowerOffers(
 ): Promise<LoanOffer[]> {
   const application = await fetchApplicationDetail(applicationId);
   return application.offers ?? [];
+}
+
+/** Every offer the borrower has ever received, across every application —
+ * powers the "Browse Offers" screen when opened with no specific request
+ * selected (mirrors mpola_website's /dashboard/offers-received default view). */
+export async function fetchAllOffersReceived(): Promise<LoanOffer[]> {
+  const res = await apiAuthGet<{ total: number; offers: RawOffer[] }>(
+    "/loans/offers/received?limit=100",
+  );
+  return res.offers.map(mapOffer);
 }
 
 export async function respondToOffer(

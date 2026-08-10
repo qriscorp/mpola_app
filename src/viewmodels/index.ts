@@ -7,7 +7,7 @@ export {
   useActiveLoanViewModel,
   usePaymentViewModel,
 } from "./useBorrowerWalletViewModel";
-export { useOffersViewModel } from "./useOffersViewModel";
+export { useOffersViewModel, useAllOffersViewModel } from "./useOffersViewModel";
 export { useLenderDashboardViewModel } from "./useLenderDashboardViewModel";
 export {
   useBrowseBorrowersViewModel,
