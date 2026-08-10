@@ -36,7 +36,7 @@ export function useApplyViewModel() {
   const [resuming, setResuming] = useState(true);
   const hydratedRef = useRef(false);
 
-  const [amount, setAmount] = useState("2000000");
+  const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState(6);
   const [loanType, setLoanType] = useState<LoanType>("personal");
   const [purpose, setPurpose] = useState("");
@@ -87,6 +87,7 @@ export function useApplyViewModel() {
   }, [draft, draftLoading]);
 
   const numAmount = Number(amount) || 0;
+  const step1Valid = amount.trim() !== "" && numAmount >= 1000 && numAmount <= 50000000;
   const totalInterest = numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
   const totalRepayable = numAmount + totalInterest;
   const monthlyPayment = duration > 0 ? Math.round(totalRepayable / duration) : 0;
@@ -207,7 +208,7 @@ export function useApplyViewModel() {
       setApplicationId(null);
       setReferenceNumber(null);
       setResumedFromDraft(false);
-      setAmount("2000000");
+      setAmount("");
       setDuration(6);
       setLoanType("personal");
       setPurpose("");
@@ -224,6 +225,7 @@ export function useApplyViewModel() {
     setStep,
     nextStep,
     prevStep,
+    step1Valid,
     resuming,
     resumedFromDraft,
     applicationId,

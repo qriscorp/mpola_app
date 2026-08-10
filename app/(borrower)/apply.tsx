@@ -199,6 +199,7 @@ export default function ApplyScreen() {
               label="Loan Amount"
               value={vm.amount}
               onChangeText={vm.setAmount}
+              placeholder="e.g. 1,000 (min) — 50,000,000 (max)"
               prefix="UGX"
               keyboardType="numeric"
               error={vm.detailsErrors.amount}
@@ -310,6 +311,7 @@ export default function ApplyScreen() {
               onPress={handleNext}
               color={Colors.teal}
               loading={vm.savingStep1}
+              disabled={!vm.step1Valid}
             />
           </>
         )}
