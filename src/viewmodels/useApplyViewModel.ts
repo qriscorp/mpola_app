@@ -27,6 +27,10 @@ export function useApplyViewModel() {
   const [loanType, setLoanType] = useState<LoanType>("personal");
   const [purpose, setPurpose] = useState("");
   const [maxInterestRate, setMaxInterestRate] = useState("");
+  // null = no deadline (default). Set via a preset picker (e.g. "3 days",
+  // "1 week") rather than a native date picker — matches the pattern used
+  // for lender offer template expiry.
+  const [validUntil, setValidUntil] = useState<string | null>(null);
   const [detailsErrors, setDetailsErrors] = useState<Record<string, string>>(
     {},
   );
@@ -163,6 +167,7 @@ export function useApplyViewModel() {
         loanType,
         purpose: purpose || undefined,
         maxInterestRate: maxInterestRate ? Number(maxInterestRate) : undefined,
+        validUntil: validUntil || undefined,
       });
       await Promise.all([
         attachGuarantors(res.applicationId, guarantors.map((g) => g.userId)),
@@ -195,6 +200,8 @@ export function useApplyViewModel() {
     setPurpose,
     maxInterestRate,
     setMaxInterestRate,
+    validUntil,
+    setValidUntil,
     documents,
     uploadDocument,
     guarantors,

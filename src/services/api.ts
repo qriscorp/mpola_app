@@ -488,6 +488,7 @@ interface RawApplication {
   monthly_payment: number | null;
   total_repayable: number | null;
   created_at: string;
+  valid_until: string | null;
   borrower: RawApplicationBorrower | null;
   offers_count: number;
   pending_offers_count: number;
@@ -546,6 +547,7 @@ function mapApplication(a: RawApplication): LoanApplication {
     monthlyPayment: a.monthly_payment,
     totalRepayable: a.total_repayable,
     createdAt: a.created_at,
+    validUntil: a.valid_until,
     borrower: a.borrower ? mapApplicationBorrower(a.borrower) : null,
     offersCount: a.offers_count,
     pendingOffersCount: a.pending_offers_count,
@@ -707,6 +709,7 @@ export async function submitLoanApplication(data: {
   loanType: string;
   purpose?: string;
   maxInterestRate?: number;
+  validUntil?: string;
 }): Promise<{ referenceNumber: string; applicationId: string }> {
   const res = await apiAuthPost<{
     status: number;
@@ -718,6 +721,7 @@ export async function submitLoanApplication(data: {
     loan_type: data.loanType,
     purpose: data.purpose,
     max_interest_rate: data.maxInterestRate,
+    valid_until: data.validUntil,
   });
   return {
     referenceNumber: res.application.reference_number,

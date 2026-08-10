@@ -44,6 +44,16 @@ const iconMap: Record<string, { name: string; color: string; bg: string }> = {
     color: Colors.warning,
     bg: Colors.warningBg,
   },
+  application_expired: {
+    name: "hourglass-outline",
+    color: Colors.textSecondary,
+    bg: Colors.surface,
+  },
+  guarantor_request_expired: {
+    name: "hourglass-outline",
+    color: Colors.textSecondary,
+    bg: Colors.surface,
+  },
   repayment: {
     name: "cash-outline",
     color: Colors.teal,

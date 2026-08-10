@@ -23,12 +23,25 @@ const loanTypeLabels: Record<LoanType, string> = {
   emergency: "Emergency",
 };
 
+const EXPIRY_PRESETS: { label: string; days: number | null }[] = [
+  { label: "3 days", days: 3 },
+  { label: "1 week", days: 7 },
+  { label: "2 weeks", days: 14 },
+  { label: "1 month", days: 30 },
+  { label: "No rush", days: null },
+];
+
+function presetToIso(days: number): string {
+  return new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+}
+
 export default function ApplyScreen() {
   const router = useRouter();
   const vm = useApplyViewModel();
 
   const [guarantorEmail, setGuarantorEmail] = useState("");
   const [guarantorPhone, setGuarantorPhone] = useState("");
+  const [expiryPreset, setExpiryPreset] = useState<string | null>(null);
 
   const stepLabels = ["Details", "Docs", "Guarantors", "Review"];
 
@@ -182,6 +195,36 @@ export default function ApplyScreen() {
               placeholder="e.g. 3 — leave blank to accept any rate"
               keyboardType="numeric"
             />
+
+            <Text style={styles.sectionLabel}>Need it by (optional)</Text>
+            <View style={styles.typeGrid}>
+              {EXPIRY_PRESETS.map((preset) => {
+                const isActive = expiryPreset === preset.label;
+                return (
+                  <TouchableOpacity
+                    key={preset.label}
+                    style={[styles.typeCard, isActive && styles.typeCardActive]}
+                    onPress={() => {
+                      setExpiryPreset(preset.label);
+                      vm.setValidUntil(
+                        preset.days === null ? null : presetToIso(preset.days),
+                      );
+                    }}
+                  >
+                    <Text
+                      style={[styles.typeText, isActive && styles.typeTextActive]}
+                    >
+                      {preset.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+            {vm.validUntil && (
+              <Text style={styles.expiryHint}>
+                Stops showing to lenders on {new Date(vm.validUntil).toLocaleDateString()} if not funded.
+              </Text>
+            )}
 
             <Card style={styles.estimateCard}>
               <Text style={styles.estimateLabel}>
@@ -338,9 +381,17 @@ export default function ApplyScreen() {
                 <Text style={styles.reviewLabel}>Duration</Text>
                 <Text style={styles.reviewValue}>{vm.duration} months</Text>
               </View>
-              <View style={[styles.reviewRow, { borderBottomWidth: 0 }]}>
+              <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>Rate</Text>
                 <Text style={styles.reviewValue}>{vm.interestRate}%/month</Text>
+              </View>
+              <View style={[styles.reviewRow, { borderBottomWidth: 0 }]}>
+                <Text style={styles.reviewLabel}>Needed By</Text>
+                <Text style={styles.reviewValue}>
+                  {vm.validUntil
+                    ? new Date(vm.validUntil).toLocaleDateString()
+                    : "No deadline"}
+                </Text>
               </View>
             </Card>
 
@@ -453,6 +504,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  expiryHint: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginTop: -Spacing.sm,
     marginBottom: Spacing.lg,
   },
   typeCard: {

@@ -26,6 +26,7 @@ const statusVariant: Record<string, "success" | "warning" | "danger" | "info" | 
   completed: "info",
   rejected: "danger",
   defaulted: "danger",
+  expired: "default",
 };
 
 const statusLabel: Record<string, string> = {
@@ -36,7 +37,16 @@ const statusLabel: Record<string, string> = {
   completed: "Completed",
   rejected: "Rejected",
   defaulted: "Defaulted",
+  expired: "Expired",
 };
+
+function expiryNote(validUntil: string | null, status: string): string | null {
+  if (!validUntil || status === "expired" || status === "funded" || status === "completed") return null;
+  const diffMs = new Date(validUntil).getTime() - Date.now();
+  if (diffMs <= 0) return null;
+  const days = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+  return days <= 1 ? "Expires today" : `Expires in ${days} days`;
+}
 
 const guarantorVariant: Record<Guarantor["status"], "warning" | "success" | "danger"> = {
   pending: "warning",
@@ -135,6 +145,7 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
           <Text style={styles.amount}>UGX {app.amount.toLocaleString()}</Text>
           <Text style={styles.subInfo}>
             {app.loanType} · {app.duration} months
+            {expiryNote(app.validUntil, app.status) ? ` · ${expiryNote(app.validUntil, app.status)}` : ""}
           </Text>
         </View>
         <Badge label={statusLabel[app.status] ?? app.status} variant={statusVariant[app.status] ?? "default"} />
@@ -176,7 +187,7 @@ export default function MyRequestsScreen() {
     if (activeTab === "All") return applications;
     if (activeTab === "Pending") return applications.filter((a) => a.status === "pending" || a.status === "awaiting_guarantors");
     if (activeTab === "Funded") return applications.filter((a) => a.status === "funded");
-    return applications.filter((a) => ["completed", "rejected", "defaulted"].includes(a.status));
+    return applications.filter((a) => ["completed", "rejected", "defaulted", "expired"].includes(a.status));
   }, [applications, activeTab]);
 
   return (

@@ -77,6 +77,13 @@ export function useRealtimeNotifications() {
               { text: "Later", style: "cancel" },
               { text: "View", onPress: () => router.push("/(borrower)/my-requests") },
             ]);
+          } else if (msg.type === "application_expired" && msg.title) {
+            Alert.alert(msg.title, msg.message, [
+              { text: "OK", style: "cancel" },
+              { text: "View", onPress: () => router.push("/(borrower)/my-requests") },
+            ]);
+          } else if (msg.type === "guarantor_request_expired" && msg.title) {
+            Alert.alert(msg.title, msg.message);
           }
         } catch {
           // ignore malformed frames

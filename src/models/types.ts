@@ -70,7 +70,8 @@ export type ApplicationStatus =
   | "rejected"
   | "funded"
   | "completed"
-  | "defaulted";
+  | "defaulted"
+  | "expired";
 
 export interface ApplicationBorrower {
   id: string;
@@ -91,6 +92,7 @@ export interface LoanApplication {
   monthlyPayment: number | null;
   totalRepayable: number | null;
   createdAt: string;
+  validUntil: string | null;
   borrower: ApplicationBorrower | null;
   offersCount: number;
   pendingOffersCount: number;
