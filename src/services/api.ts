@@ -742,7 +742,7 @@ export async function updateApplication(
     duration: number;
     loanType: string;
     purpose: string;
-    maxInterestRate: number;
+    maxInterestRate: number | null;
     validUntil: string | null;
   }>,
 ): Promise<LoanApplication> {

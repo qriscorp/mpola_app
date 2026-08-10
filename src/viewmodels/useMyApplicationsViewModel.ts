@@ -58,7 +58,7 @@ export function useMyApplicationsViewModel() {
         duration: number;
         loanType: string;
         purpose: string;
-        maxInterestRate: number;
+        maxInterestRate: number | null;
         validUntil: string | null;
       }>;
     }) => updateApplication(id, data),

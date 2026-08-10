@@ -136,7 +136,7 @@ function GuarantorRow({ applicationId, guarantor }: { applicationId: string; gua
   );
 }
 
-const EDIT_DURATIONS = [3, 4, 6, 12];
+const EDIT_DURATIONS = [3, 6, 12, 18, 24];
 const EDIT_LOAN_TYPES: { label: string; value: LoanApplication["loanType"] }[] = [
   { label: "Personal", value: "personal" },
   { label: "Business", value: "business" },
@@ -175,8 +175,12 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
           amount: Number(amount),
           duration,
           loanType,
-          purpose: purpose || undefined,
-          maxInterestRate: maxInterestRate ? Number(maxInterestRate) : undefined,
+          // Explicit "" / null, not `undefined` — this is an edit, so a
+          // cleared field must actually reach the backend as a clear.
+          // `undefined` gets dropped before the request body is built,
+          // which the backend's exclude_unset then reads as "unchanged".
+          purpose,
+          maxInterestRate: maxInterestRate ? Number(maxInterestRate) : null,
           validUntil,
         },
       });

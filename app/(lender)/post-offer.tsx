@@ -106,8 +106,9 @@ export default function PostOfferScreen() {
           label="Min Loan Amount (UGX)"
           value={vm.minAmount}
           onChangeText={vm.setMinAmount}
-          placeholder="1000000"
+          placeholder="1000"
           keyboardType="numeric"
+          error={vm.amountRangeInvalid ? "Must be less than max loan amount" : undefined}
         />
         <Input
           label="Interest Rate (%/month)"
@@ -182,7 +183,7 @@ export default function PostOfferScreen() {
             onPress={handleSubmit}
             color={Colors.gold}
             loading={vm.submitting}
-            disabled={vm.editDataLoading}
+            disabled={vm.editDataLoading || vm.amountRangeInvalid}
             style={{ marginTop: Spacing.md }}
           />
         ) : (
@@ -192,12 +193,13 @@ export default function PostOfferScreen() {
               onPress={handleSubmit}
               color={Colors.gold}
               loading={vm.submitting}
+              disabled={vm.amountRangeInvalid}
               style={{ marginTop: Spacing.md }}
             />
             <TouchableOpacity
               style={styles.draftLink}
               onPress={handleSaveDraft}
-              disabled={vm.submitting}
+              disabled={vm.submitting || vm.amountRangeInvalid}
             >
               <Text style={styles.draftText}>Save as Draft</Text>
             </TouchableOpacity>

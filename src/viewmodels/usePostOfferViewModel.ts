@@ -45,7 +45,7 @@ export function usePostOfferViewModel(editId?: string) {
   const editDataLoading = isEditing && !editingTemplate;
 
   const [maxAmount, setMaxAmount] = useState("50000000");
-  const [minAmount, setMinAmount] = useState("1000000");
+  const [minAmount, setMinAmount] = useState("1000");
   const [interestRate, setInterestRate] = useState("2");
   const [maxDuration, setMaxDuration] = useState(6);
   const [acceptedLoanTypes, setAcceptedLoanTypes] = useState<string[]>([
@@ -90,6 +90,9 @@ export function usePostOfferViewModel(editId?: string) {
     );
   };
 
+  const amountRangeInvalid =
+    minAmount !== "" && maxAmount !== "" && Number(minAmount) >= Number(maxAmount);
+
   const buildFields = () => ({
     maxAmount: Number(maxAmount),
     minAmount: Number(minAmount),
@@ -102,12 +105,22 @@ export function usePostOfferViewModel(editId?: string) {
   });
 
   const createMutation = useMutation({
-    mutationFn: (isDraft: boolean) => createOfferTemplate({ ...buildFields(), isDraft }),
+    mutationFn: (isDraft: boolean) => {
+      if (amountRangeInvalid) {
+        throw new Error("Min loan amount must be less than max loan amount");
+      }
+      return createOfferTemplate({ ...buildFields(), isDraft });
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] }),
   });
 
   const updateMutation = useMutation({
-    mutationFn: () => updateOfferTemplate(editId!, buildFields()),
+    mutationFn: () => {
+      if (amountRangeInvalid) {
+        throw new Error("Min loan amount must be less than max loan amount");
+      }
+      return updateOfferTemplate(editId!, buildFields());
+    },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] }),
   });
 
@@ -118,6 +131,7 @@ export function usePostOfferViewModel(editId?: string) {
     setMaxAmount,
     minAmount,
     setMinAmount,
+    amountRangeInvalid,
     interestRate,
     setInterestRate,
     maxDuration,

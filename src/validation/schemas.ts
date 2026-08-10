@@ -51,7 +51,7 @@ export const loanDetailsSchema = z.object({
   amount: z
     .string()
     .min(1, "Amount is required")
-    .refine((v) => Number(v) >= 100000, "Minimum loan is UGX 100,000")
+    .refine((v) => Number(v) >= 1000, "Minimum loan is UGX 1,000")
     .refine((v) => Number(v) <= 50000000, "Maximum loan is UGX 50,000,000"),
   duration: z.number().min(3).max(24),
   loanType: z.enum([
@@ -71,7 +71,7 @@ export const makeOfferSchema = z.object({
   amount: z
     .string()
     .min(1, "Amount is required")
-    .refine((v) => Number(v) >= 100000, "Minimum offer is UGX 100,000"),
+    .refine((v) => Number(v) >= 1000, "Minimum offer is UGX 1,000"),
   rate: z
     .string()
     .min(1, "Interest rate is required")
