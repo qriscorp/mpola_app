@@ -13,51 +13,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, Input, SkeletonList, InfoTip } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
+import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
 import type { LoanApplication, Guarantor } from "../../src/models";
 
 const TABS = ["All", "Pending", "Funded", "Closed"] as const;
 type Tab = (typeof TABS)[number];
-
-const statusVariant: Record<string, "success" | "warning" | "danger" | "info" | "default"> = {
-  awaiting_guarantors: "warning",
-  pending: "warning",
-  approved: "success",
-  completed: "info",
-  rejected: "danger",
-  defaulted: "danger",
-  expired: "default",
-};
-
-const statusLabel: Record<string, string> = {
-  awaiting_guarantors: "Awaiting Guarantors",
-  pending: "Pending",
-  approved: "Approved",
-  completed: "Completed",
-  rejected: "Rejected",
-  defaulted: "Defaulted",
-  expired: "Expired",
-};
-
-/** A "funded" application status alone can't tell "accepted, waiting on
- * the lender to release funds" apart from "actually funded" — both are
- * stored as status="funded" (see mpola_api's _app_response); only the
- * associated loan's own status (loanStatus) distinguishes them. */
-function applicationStatusLabel(status: string, loanStatus: string | null): string {
-  if (status === "funded") {
-    return loanStatus && loanStatus !== "pending_disbursement" ? "Funded" : "Awaiting Disbursement";
-  }
-  return statusLabel[status] ?? status;
-}
-
-function applicationStatusVariant(
-  status: string,
-  loanStatus: string | null,
-): "success" | "warning" | "danger" | "info" | "default" {
-  if (status === "funded") {
-    return loanStatus && loanStatus !== "pending_disbursement" ? "success" : "warning";
-  }
-  return statusVariant[status] ?? "default";
-}
 
 function expiryNote(validUntil: string | null, status: string): string | null {
   if (!validUntil || status === "expired" || status === "funded" || status === "completed") return null;

@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Badge, SkeletonHero, SkeletonCard } from "../../src/components";
 import { useApplicationDetailViewModel } from "../../src/viewmodels";
+import { applicationStatusLabel } from "../../src/services/applicationStatus";
 
 function initials(name: string | null | undefined): string {
   if (!name) return "?";
@@ -169,7 +170,7 @@ export default function BorrowerProfileScreen() {
         ) : (
           <View style={styles.statusPill}>
             <Text style={styles.statusPillText}>
-              Status: {application.status}
+              Status: {applicationStatusLabel(application.status, application.loanStatus)}
             </Text>
           </View>
         )}

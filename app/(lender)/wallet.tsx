@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import {
@@ -22,6 +23,7 @@ import {
 import { useLenderWalletViewModel } from "../../src/viewmodels";
 
 export default function LenderWalletScreen() {
+  const router = useRouter();
   const {
     wallet,
     isLoading,
@@ -145,6 +147,17 @@ export default function LenderWalletScreen() {
                 />
                 <Text style={styles.withdrawText}>Withdraw</Text>
               </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.withdrawBtn}
+                onPress={() => router.push("/(lender)/portfolio")}
+              >
+                <Ionicons
+                  name="cash-outline"
+                  size={18}
+                  color={Colors.textMuted}
+                />
+                <Text style={styles.withdrawText}>Fund Loan</Text>
+              </TouchableOpacity>
             </View>
           )}
         </Card>
@@ -263,6 +276,8 @@ const styles = StyleSheet.create({
   },
   balanceActions: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: Spacing.md,
     marginTop: Spacing.lg,
   },
@@ -271,7 +286,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: Spacing.xs,
     backgroundColor: Colors.gold,
-    paddingHorizontal: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
   },
@@ -282,7 +297,7 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
     borderWidth: 1,
     borderColor: Colors.border,
-    paddingHorizontal: Spacing.xxl,
+    paddingHorizontal: Spacing.lg,
     paddingVertical: Spacing.sm,
     borderRadius: BorderRadius.full,
   },
