@@ -22,7 +22,6 @@ const statusVariant: Record<string, "success" | "warning" | "danger" | "info" | 
   awaiting_guarantors: "warning",
   pending: "warning",
   approved: "success",
-  funded: "success",
   completed: "info",
   rejected: "danger",
   defaulted: "danger",
@@ -33,12 +32,32 @@ const statusLabel: Record<string, string> = {
   awaiting_guarantors: "Awaiting Guarantors",
   pending: "Pending",
   approved: "Approved",
-  funded: "Funded",
   completed: "Completed",
   rejected: "Rejected",
   defaulted: "Defaulted",
   expired: "Expired",
 };
+
+/** A "funded" application status alone can't tell "accepted, waiting on
+ * the lender to release funds" apart from "actually funded" — both are
+ * stored as status="funded" (see mpola_api's _app_response); only the
+ * associated loan's own status (loanStatus) distinguishes them. */
+function applicationStatusLabel(status: string, loanStatus: string | null): string {
+  if (status === "funded") {
+    return loanStatus && loanStatus !== "pending_disbursement" ? "Funded" : "Awaiting Disbursement";
+  }
+  return statusLabel[status] ?? status;
+}
+
+function applicationStatusVariant(
+  status: string,
+  loanStatus: string | null,
+): "success" | "warning" | "danger" | "info" | "default" {
+  if (status === "funded") {
+    return loanStatus && loanStatus !== "pending_disbursement" ? "success" : "warning";
+  }
+  return statusVariant[status] ?? "default";
+}
 
 function expiryNote(validUntil: string | null, status: string): string | null {
   if (!validUntil || status === "expired" || status === "funded" || status === "completed") return null;
@@ -435,7 +454,10 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
             {expiryNote(app.validUntil, app.status) ? ` · ${expiryNote(app.validUntil, app.status)}` : ""}
           </Text>
         </View>
-        <Badge label={statusLabel[app.status] ?? app.status} variant={statusVariant[app.status] ?? "default"} />
+        <Badge
+          label={applicationStatusLabel(app.status, app.loanStatus)}
+          variant={applicationStatusVariant(app.status, app.loanStatus)}
+        />
       </View>
 
       {app.status === "awaiting_guarantors" && (

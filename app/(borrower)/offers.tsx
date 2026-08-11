@@ -86,7 +86,12 @@ function AllOffersView() {
                   UGX {offer.amount.toLocaleString()} · Total repayable UGX{" "}
                   {(offer.totalRepayable ?? 0).toLocaleString()}
                 </Text>
-                <Text style={styles.statusText}>Status: {offer.status}</Text>
+                <View style={styles.offerFooterRow}>
+                  <Text style={styles.statusText}>Status: {offer.status}</Text>
+                  <Text style={styles.tapHint}>
+                    {offer.status === "pending" ? "Tap to respond →" : "Tap to view →"}
+                  </Text>
+                </View>
               </TouchableOpacity>
             );
           })}
@@ -407,4 +412,6 @@ const styles = StyleSheet.create({
   applyBtnText: { ...Typography.buttonSmall, color: Colors.white },
   declineBtnText: { ...Typography.buttonSmall, color: Colors.textSecondary },
   statusText: { ...Typography.smallMedium, color: Colors.textMuted, textTransform: "capitalize" },
+  offerFooterRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  tapHint: { ...Typography.caption, color: Colors.teal },
 });

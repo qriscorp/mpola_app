@@ -236,7 +236,7 @@ export default function ApplicationsInboxScreen() {
                   style={styles.approveBtn}
                   onPress={() => setOfferModalApp(app)}
                 >
-                  <Text style={styles.approveText}>Approve</Text>
+                  <Text style={styles.approveText}>Make Offer</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.declineBtn}

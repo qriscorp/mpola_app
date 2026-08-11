@@ -561,6 +561,9 @@ interface RawApplication {
   borrower: RawApplicationBorrower | null;
   offers_count: number;
   pending_offers_count: number;
+  loan_id: string | null;
+  loan_status: string | null;
+  loan_disbursed_at: string | null;
   offers?: RawOffer[];
   guarantors?: RawGuarantor[];
 }
@@ -628,6 +631,9 @@ function mapApplication(a: RawApplication): LoanApplication {
     borrower: a.borrower ? mapApplicationBorrower(a.borrower) : null,
     offersCount: a.offers_count,
     pendingOffersCount: a.pending_offers_count,
+    loanId: a.loan_id,
+    loanStatus: a.loan_status as LoanApplication["loanStatus"],
+    loanDisbursedAt: a.loan_disbursed_at,
     offers: a.offers?.map(mapOffer),
     guarantors: a.guarantors?.map(mapGuarantor),
   };
@@ -1154,6 +1160,7 @@ interface RawNotification {
   title: string;
   message: string;
   type: string | null;
+  data: string | null;
   is_read: boolean;
   created_at: string;
 }
@@ -1164,14 +1171,25 @@ export async function fetchNotifications(): Promise<Notification[]> {
     unread: number;
     notifications: RawNotification[];
   }>("/notifications/?limit=50");
-  return res.notifications.map((n) => ({
-    id: n.id,
-    title: n.title,
-    message: n.message,
-    type: n.type,
-    read: n.is_read,
-    timestamp: n.created_at,
-  }));
+  return res.notifications.map((n) => {
+    let data: Record<string, unknown> | null = null;
+    if (n.data) {
+      try {
+        data = JSON.parse(n.data);
+      } catch {
+        data = null;
+      }
+    }
+    return {
+      id: n.id,
+      title: n.title,
+      message: n.message,
+      type: n.type,
+      data,
+      read: n.is_read,
+      timestamp: n.created_at,
+    };
+  });
 }
 
 export async function markNotificationRead(id: string): Promise<void> {

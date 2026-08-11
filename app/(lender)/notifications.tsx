@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useNotificationsViewModel } from "../../src/viewmodels";
 import { SkeletonList } from "../../src/components";
+import { notificationHref } from "../../src/services/notifications";
 
 const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   loan_offer: {
@@ -112,10 +113,14 @@ export default function NotificationsScreen() {
       >
         {notifications.map((n) => {
           const icon = (n.type && iconMap[n.type]) || iconMap.general;
+          const href = notificationHref(n.type, true);
           return (
             <TouchableOpacity
               key={n.id}
-              onPress={() => !n.read && markRead(n.id)}
+              onPress={() => {
+                if (!n.read) markRead(n.id);
+                if (href) router.push(href as any);
+              }}
               style={[styles.notifCard, !n.read && styles.notifCardUnread]}
             >
               <View style={[styles.notifIcon, { backgroundColor: icon.bg }]}>

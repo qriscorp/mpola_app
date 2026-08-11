@@ -7,6 +7,7 @@ import {
   usePushRegistration,
   fetchGuarantorRequests,
   fetchMarketplace,
+  fetchPortfolio,
 } from "../../src/services";
 
 export default function LenderTabLayout() {
@@ -20,6 +21,11 @@ export default function LenderTabLayout() {
     queryKey: ["lender", "marketplace", "inbox"],
     queryFn: () => fetchMarketplace(1, 50),
   });
+  const { data: portfolio = [] } = useQuery({
+    queryKey: ["lender", "portfolio"],
+    queryFn: fetchPortfolio,
+  });
+  const awaitingDisbursement = portfolio.filter((l) => l.status === "pending_disbursement").length;
 
   return (
     <Tabs
@@ -73,6 +79,7 @@ export default function LenderTabLayout() {
         name="portfolio"
         options={{
           title: "Portfolio",
+          tabBarBadge: awaitingDisbursement || undefined,
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="briefcase-outline" size={size} color={color} />
           ),

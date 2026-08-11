@@ -50,7 +50,10 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["guarantor-requests"] });
 
           if (msg.type === "loan_pending_disbursement" && msg.title) {
-            Alert.alert(msg.title, msg.message);
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "Review", onPress: () => router.push("/(lender)/portfolio") },
+            ]);
           } else if (msg.type === "loan_disbursed" && msg.title) {
             Alert.alert(msg.title, msg.message);
           } else if (msg.type === "offer_template_expired" && msg.title) {

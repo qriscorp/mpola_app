@@ -101,6 +101,12 @@ export interface LoanApplication {
   borrower: ApplicationBorrower | null;
   offersCount: number;
   pendingOffersCount: number;
+  // Once status is "funded", check these to tell "accepted, waiting on the
+  // lender to disburse" apart from "actually disbursed" — see mpola_api's
+  // _app_response.
+  loanId: string | null;
+  loanStatus: LoanStatus | null;
+  loanDisbursedAt: string | null;
   offers?: LoanOffer[];
   guarantors?: Guarantor[];
 }
@@ -239,6 +245,7 @@ export interface Notification {
   title: string;
   message: string;
   type: string | null;
+  data: Record<string, unknown> | null;
   read: boolean;
   timestamp: string;
 }
