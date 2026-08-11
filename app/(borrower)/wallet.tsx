@@ -8,6 +8,7 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import {
   TransactionItem,
@@ -21,6 +22,7 @@ import {
 import { useBorrowerWalletViewModel } from "../../src/viewmodels";
 
 export default function WalletScreen() {
+  const router = useRouter();
   const {
     wallet,
     isLoading,
@@ -118,6 +120,12 @@ export default function WalletScreen() {
                 onPress={() => setWithdrawVisible(true)}
               >
                 <Text style={styles.withdrawText}>Withdraw</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.withdrawBtn}
+                onPress={() => router.push("/(borrower)/payment")}
+              >
+                <Text style={styles.withdrawText}>Pay Loan</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -241,6 +249,8 @@ const styles = StyleSheet.create({
   },
   balanceActions: {
     flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
     gap: Spacing.md,
     marginTop: Spacing.lg,
   },

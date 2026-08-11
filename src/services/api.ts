@@ -407,6 +407,7 @@ function mapLoan(raw: RawLoan): Loan {
     totalInstalments: raw.total_instalments,
     nextPaymentDate: raw.next_payment_date ?? undefined,
     nextPaymentAmount: raw.next_payment_amount ?? undefined,
+    disbursedAt: raw.disbursed_at,
     createdAt: raw.created_at,
     requiredDocuments: raw.required_documents ?? [],
     requiredDocumentsStatus: (raw.required_documents_status ?? []).map(mapRequiredDocumentStatus),

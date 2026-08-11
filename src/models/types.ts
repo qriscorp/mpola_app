@@ -51,6 +51,7 @@ export interface Loan {
   totalInstalments: number;
   nextPaymentDate?: string;
   nextPaymentAmount?: number;
+  disbursedAt: string | null;
   createdAt: string;
   requiredDocuments: string[];
   requiredDocumentsStatus: RequiredDocumentStatus[];
@@ -241,18 +242,6 @@ export interface WithdrawalCharges {
   platform_fee: number;
   provider_fee: number;
   total_fee: number;
-}
-
-export type PaymentMethod = "wallet" | "momo" | "airtel";
-
-export interface PaymentDetails {
-  amount: number;
-  method: PaymentMethod;
-  processingFee: number;
-  totalDeducted: number;
-  instalmentNumber: number;
-  totalInstalments: number;
-  dueDate: string;
 }
 
 export interface BorrowerStats {

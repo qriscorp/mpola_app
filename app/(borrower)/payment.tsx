@@ -10,15 +10,20 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Card, Input, SkeletonCard } from "../../src/components";
+import { Button, Card, Input, SkeletonCard, WalletDepositModal } from "../../src/components";
 import { usePaymentViewModel } from "../../src/viewmodels";
-import type { PaymentMethod } from "../../src/models";
+import { formatDuration } from "../../src/services/duration";
 
-const methods: { key: PaymentMethod; label: string }[] = [
-  { key: "wallet", label: "Wallet" },
-  { key: "momo", label: "MoMo" },
-  { key: "airtel", label: "Airtel" },
-];
+function formatDate(iso: string | null | undefined): string {
+  if (!iso) return "—";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("en-UG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 function formatDueDate(iso: string): string {
   if (!iso) return "";
@@ -58,6 +63,11 @@ export default function PaymentScreen() {
     );
   }
 
+  const isBulletLoan = vm.loan.durationDays != null;
+  const progressPct = vm.loan.totalRepayable
+    ? Math.min(100, Math.round(((vm.loan.totalPaid ?? 0) / vm.loan.totalRepayable) * 100))
+    : 0;
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -72,75 +82,146 @@ export default function PaymentScreen() {
         contentContainerStyle={styles.scroll}
         showsVerticalScrollIndicator={false}
       >
+        {/* Loan Summary */}
+        <Card style={{ marginBottom: Spacing.lg }}>
+          <Text style={styles.summaryTitle}>Loan Summary</Text>
+          <View style={styles.summaryGrid}>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Principal</Text>
+              <Text style={styles.summaryValue}>
+                UGX {vm.loan.amount.toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Duration</Text>
+              <Text style={styles.summaryValue}>
+                {formatDuration(vm.loan.duration, vm.loan.durationDays)}
+              </Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Interest Rate</Text>
+              <Text style={styles.summaryValue}>{vm.loan.interestRate}%/month</Text>
+            </View>
+            <View style={styles.summaryItem}>
+              <Text style={styles.summaryLabel}>Disbursed</Text>
+              <Text style={styles.summaryValue}>{formatDate(vm.loan.disbursedAt)}</Text>
+            </View>
+          </View>
+
+          <View style={styles.progressWrap}>
+            <View style={styles.progressLabelRow}>
+              <Text style={styles.progressLabel}>
+                {isBulletLoan
+                  ? "Repaid so far"
+                  : `Instalments paid: ${vm.loan.paidInstalments} of ${vm.loan.totalInstalments}`}
+              </Text>
+              <Text style={styles.progressValue}>
+                UGX {(vm.loan.totalPaid ?? 0).toLocaleString()} / UGX{" "}
+                {vm.loan.totalRepayable.toLocaleString()}
+              </Text>
+            </View>
+            <View style={styles.progressTrack}>
+              <View style={[styles.progressFill, { width: `${progressPct}%` }]} />
+            </View>
+          </View>
+        </Card>
+
         {/* Amount Due Card */}
         <Card style={styles.amountCard}>
-          <Text style={styles.amountLabel}>Amount Due</Text>
+          <Text style={styles.amountLabel}>
+            {isBulletLoan ? "Repayment Due" : "Amount Due"}
+          </Text>
           <Text style={styles.amountValue}>
-            UGX {vm.amount.toLocaleString()}
+            UGX {vm.dueAmount.toLocaleString()}
           </Text>
           <Text style={styles.amountSub}>
-            Instalment {vm.instalmentNumber} of {vm.totalInstalments} · Due{" "}
-            {formatDueDate(vm.dueDate)}
+            {isBulletLoan
+              ? `Due ${formatDueDate(vm.dueDate)}`
+              : `Instalment ${vm.instalmentNumber} of ${vm.totalInstalments} · Due ${formatDueDate(vm.dueDate)}`}
           </Text>
         </Card>
 
-        {/* Payment Method */}
-        <Text style={styles.sectionLabel}>Payment Method</Text>
-        <View style={styles.methodRow}>
-          {methods.map((m) => (
-            <TouchableOpacity
-              key={m.key}
-              style={[
-                styles.methodTab,
-                vm.method === m.key && styles.methodTabActive,
-              ]}
-              onPress={() => vm.setMethod(m.key)}
-            >
-              <Text
+        {vm.showPayoffOption && (
+          <>
+            <Text style={styles.sectionLabel}>How much would you like to pay?</Text>
+            <View style={styles.payModeRow}>
+              <TouchableOpacity
                 style={[
-                  styles.methodText,
-                  vm.method === m.key && styles.methodTextActive,
+                  styles.payModeCard,
+                  vm.payMode === "instalment" && styles.payModeCardActive,
                 ]}
+                onPress={() => vm.setAmountInput(String(vm.dueAmount))}
               >
-                {m.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-
-        {/* Mobile Money Phone Number */}
-        {vm.method !== "wallet" && (
-          <Input
-            label="Phone Number"
-            value={vm.phone}
-            onChangeText={vm.setPhone}
-            placeholder="+256 7XX XXX XXX"
-            keyboardType="phone-pad"
-          />
+                <Text style={styles.payModeLabel}>Pay this instalment</Text>
+                <Text style={styles.payModeValue}>
+                  UGX {vm.dueAmount.toLocaleString()}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.payModeCard,
+                  vm.payMode === "full" && styles.payModeCardActive,
+                ]}
+                onPress={() => vm.setAmountInput(String(vm.remainingBalance))}
+              >
+                <Text style={styles.payModeLabel}>Pay off full balance</Text>
+                <Text style={styles.payModeValue}>
+                  UGX {vm.remainingBalance.toLocaleString()}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </>
         )}
 
         {/* Wallet Balance */}
-        {vm.method === "wallet" && (
-          <Card style={styles.balanceCard}>
-            <View style={styles.balanceRow}>
-              <Text style={styles.balanceLabel}>Wallet Balance</Text>
-              <Text style={styles.balanceValue}>
-                UGX {vm.walletBalance.toLocaleString()}
-              </Text>
-            </View>
-            <Text
-              style={[
-                styles.sufficientText,
-                { color: vm.sufficient ? Colors.success : Colors.danger },
-              ]}
-            >
-              {vm.sufficient ? "Sufficient ✓" : "Insufficient funds"}
+        <Text style={styles.sectionLabel}>Paying From</Text>
+        <Card style={styles.balanceCard}>
+          <View style={styles.balanceRow}>
+            <Text style={styles.balanceLabel}>Wallet Balance</Text>
+            <Text style={styles.balanceValue}>
+              UGX {vm.walletBalance.toLocaleString()}
             </Text>
-          </Card>
+          </View>
+          <Text
+            style={[
+              styles.sufficientText,
+              { color: vm.sufficient ? Colors.success : Colors.danger },
+            ]}
+          >
+            {vm.sufficient ? "Sufficient ✓" : "Insufficient funds"}
+          </Text>
+        </Card>
+
+        {!vm.sufficient && (
+          <View style={styles.insufficientBanner}>
+            <Text style={styles.insufficientText}>
+              Your wallet balance is too low for this payment. Deposit at
+              least UGX {vm.shortfall.toLocaleString()} more to continue.
+            </Text>
+            <TouchableOpacity
+              style={styles.depositBtn}
+              onPress={() => vm.setDepositModalVisible(true)}
+            >
+              <Text style={styles.depositBtnText}>Deposit Funds</Text>
+            </TouchableOpacity>
+          </View>
         )}
 
+        {/* Amount */}
+        <Input
+          label="Amount to Pay"
+          value={vm.amountInput}
+          onChangeText={vm.setAmountInput}
+          placeholder={String(vm.dueAmount)}
+          keyboardType="numeric"
+        />
+        <Text style={styles.amountHint}>
+          Defaults to the amount due. You can pay more to get ahead on your
+          loan.
+        </Text>
+
         {/* Breakdown */}
-        <Card style={{ marginBottom: Spacing.xxl }}>
+        <Card style={{ marginBottom: Spacing.xxl, marginTop: Spacing.lg }}>
           <View style={styles.breakdownRow}>
             <Text style={styles.breakdownLabel}>Payment Amount</Text>
             <Text style={styles.breakdownValue}>
@@ -184,7 +265,7 @@ export default function PaymentScreen() {
                 params: {
                   reason: e instanceof Error ? e.message : "Please try again.",
                   amount: String(vm.amount),
-                  paymentMethod: vm.method,
+                  paymentMethod: "wallet",
                   loanId: vm.loan?.id ?? "",
                 },
               });
@@ -192,6 +273,7 @@ export default function PaymentScreen() {
           }}
           color={Colors.teal}
           loading={vm.loading}
+          disabled={!vm.sufficient}
         />
 
         <TouchableOpacity
@@ -201,6 +283,16 @@ export default function PaymentScreen() {
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <WalletDepositModal
+        visible={vm.depositModalVisible}
+        onClose={() => vm.setDepositModalVisible(false)}
+        onDepositMobileMoney={vm.depositMobileMoney}
+        onDepositCard={vm.depositWithCard}
+        isSubmittingMobileMoney={vm.isDepositingMobileMoney}
+        isSubmittingCard={vm.isDepositingWithCard}
+        accentColor={Colors.teal}
+      />
     </SafeAreaView>
   );
 }
@@ -222,6 +314,35 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xxl,
   },
   scroll: { padding: Spacing.lg, paddingBottom: 40 },
+  summaryTitle: { ...Typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
+  summaryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: Spacing.lg,
+  },
+  summaryItem: { width: "45%" },
+  summaryLabel: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+  },
+  summaryValue: { ...Typography.bodySemibold, color: Colors.textPrimary, marginTop: 2 },
+  progressWrap: { marginTop: Spacing.lg },
+  progressLabelRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: Spacing.xs,
+  },
+  progressLabel: { ...Typography.small, color: Colors.textMuted, flexShrink: 1 },
+  progressValue: { ...Typography.smallMedium, color: Colors.textPrimary },
+  progressTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: Colors.surfaceLift,
+    overflow: "hidden",
+  },
+  progressFill: { height: "100%", borderRadius: 3, backgroundColor: Colors.teal },
   amountCard: {
     backgroundColor: Colors.teal,
     alignItems: "center",
@@ -229,6 +350,25 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.xl,
     padding: Spacing.xl,
   },
+  payModeRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  payModeCard: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    backgroundColor: Colors.surface,
+    padding: Spacing.md,
+  },
+  payModeCardActive: {
+    borderColor: Colors.teal,
+    backgroundColor: Colors.tealLight,
+  },
+  payModeLabel: { ...Typography.small, color: Colors.textSecondary },
+  payModeValue: { ...Typography.bodySemibold, color: Colors.textPrimary, marginTop: 4 },
   amountLabel: {
     ...Typography.caption,
     color: Colors.white,
@@ -248,6 +388,11 @@ const styles = StyleSheet.create({
     opacity: 0.7,
     marginTop: 4,
   },
+  amountHint: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginTop: Spacing.xs,
+  },
   sectionLabel: {
     ...Typography.caption,
     color: Colors.textMuted,
@@ -255,31 +400,27 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
     marginBottom: Spacing.md,
   },
-  methodRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  methodTab: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-    backgroundColor: Colors.surface,
-  },
-  methodTabActive: {
-    backgroundColor: Colors.teal + "25",
-    borderColor: Colors.teal,
-  },
-  methodText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  methodTextActive: { color: Colors.teal },
-  balanceCard: { marginBottom: Spacing.lg },
+  balanceCard: { marginBottom: Spacing.md },
   balanceRow: { flexDirection: "row", justifyContent: "space-between" },
   balanceLabel: { ...Typography.body, color: Colors.textSecondary },
   balanceValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
   sufficientText: { ...Typography.smallMedium, marginTop: 4 },
+  insufficientBanner: {
+    backgroundColor: Colors.warningBg,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+    gap: Spacing.sm,
+  },
+  insufficientText: { ...Typography.small, color: Colors.warning },
+  depositBtn: {
+    alignSelf: "flex-start",
+    backgroundColor: Colors.warning,
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+  },
+  depositBtnText: { ...Typography.buttonSmall, color: Colors.navyDark },
   breakdownRow: {
     flexDirection: "row",
     justifyContent: "space-between",

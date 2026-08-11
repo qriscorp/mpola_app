@@ -9,7 +9,6 @@ import {
 } from "../services";
 import { useWalletTransactions } from "./useWalletTransactions";
 import { calcPlatformFee } from "../services/fees";
-import type { PaymentMethod } from "../models";
 
 const TX_PAGE_SIZE = 20;
 
@@ -69,8 +68,8 @@ export function useActiveLoanViewModel() {
 
 export function usePaymentViewModel() {
   const queryClient = useQueryClient();
-  const [method, setMethod] = useState<PaymentMethod>("wallet");
-  const [phone, setPhone] = useState("");
+  const [amountInput, setAmountInput] = useState("");
+  const [depositModalVisible, setDepositModalVisible] = useState(false);
 
   const { data: loan, isLoading: loanLoading } = useQuery({
     queryKey: ["borrower", "activeLoan"],
@@ -80,15 +79,25 @@ export function usePaymentViewModel() {
     queryKey: ["borrower", "wallet"],
     queryFn: fetchBorrowerWallet,
   });
+  const deposit = useWalletTransactions();
 
-  const amount = loan?.nextPaymentAmount ?? loan?.monthlyPayment ?? 0;
+  const dueAmount = loan?.nextPaymentAmount ?? loan?.monthlyPayment ?? 0;
+  const remainingBalance = Math.max(
+    0,
+    (loan?.totalRepayable ?? 0) - (loan?.totalPaid ?? 0),
+  );
+  const showPayoffOption = remainingBalance > dueAmount;
+  const amount = amountInput ? Number(amountInput) : dueAmount;
+  const payMode: "instalment" | "full" | "custom" =
+    amount === dueAmount ? "instalment" : amount === remainingBalance ? "full" : "custom";
   const instalmentNumber = (loan?.paidInstalments ?? 0) + 1;
   const totalInstalments = loan?.totalInstalments ?? 0;
   const dueDate = loan?.nextPaymentDate ?? "";
   const walletBalance = wallet?.balance ?? 0;
-  const processingFee = method === "wallet" ? calcPlatformFee(amount) : 0;
+  const processingFee = calcPlatformFee(amount);
   const totalDeducted = amount + processingFee;
-  const sufficient = walletBalance >= totalDeducted;
+  const shortfall = totalDeducted - walletBalance;
+  const sufficient = shortfall <= 0;
 
   const paymentMutation = useMutation({
     mutationFn: makeRepayment,
@@ -100,33 +109,38 @@ export function usePaymentViewModel() {
 
   const confirmPayment = async () => {
     if (!loan) throw new Error("No active loan to pay");
-    const carrier =
-      method === "momo" ? "MTN" : method === "airtel" ? "AIRTEL" : undefined;
     return paymentMutation.mutateAsync({
       loanId: loan.id,
       amount,
-      paymentMethod: method === "wallet" ? "wallet" : "mobile_money",
-      phoneNumber: method === "wallet" ? undefined : phone,
-      carrier,
+      paymentMethod: "wallet",
     });
   };
 
   return {
     loan,
     loanLoading,
-    method,
-    setMethod,
-    phone,
-    setPhone,
+    amountInput,
+    setAmountInput,
     amount,
+    dueAmount,
+    remainingBalance,
+    showPayoffOption,
+    payMode,
     instalmentNumber,
     totalInstalments,
     dueDate,
     walletBalance,
     processingFee,
     totalDeducted,
+    shortfall,
     sufficient,
     loading: paymentMutation.isPending,
     confirmPayment,
+    depositModalVisible,
+    setDepositModalVisible,
+    depositMobileMoney: deposit.depositMobileMoney,
+    isDepositingMobileMoney: deposit.isDepositingMobileMoney,
+    depositWithCard: deposit.depositWithCard,
+    isDepositingWithCard: deposit.isDepositingWithCard,
   };
 }
