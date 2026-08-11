@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fetchMarketplace, fetchApplicationDetail, makeOffer } from "../services";
 import { makeOfferSchema } from "../validation";
@@ -72,6 +73,10 @@ export function useMakeOfferViewModel(applicationId: string) {
   const [amount, setAmount] = useState("8000000");
   const [rate, setRate] = useState("3");
   const [duration, setDuration] = useState("18");
+  // Independent of whatever the application itself asked for — a lender can
+  // freely counter with either term shape, same flexibility this form
+  // already gives on amount/rate.
+  const [isEmergency, setIsEmergency] = useState(false);
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
 
@@ -85,10 +90,15 @@ export function useMakeOfferViewModel(applicationId: string) {
   const numRate = Number(rate) || 0;
   const numDuration = Number(duration) || 1;
 
-  const totalInterest = numAmount * (numRate / 100) * numDuration;
+  const totalInterest = isEmergency
+    ? numAmount * (numRate / 100) * (numDuration / 30)
+    : numAmount * (numRate / 100) * numDuration;
   const totalRepayable = numAmount + totalInterest;
-  const monthlyPayment =
-    numDuration > 0 ? Math.round(totalRepayable / numDuration) : 0;
+  const monthlyPayment = isEmergency
+    ? Math.round(totalRepayable)
+    : numDuration > 0
+      ? Math.round(totalRepayable / numDuration)
+      : 0;
 
   const offerMutation = useMutation({
     mutationFn: makeOffer,
@@ -101,7 +111,17 @@ export function useMakeOfferViewModel(applicationId: string) {
   });
 
   const sendOffer = async () => {
-    const result = makeOfferSchema.safeParse({ amount, rate, duration });
+    const result = isEmergency
+      ? makeOfferSchema
+          .omit({ duration: true })
+          .extend({
+            duration: z.string().refine(
+              (v) => Number(v) >= 1 && Number(v) <= 29,
+              "Duration: 1-29 days",
+            ),
+          })
+          .safeParse({ amount, rate, duration })
+      : makeOfferSchema.safeParse({ amount, rate, duration });
     if (!result.success) {
       const errs: Record<string, string> = {};
       for (const issue of result.error.issues) {
@@ -116,7 +136,8 @@ export function useMakeOfferViewModel(applicationId: string) {
       applicationId,
       amount: numAmount,
       interestRate: numRate,
-      duration: numDuration,
+      duration: isEmergency ? null : numDuration,
+      durationDays: isEmergency ? numDuration : null,
       requiredDocuments,
     });
     return offer;
@@ -129,6 +150,8 @@ export function useMakeOfferViewModel(applicationId: string) {
     setRate,
     duration,
     setDuration,
+    isEmergency,
+    setIsEmergency,
     requiredDocuments,
     toggleRequiredDocument,
     monthlyPayment,

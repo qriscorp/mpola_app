@@ -72,11 +72,29 @@ export default function MakeOfferScreen() {
           <Text style={styles.error}>{vm.offerErrors.rate}</Text>
         )}
 
+        <View style={styles.unitRow}>
+          <TouchableOpacity
+            style={[styles.unitChip, !vm.isEmergency && styles.unitChipActive]}
+            onPress={() => vm.setIsEmergency(false)}
+          >
+            <Text style={[styles.unitChipText, !vm.isEmergency && styles.unitChipTextActive]}>
+              Months
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.unitChip, vm.isEmergency && styles.unitChipActive]}
+            onPress={() => vm.setIsEmergency(true)}
+          >
+            <Text style={[styles.unitChipText, vm.isEmergency && styles.unitChipTextActive]}>
+              Days (emergency)
+            </Text>
+          </TouchableOpacity>
+        </View>
         <Input
-          label="Duration (months)"
+          label={vm.isEmergency ? "Duration (days)" : "Duration (months)"}
           value={vm.duration}
           onChangeText={vm.setDuration}
-          placeholder="e.g. 18"
+          placeholder={vm.isEmergency ? "e.g. 7" : "e.g. 18"}
           keyboardType="numeric"
         />
         {vm.offerErrors.duration && (
@@ -105,7 +123,9 @@ export default function MakeOfferScreen() {
         <Card style={styles.previewCard}>
           <Text style={styles.previewTitle}>Offer Summary</Text>
           <View style={styles.previewRow}>
-            <Text style={styles.previewLabel}>Monthly Payment</Text>
+            <Text style={styles.previewLabel}>
+              {vm.isEmergency ? "Repayment Due" : "Monthly Payment"}
+            </Text>
             <Text style={styles.previewValue}>
               UGX {vm.monthlyPayment.toLocaleString()}
             </Text>
@@ -170,6 +190,22 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
     marginBottom: Spacing.sm,
   },
+  unitRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  unitChip: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  unitChipActive: { backgroundColor: Colors.gold + "25", borderColor: Colors.gold },
+  unitChipText: { ...Typography.smallMedium, color: Colors.textSecondary },
+  unitChipTextActive: { color: Colors.gold },
   docChipRow: {
     flexDirection: "row",
     flexWrap: "wrap",

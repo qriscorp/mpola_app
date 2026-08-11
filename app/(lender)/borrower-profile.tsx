@@ -13,6 +13,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Badge, SkeletonHero, SkeletonCard } from "../../src/components";
 import { useApplicationDetailViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel } from "../../src/services/applicationStatus";
+import { formatDuration } from "../../src/services/duration";
 
 function initials(name: string | null | undefined): string {
   if (!name) return "?";
@@ -115,7 +116,7 @@ export default function BorrowerProfileScreen() {
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Duration</Text>
-            <Text style={styles.cardValue}>{application.duration} months</Text>
+            <Text style={styles.cardValue}>{formatDuration(application.duration, application.durationDays)}</Text>
           </View>
           <View style={[styles.cardRow, { borderBottomWidth: 0 }]}>
             <Text style={styles.cardLabel}>Purpose</Text>

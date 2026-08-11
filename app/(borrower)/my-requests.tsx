@@ -14,6 +14,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, Input, SkeletonList, InfoTip } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
+import { formatDuration } from "../../src/services/duration";
 import type { LoanApplication, Guarantor } from "../../src/models";
 
 const TABS = ["All", "Pending", "Funded", "Closed"] as const;
@@ -115,7 +116,7 @@ function GuarantorRow({ applicationId, guarantor }: { applicationId: string; gua
   );
 }
 
-const EDIT_DURATIONS = [1, 2, 3, 6, 12, 18, 24];
+const EDIT_DURATIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24];
 const EDIT_LOAN_TYPES: { label: string; value: LoanApplication["loanType"] }[] = [
   { label: "Personal", value: "personal" },
   { label: "Business", value: "business" },
@@ -131,10 +132,18 @@ const EDIT_EXPIRY_PRESETS: { label: string; days: number | null }[] = [
   { label: "No rush", days: null },
 ];
 
+const EMERGENCY_DAY_PRESETS = [1, 3, 7, 14];
+
 function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: () => void }) {
   const { updateApplication, isUpdating } = useMyApplicationsViewModel();
   const [amount, setAmount] = useState(String(app.amount));
-  const [duration, setDuration] = useState(app.duration);
+  const [duration, setDuration] = useState(app.duration ?? 3);
+  const [durationDays, setDurationDays] = useState<number | null>(app.durationDays);
+  const [customDays, setCustomDays] = useState(
+    app.durationDays != null && !EMERGENCY_DAY_PRESETS.includes(app.durationDays)
+      ? String(app.durationDays)
+      : "",
+  );
   const [loanType, setLoanType] = useState(app.loanType);
   const [purpose, setPurpose] = useState(app.purpose ?? "");
   const [maxInterestRate, setMaxInterestRate] = useState(
@@ -142,6 +151,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
   );
   const [validUntil, setValidUntil] = useState<string | null>(app.validUntil);
 
+  const isEmergency = loanType === "emergency";
   const numAmount = Number(amount);
   const amountInvalid = !amount.trim() || Number.isNaN(numAmount) || numAmount < 1000 || numAmount > 50000000;
   const rateInvalid =
@@ -155,12 +165,16 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         id: app.id,
         data: {
           amount: Number(amount),
-          duration,
-          loanType,
           // Explicit "" / null, not `undefined` — this is an edit, so a
           // cleared field must actually reach the backend as a clear.
           // `undefined` gets dropped before the request body is built,
           // which the backend's exclude_unset then reads as "unchanged".
+          // Exactly one of duration/durationDays is ever set — switching
+          // loan type between "Emergency" and anything else must clear
+          // the other one explicitly, not leave it stale.
+          duration: isEmergency ? null : duration,
+          durationDays: isEmergency ? durationDays : null,
+          loanType,
           purpose,
           maxInterestRate: maxInterestRate ? Number(maxInterestRate) : null,
           validUntil,
@@ -182,31 +196,69 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         error={amountInvalid ? "Between UGX 1,000 and UGX 50,000,000" : undefined}
       />
 
-      <Text style={styles.editLabel}>Duration</Text>
-      <View style={styles.pillRow}>
-        {EDIT_DURATIONS.map((d) => (
-          <TouchableOpacity
-            key={d}
-            style={[styles.pill, duration === d && styles.pillActive]}
-            onPress={() => setDuration(d)}
-          >
-            <Text style={[styles.pillText, duration === d && styles.pillTextActive]}>{d} mo</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       <Text style={styles.editLabel}>Loan Type</Text>
       <View style={styles.pillRow}>
         {EDIT_LOAN_TYPES.map((t) => (
           <TouchableOpacity
             key={t.value}
             style={[styles.pill, loanType === t.value && styles.pillActive]}
-            onPress={() => setLoanType(t.value)}
+            onPress={() => {
+              setLoanType(t.value);
+              if (t.value === "emergency") {
+                setDurationDays((d) => d ?? EMERGENCY_DAY_PRESETS[0]);
+              } else {
+                setDurationDays(null);
+              }
+            }}
           >
             <Text style={[styles.pillText, loanType === t.value && styles.pillTextActive]}>{t.label}</Text>
           </TouchableOpacity>
         ))}
       </View>
+
+      <Text style={styles.editLabel}>Duration</Text>
+      {isEmergency ? (
+        <>
+          <View style={styles.pillRow}>
+            {EMERGENCY_DAY_PRESETS.map((d) => (
+              <TouchableOpacity
+                key={d}
+                style={[styles.pill, durationDays === d && styles.pillActive]}
+                onPress={() => {
+                  setDurationDays(d);
+                  setCustomDays("");
+                }}
+              >
+                <Text style={[styles.pillText, durationDays === d && styles.pillTextActive]}>
+                  {d}d
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+          <Input
+            label="Custom (1-29 days)"
+            value={customDays}
+            onChangeText={(t) => {
+              setCustomDays(t);
+              const n = parseInt(t, 10);
+              if (!Number.isNaN(n) && n >= 1 && n <= 29) setDurationDays(n);
+            }}
+            keyboardType="numeric"
+          />
+        </>
+      ) : (
+        <View style={styles.pillRow}>
+          {EDIT_DURATIONS.map((d) => (
+            <TouchableOpacity
+              key={d}
+              style={[styles.pill, duration === d && styles.pillActive]}
+              onPress={() => setDuration(d)}
+            >
+              <Text style={[styles.pillText, duration === d && styles.pillTextActive]}>{d} mo</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
       <Input label="Purpose (optional)" value={purpose} onChangeText={setPurpose} />
       <Input
@@ -361,7 +413,7 @@ function RequestDetailPanel({ app }: { app: LoanApplication }) {
     <View style={styles.detailPanel}>
       <DetailRow label="Reference" value={app.referenceNumber} />
       <DetailRow label="Amount" value={`UGX ${app.amount.toLocaleString()}`} />
-      <DetailRow label="Duration" value={`${app.duration} months`} />
+      <DetailRow label="Duration" value={formatDuration(app.duration, app.durationDays)} />
       <DetailRow
         label="Loan Type"
         value={app.loanType.charAt(0).toUpperCase() + app.loanType.slice(1)}
@@ -436,7 +488,7 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
         <View style={styles.cardHeader}>
           <View style={{ flex: 1 }}>
             <Text style={styles.amount}>UGX {app.amount.toLocaleString()}</Text>
-            <Text style={styles.subInfo}>{app.loanType} · {app.duration} months</Text>
+            <Text style={styles.subInfo}>{app.loanType} · {formatDuration(app.duration, app.durationDays)}</Text>
             <Text style={styles.draftNote}>Not yet submitted.</Text>
           </View>
           <Badge label="Draft" variant="default" />
@@ -458,7 +510,7 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
         <View style={{ flex: 1 }}>
           <Text style={styles.amount}>UGX {app.amount.toLocaleString()}</Text>
           <Text style={styles.subInfo}>
-            {app.loanType} · {app.duration} months
+            {app.loanType} · {formatDuration(app.duration, app.durationDays)}
             {expiryNote(app.validUntil, app.status) ? ` · ${expiryNote(app.validUntil, app.status)}` : ""}
           </Text>
         </View>

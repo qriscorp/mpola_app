@@ -15,6 +15,7 @@ import {
   useLenderDashboardViewModel,
   useNotificationsViewModel,
 } from "../../src/viewmodels";
+import { formatDuration } from "../../src/services/duration";
 
 export default function LenderHomeScreen() {
   const router = useRouter();
@@ -133,7 +134,7 @@ export default function LenderHomeScreen() {
               />
             </View>
             <Text style={styles.offerSub}>
-              {item.interestRate}%/month · {item.duration ?? "—"} months
+              {item.interestRate}%/month · {formatDuration(item.duration, item.durationDays)}
             </Text>
             <Text style={styles.offerMeta}>
               {item.borrowerName ?? "Unknown borrower"}

@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, SkeletonList, InfoTip } from "../../src/components";
 import { useBrowseBorrowersViewModel } from "../../src/viewmodels";
+import { formatDuration } from "../../src/services/duration";
 
 function initials(name: string | null | undefined): string {
   if (!name) return "?";
@@ -145,7 +146,7 @@ export default function BrowseBorrowersScreen() {
                   <View style={styles.detailItem}>
                     <Text style={styles.detailLabel}>Duration</Text>
                     <Text style={styles.detailValue}>
-                      {app.duration} months
+                      {formatDuration(app.duration, app.durationDays)}
                     </Text>
                   </View>
                 </View>

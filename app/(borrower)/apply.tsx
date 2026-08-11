@@ -205,26 +205,6 @@ export default function ApplyScreen() {
               error={vm.detailsErrors.amount}
             />
 
-            <Text style={styles.sectionLabel}>Duration</Text>
-            <View style={styles.chips}>
-              {vm.durationOptions.map((d) => (
-                <TouchableOpacity
-                  key={d}
-                  style={[styles.chip, vm.duration === d && styles.chipActive]}
-                  onPress={() => vm.setDuration(d)}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      vm.duration === d && styles.chipTextActive,
-                    ]}
-                  >
-                    {d} mo
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
             <Text style={styles.sectionLabel}>Loan Type</Text>
             <View style={styles.typeGrid}>
               {vm.loanTypes.map((t) => (
@@ -247,6 +227,69 @@ export default function ApplyScreen() {
                 </TouchableOpacity>
               ))}
             </View>
+            {vm.isEmergency && (
+              <Text style={styles.emergencyNote}>
+                Short-term request — one repayment in full, due when the term ends. Interest is
+                prorated from the platform&apos;s monthly rate.
+              </Text>
+            )}
+
+            <Text style={styles.sectionLabel}>Duration</Text>
+            {vm.isEmergency ? (
+              <>
+                <View style={styles.chips}>
+                  {vm.emergencyDayPresets.map((d) => (
+                    <TouchableOpacity
+                      key={d}
+                      style={[styles.chip, vm.durationDays === d && styles.chipActive]}
+                      onPress={() => vm.setDurationDays(d)}
+                    >
+                      <Text
+                        style={[
+                          styles.chipText,
+                          vm.durationDays === d && styles.chipTextActive,
+                        ]}
+                      >
+                        {d} day{d === 1 ? "" : "s"}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+                <Input
+                  label="Custom (1-29 days)"
+                  value={
+                    vm.durationDays != null && !vm.emergencyDayPresets.includes(vm.durationDays)
+                      ? String(vm.durationDays)
+                      : ""
+                  }
+                  onChangeText={(t) => {
+                    const n = parseInt(t, 10);
+                    vm.setDurationDays(!Number.isNaN(n) && n >= 1 && n <= 29 ? n : null);
+                  }}
+                  placeholder="e.g. 21"
+                  keyboardType="numeric"
+                />
+              </>
+            ) : (
+              <View style={styles.chips}>
+                {vm.durationOptions.map((d) => (
+                  <TouchableOpacity
+                    key={d}
+                    style={[styles.chip, vm.duration === d && styles.chipActive]}
+                    onPress={() => vm.setDuration(d)}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        vm.duration === d && styles.chipTextActive,
+                      ]}
+                    >
+                      {d} mo
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
 
             <Input
               label="Purpose (optional)"
@@ -297,10 +340,11 @@ export default function ApplyScreen() {
 
             <Card style={styles.estimateCard}>
               <Text style={styles.estimateLabel}>
-                Estimated Repayment ({vm.interestRate}%/month)
+                Estimated {vm.isEmergency ? "Repayment" : `Repayment (${vm.interestRate}%/month)`}
               </Text>
               <Text style={styles.estimateAmount}>
-                ~UGX {vm.monthlyPayment.toLocaleString()}/month
+                ~UGX {vm.monthlyPayment.toLocaleString()}
+                {vm.isEmergency ? "" : "/month"}
               </Text>
               <Text style={styles.estimateTotal}>
                 UGX {Math.round(vm.totalRepayable).toLocaleString()} total
@@ -402,7 +446,9 @@ export default function ApplyScreen() {
               </View>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>Duration</Text>
-                <Text style={styles.reviewValue}>{vm.duration} months</Text>
+                <Text style={styles.reviewValue}>
+                  {vm.isEmergency ? `${vm.durationDays} day${vm.durationDays === 1 ? "" : "s"}` : `${vm.duration} months`}
+                </Text>
               </View>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>Rate</Text>
@@ -553,6 +599,12 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.lg,
   },
   expiryHint: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.lg,
+  },
+  emergencyNote: {
     ...Typography.small,
     color: Colors.textMuted,
     marginTop: -Spacing.sm,

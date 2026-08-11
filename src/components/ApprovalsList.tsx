@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 import { fetchGuarantorRequests, respondToGuarantorRequest } from "../services";
+import { formatDuration } from "../services/duration";
 
 /** Everything the current user has been asked to approve — right now just
  * guarantor requests, but the dedicated Approvals tab (not buried inside
@@ -55,7 +56,7 @@ export function ApprovalsList() {
             </View>
             <View style={styles.detailCell}>
               <Text style={styles.detailLabel}>Duration</Text>
-              <Text style={styles.detailValue}>{r.duration ? `${r.duration} months` : "—"}</Text>
+              <Text style={styles.detailValue}>{formatDuration(r.duration, r.durationDays)}</Text>
             </View>
             <View style={styles.detailCell}>
               <Text style={styles.detailLabel}>Purpose</Text>

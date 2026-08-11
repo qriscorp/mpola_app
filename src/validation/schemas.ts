@@ -47,21 +47,30 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 // ─── Loan Application Schema ──────────────────────────────
 
-export const loanDetailsSchema = z.object({
-  amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine((v) => Number(v) >= 1000, "Minimum loan is UGX 1,000")
-    .refine((v) => Number(v) <= 50000000, "Maximum loan is UGX 50,000,000"),
-  duration: z.number().min(3).max(24),
-  loanType: z.enum([
-    "personal",
-    "business",
-    "education",
-    "agricultural",
-    "emergency",
-  ]),
-});
+export const loanDetailsSchema = z
+  .object({
+    amount: z
+      .string()
+      .min(1, "Amount is required")
+      .refine((v) => Number(v) >= 1000, "Minimum loan is UGX 1,000")
+      .refine((v) => Number(v) <= 50000000, "Maximum loan is UGX 50,000,000"),
+    // Exactly one of these two — duration (months, standard) or
+    // durationDays (1-29, "emergency" single bullet repayment). Mirrors
+    // mpola_api's LoanApplicationCreate.check_duration.
+    duration: z.number().min(1).max(24).nullable(),
+    durationDays: z.number().min(1).max(29).nullable(),
+    loanType: z.enum([
+      "personal",
+      "business",
+      "education",
+      "agricultural",
+      "emergency",
+    ]),
+  })
+  .refine((v) => (v.duration == null) !== (v.durationDays == null), {
+    message: "Choose a duration",
+    path: ["duration"],
+  });
 
 export type LoanDetailsInput = z.infer<typeof loanDetailsSchema>;
 

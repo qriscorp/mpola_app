@@ -21,6 +21,7 @@ import {
   makeOffer,
 } from "../../src/services";
 import type { MarketplaceApplication } from "../../src/models";
+import { formatDuration } from "../../src/services/duration";
 
 type Tab = "All" | "Pending" | "Approved" | "Declined";
 const TABS: Tab[] = ["All", "Pending", "Approved", "Declined"];
@@ -58,7 +59,8 @@ function OfferModal({
         applicationId: app.id,
         amount: app.amount,
         interestRate: Number(rate),
-        duration: app.duration,
+        duration: app.durationDays != null ? null : app.duration,
+        durationDays: app.durationDays,
         requiredDocuments: requiredDocs,
       }),
     onSuccess: () => {
@@ -85,7 +87,7 @@ function OfferModal({
             </View>
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Duration</Text>
-              <Text style={styles.summaryValue}>{app.duration} months</Text>
+              <Text style={styles.summaryValue}>{formatDuration(app.duration, app.durationDays)}</Text>
             </View>
           </View>
 
@@ -228,7 +230,7 @@ export default function ApplicationsInboxScreen() {
                 </View>
                 <View style={styles.amountBox}>
                   <Text style={styles.amount}>UGX {app.amount.toLocaleString()}</Text>
-                  <Text style={styles.duration}>{app.duration} months</Text>
+                  <Text style={styles.duration}>{formatDuration(app.duration, app.durationDays)}</Text>
                 </View>
               </View>
               <View style={styles.actionsRow}>

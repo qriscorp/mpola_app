@@ -13,6 +13,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useOffersViewModel, useAllOffersViewModel } from "../../src/viewmodels";
 import { SkeletonList, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
 import type { LoanOffer } from "../../src/models";
+import { formatDuration } from "../../src/services/duration";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
 const REQUIRED_ACCEPTED_GUARANTORS = 2;
@@ -75,7 +76,7 @@ function AllOffersView() {
                   <View style={styles.offerInfo}>
                     <Text style={styles.offerName}>{offer.lenderName ?? "Lender"}</Text>
                     <Text style={styles.offerSub}>
-                      {offer.duration} months
+                      {formatDuration(offer.duration, offer.durationDays)}
                       {offer.loanType ? ` · ${offer.loanType}` : ""}
                       {offer.applicationReference ? ` · #${offer.applicationReference}` : ""}
                     </Text>
@@ -188,7 +189,7 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
           <View style={styles.summaryRow}>
             <Text style={styles.appSummary}>
               UGX {application.amount.toLocaleString()} · {application.loanType} ·{" "}
-              {application.duration} months
+              {formatDuration(application.duration, application.durationDays)}
             </Text>
             <InfoTip text="Accepting an offer immediately funds this loan and declines every other offer on it automatically — you can only accept one, and it requires both guarantors to have already approved." />
           </View>
@@ -233,8 +234,9 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
                         {offer.lenderName ?? "Lender"}
                       </Text>
                       <Text style={styles.offerSub}>
-                        {offer.duration} months · UGX{" "}
-                        {(offer.monthlyPayment ?? 0).toLocaleString()}/mo
+                        {formatDuration(offer.duration, offer.durationDays)} · UGX{" "}
+                        {(offer.monthlyPayment ?? 0).toLocaleString()}
+                        {offer.durationDays != null ? "" : "/mo"}
                       </Text>
                     </View>
                     <Text style={styles.offerRate}>

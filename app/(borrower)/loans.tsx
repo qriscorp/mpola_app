@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { ProgressBar, SkeletonBox, SkeletonCard } from "../../src/components";
 import { useActiveLoanViewModel } from "../../src/viewmodels";
+import { formatDuration } from "../../src/services/duration";
 
 const TABS = ["All", "Active", "Pending", "Closed"];
 
@@ -91,7 +92,7 @@ export default function LoansScreen() {
                 UGX {loan.amount.toLocaleString()}
               </Text>
               <Text style={styles.loanSub}>
-                {loan.interestRate}%/month · {loan.duration} months
+                {loan.interestRate}%/month · {formatDuration(loan.duration, loan.durationDays)}
               </Text>
             </View>
             <View style={styles.activeBadge}>

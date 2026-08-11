@@ -297,7 +297,8 @@ interface RawLoan {
   lender_name?: string | null;
   amount: number;
   interest_rate: number;
-  duration: number;
+  duration: number | null;
+  duration_days: number | null;
   monthly_payment: number;
   total_repayable: number;
   total_paid: number;
@@ -331,6 +332,7 @@ function mapLoan(raw: RawLoan): Loan {
     lenderName: raw.lender_name ?? null,
     amount: raw.amount,
     duration: raw.duration,
+    durationDays: raw.duration_days,
     type: "personal", // the active-loan API doesn't return a loan type today
     interestRate: raw.interest_rate,
     monthlyPayment: raw.monthly_payment,
@@ -515,7 +517,8 @@ interface RawOffer {
   lender_name: string | null;
   amount: number;
   interest_rate: number;
-  duration: number;
+  duration: number | null;
+  duration_days: number | null;
   monthly_payment: number | null;
   total_repayable: number | null;
   status: string;
@@ -549,7 +552,8 @@ interface RawApplication {
   id: string;
   reference_number: string;
   amount: number;
-  duration: number;
+  duration: number | null;
+  duration_days: number | null;
   loan_type: string;
   purpose: string | null;
   status: string;
@@ -583,6 +587,7 @@ function mapOffer(o: RawOffer): LoanOffer {
     amount: o.amount,
     interestRate: o.interest_rate,
     duration: o.duration,
+    durationDays: o.duration_days,
     monthlyPayment: o.monthly_payment,
     totalRepayable: o.total_repayable,
     status: o.status as OfferStatus,
@@ -620,6 +625,7 @@ function mapApplication(a: RawApplication): LoanApplication {
     referenceNumber: a.reference_number,
     amount: a.amount,
     duration: a.duration,
+    durationDays: a.duration_days,
     loanType: a.loan_type as LoanType,
     purpose: a.purpose,
     status: a.status as ApplicationStatus,
@@ -705,6 +711,7 @@ interface RawGuarantorRequest {
   amount: number | null;
   loan_type: string | null;
   duration: number | null;
+  duration_days: number | null;
   purpose: string | null;
   borrower_name: string | null;
   created_at: string;
@@ -720,6 +727,7 @@ export async function fetchGuarantorRequests(status?: string): Promise<Guarantor
     amount: r.amount,
     loanType: r.loan_type,
     duration: r.duration,
+    durationDays: r.duration_days,
     purpose: r.purpose,
     borrowerName: r.borrower_name,
     createdAt: r.created_at,
@@ -797,7 +805,8 @@ export async function uploadBorrowerDocument(
 
 export async function submitLoanApplication(data: {
   amount: number;
-  duration: number;
+  duration?: number;
+  durationDays?: number;
   loanType: string;
   purpose?: string;
   maxInterestRate?: number;
@@ -810,6 +819,7 @@ export async function submitLoanApplication(data: {
   }>("/loans/applications", {
     amount: data.amount,
     duration: data.duration,
+    duration_days: data.durationDays,
     loan_type: data.loanType,
     purpose: data.purpose,
     max_interest_rate: data.maxInterestRate,
@@ -825,7 +835,8 @@ export async function updateApplication(
   id: string,
   data: Partial<{
     amount: number;
-    duration: number;
+    duration: number | null;
+    durationDays: number | null;
     loanType: string;
     purpose: string;
     maxInterestRate: number | null;
@@ -837,6 +848,7 @@ export async function updateApplication(
     {
       amount: data.amount,
       duration: data.duration,
+      duration_days: data.durationDays,
       loan_type: data.loanType,
       purpose: data.purpose,
       max_interest_rate: data.maxInterestRate,
@@ -976,7 +988,8 @@ export async function makeOffer(data: {
   applicationId: string;
   amount: number;
   interestRate: number;
-  duration: number;
+  duration?: number | null;
+  durationDays?: number | null;
   requiredDocuments?: string[];
 }): Promise<LoanOffer> {
   const res = await apiAuthPost<{
@@ -988,6 +1001,7 @@ export async function makeOffer(data: {
     amount: data.amount,
     interest_rate: data.interestRate,
     duration: data.duration,
+    duration_days: data.durationDays,
     required_documents: data.requiredDocuments ?? [],
   });
   return mapOffer(res.offer);

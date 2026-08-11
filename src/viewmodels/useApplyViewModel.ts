@@ -38,6 +38,7 @@ export function useApplyViewModel() {
 
   const [amount, setAmount] = useState("");
   const [duration, setDuration] = useState(6);
+  const [durationDays, setDurationDays] = useState<number | null>(null);
   const [loanType, setLoanType] = useState<LoanType>("personal");
   const [purpose, setPurpose] = useState("");
   const [maxInterestRate, setMaxInterestRate] = useState("");
@@ -76,7 +77,11 @@ export function useApplyViewModel() {
       setReferenceNumber(draft.referenceNumber);
       setResumedFromDraft(true);
       setAmount(String(draft.amount));
-      setDuration(draft.duration);
+      if (draft.durationDays != null) {
+        setDurationDays(draft.durationDays);
+      } else if (draft.duration != null) {
+        setDuration(draft.duration);
+      }
       setLoanType(draft.loanType);
       setPurpose(draft.purpose ?? "");
       setMaxInterestRate(draft.maxInterestRate != null ? String(draft.maxInterestRate) : "");
@@ -86,17 +91,29 @@ export function useApplyViewModel() {
     setResuming(false);
   }, [draft, draftLoading]);
 
+  const isEmergency = loanType === "emergency";
+  const emergencyDayPresets = [1, 3, 7, 14];
   const numAmount = Number(amount) || 0;
   const maxRateInvalid =
     maxInterestRate.trim() !== "" &&
     (Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
   const step1Valid =
-    amount.trim() !== "" && numAmount >= 1000 && numAmount <= 50000000 && !maxRateInvalid;
-  const totalInterest = numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
+    amount.trim() !== "" &&
+    numAmount >= 1000 &&
+    numAmount <= 50000000 &&
+    !maxRateInvalid &&
+    (isEmergency ? durationDays != null : duration > 0);
+  const totalInterest = isEmergency
+    ? numAmount * (PLATFORM_RATE_PER_MONTH / 100) * ((durationDays ?? 0) / 30)
+    : numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
   const totalRepayable = numAmount + totalInterest;
-  const monthlyPayment = duration > 0 ? Math.round(totalRepayable / duration) : 0;
+  const monthlyPayment = isEmergency
+    ? Math.round(totalRepayable)
+    : duration > 0
+      ? Math.round(totalRepayable / duration)
+      : 0;
 
-  const durationOptions = [1, 2, 3, 6, 12, 18, 24];
+  const durationOptions = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24];
   const loanTypes: LoanType[] = [
     "personal",
     "business",
@@ -105,8 +122,25 @@ export function useApplyViewModel() {
     "emergency",
   ];
 
+  // Switching loan type resets duration to that mode's default rather than
+  // leaving a stale value from the other mode — mirrors the website wizard.
+  const selectLoanType = (t: LoanType) => {
+    setLoanType(t);
+    if (t === "emergency") {
+      setDurationDays((d) => d ?? emergencyDayPresets[0]);
+    } else {
+      setDurationDays(null);
+      setDuration((d) => d || 6);
+    }
+  };
+
   const validateDetails = () => {
-    const result = loanDetailsSchema.safeParse({ amount, duration, loanType });
+    const result = loanDetailsSchema.safeParse({
+      amount,
+      duration: isEmergency ? null : duration,
+      durationDays: isEmergency ? durationDays : null,
+      loanType,
+    });
     const errs: Record<string, string> = {};
     if (!result.success) {
       for (const issue of result.error.issues) {
@@ -126,7 +160,8 @@ export function useApplyViewModel() {
       if (applicationId) {
         await updateApplication(applicationId, {
           amount: numAmount,
-          duration,
+          duration: isEmergency ? null : duration,
+          durationDays: isEmergency ? durationDays : null,
           loanType,
           purpose,
           maxInterestRate: maxInterestRate ? Number(maxInterestRate) : null,
@@ -136,7 +171,8 @@ export function useApplyViewModel() {
       }
       const res = await submitLoanApplication({
         amount: numAmount,
-        duration,
+        duration: isEmergency ? undefined : duration,
+        durationDays: isEmergency ? durationDays ?? undefined : undefined,
         loanType,
         purpose: purpose || undefined,
         maxInterestRate: maxInterestRate ? Number(maxInterestRate) : undefined,
@@ -215,6 +251,7 @@ export function useApplyViewModel() {
       setResumedFromDraft(false);
       setAmount("");
       setDuration(6);
+      setDurationDays(null);
       setLoanType("personal");
       setPurpose("");
       setMaxInterestRate("");
@@ -240,9 +277,13 @@ export function useApplyViewModel() {
     setAmount,
     duration,
     setDuration,
+    durationDays,
+    setDurationDays,
     durationOptions,
+    emergencyDayPresets,
+    isEmergency,
     loanType,
-    setLoanType,
+    setLoanType: selectLoanType,
     loanTypes,
     purpose,
     setPurpose,

@@ -39,7 +39,8 @@ export interface Loan {
   borrowerName?: string | null;
   lenderName?: string | null;
   amount: number;
-  duration: number; // months
+  duration: number | null; // months — exactly one of duration/durationDays is set
+  durationDays: number | null; // short-term "emergency" loan (1-29 days), single bullet repayment
   type: LoanType;
   interestRate: number;
   monthlyPayment: number;
@@ -86,7 +87,8 @@ export interface LoanApplication {
   id: string;
   referenceNumber: string;
   amount: number;
-  duration: number;
+  duration: number | null;
+  durationDays: number | null;
   loanType: LoanType;
   purpose: string | null;
   status: ApplicationStatus;
@@ -127,6 +129,7 @@ export interface GuarantorRequest {
   amount: number | null;
   loanType: string | null;
   duration: number | null;
+  durationDays: number | null;
   purpose: string | null;
   borrowerName: string | null;
   createdAt: string;
@@ -154,7 +157,8 @@ export interface LoanOffer {
   lenderName: string | null;
   amount: number;
   interestRate: number;
-  duration: number;
+  duration: number | null;
+  durationDays: number | null;
   monthlyPayment: number | null;
   totalRepayable: number | null;
   status: OfferStatus;

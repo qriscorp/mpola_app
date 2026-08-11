@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, ProgressBar, SkeletonCard, SkeletonList } from "../../src/components";
 import { fetchLoanDetail } from "../../src/services";
+import { formatDuration } from "../../src/services/duration";
 
 export default function LoanDetailScreen() {
   const router = useRouter();
@@ -103,10 +104,12 @@ export default function LoanDetailScreen() {
           </View>
           <View style={styles.cardRow}>
             <Text style={styles.cardLabel}>Duration</Text>
-            <Text style={styles.cardValue}>{loan.duration} months</Text>
+            <Text style={styles.cardValue}>{formatDuration(loan.duration, loan.durationDays)}</Text>
           </View>
           <View style={styles.cardRow}>
-            <Text style={styles.cardLabel}>Monthly Payment</Text>
+            <Text style={styles.cardLabel}>
+              {loan.durationDays != null ? "Repayment Due" : "Monthly Payment"}
+            </Text>
             <Text style={styles.cardValue}>
               UGX {loan.monthlyPayment.toLocaleString()}
             </Text>

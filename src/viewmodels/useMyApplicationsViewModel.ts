@@ -55,7 +55,8 @@ export function useMyApplicationsViewModel() {
       id: string;
       data: Partial<{
         amount: number;
-        duration: number;
+        duration: number | null;
+        durationDays: number | null;
         loanType: string;
         purpose: string;
         maxInterestRate: number | null;

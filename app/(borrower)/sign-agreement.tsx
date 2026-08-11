@@ -15,6 +15,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Button, Card, SkeletonCard, RequiredDocumentsChecklist } from "../../src/components";
 import { useOffersViewModel } from "../../src/viewmodels";
 import { fetchBorrowerWallet, fetchProfile } from "../../src/services";
+import { formatDuration } from "../../src/services/duration";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
 const REQUIRED_ACCEPTED_GUARANTORS = 2;
@@ -125,10 +126,12 @@ export default function SignAgreementScreen() {
             </View>
             <View style={styles.summaryCell}>
               <Text style={styles.summaryLabel}>Duration</Text>
-              <Text style={styles.summaryValue}>{offer.duration} months</Text>
+              <Text style={styles.summaryValue}>{formatDuration(offer.duration, offer.durationDays)}</Text>
             </View>
             <View style={styles.summaryCell}>
-              <Text style={styles.summaryLabel}>Monthly Payment</Text>
+              <Text style={styles.summaryLabel}>
+                {offer.durationDays != null ? "Repayment Due" : "Monthly Payment"}
+              </Text>
               <Text style={styles.summaryValue}>UGX {(offer.monthlyPayment ?? 0).toLocaleString()}</Text>
             </View>
           </View>
@@ -165,13 +168,16 @@ export default function SignAgreementScreen() {
             <Text style={styles.agreementSubheading}>1. Loan Terms</Text>
             <Text style={styles.agreementText}>
               The Lender agrees to provide a loan of UGX {offer.amount.toLocaleString()} at a rate of{" "}
-              {offer.interestRate}%/month, repayable over {offer.duration} monthly instalments of UGX{" "}
-              {(offer.monthlyPayment ?? 0).toLocaleString()} each.
+              {offer.interestRate}%/month,{" "}
+              {offer.durationDays != null
+                ? `repayable in one payment of UGX ${(offer.monthlyPayment ?? 0).toLocaleString()} due ${offer.durationDays} day${offer.durationDays === 1 ? "" : "s"} after disbursement.`
+                : `repayable over ${offer.duration} monthly instalments of UGX ${(offer.monthlyPayment ?? 0).toLocaleString()} each.`}
             </Text>
             <Text style={styles.agreementSubheading}>2. Repayment Schedule</Text>
             <Text style={styles.agreementText}>
-              Payments are due monthly from the disbursement date. Late payments may incur penalties per
-              Mpola's platform terms.
+              {offer.durationDays != null
+                ? "Payment is due in full on the date above. Late payment may incur penalties per Mpola's platform terms."
+                : "Payments are due monthly from the disbursement date. Late payments may incur penalties per Mpola's platform terms."}
             </Text>
             <Text style={styles.agreementSubheading}>3. Disbursement</Text>
             <Text style={styles.agreementText}>
