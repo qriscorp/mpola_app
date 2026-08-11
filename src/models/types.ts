@@ -177,6 +177,9 @@ export interface Transaction {
   description: string;
   date: string;
   counterparty?: string;
+  status: "pending" | "completed" | "failed";
+  reference: string | null;
+  createdAt: string;
 }
 
 export interface Wallet {

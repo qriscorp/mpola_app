@@ -115,7 +115,7 @@ function GuarantorRow({ applicationId, guarantor }: { applicationId: string; gua
   );
 }
 
-const EDIT_DURATIONS = [3, 6, 12, 18, 24];
+const EDIT_DURATIONS = [1, 2, 3, 6, 12, 18, 24];
 const EDIT_LOAN_TYPES: { label: string; value: LoanApplication["loanType"] }[] = [
   { label: "Personal", value: "personal" },
   { label: "Business", value: "business" },
@@ -347,6 +347,53 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
   );
 }
 
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View style={styles.detailRow}>
+      <Text style={styles.detailLabel}>{label}</Text>
+      <Text style={styles.detailValue}>{value}</Text>
+    </View>
+  );
+}
+
+function RequestDetailPanel({ app }: { app: LoanApplication }) {
+  return (
+    <View style={styles.detailPanel}>
+      <DetailRow label="Reference" value={app.referenceNumber} />
+      <DetailRow label="Amount" value={`UGX ${app.amount.toLocaleString()}`} />
+      <DetailRow label="Duration" value={`${app.duration} months`} />
+      <DetailRow
+        label="Loan Type"
+        value={app.loanType.charAt(0).toUpperCase() + app.loanType.slice(1)}
+      />
+      {app.purpose && <DetailRow label="Purpose" value={app.purpose} />}
+      {app.maxInterestRate != null && (
+        <DetailRow label="Your Rate Cap" value={`${app.maxInterestRate}%/month`} />
+      )}
+      {app.interestRate != null ? (
+        <>
+          <DetailRow label="Accepted Interest Rate" value={`${app.interestRate}%/month`} />
+          {app.monthlyPayment != null && (
+            <DetailRow label="Monthly Payment" value={`UGX ${app.monthlyPayment.toLocaleString()}`} />
+          )}
+          {app.totalRepayable != null && (
+            <DetailRow label="Total Repayable" value={`UGX ${app.totalRepayable.toLocaleString()}`} />
+          )}
+        </>
+      ) : (
+        <DetailRow
+          label="Offers"
+          value={`${app.offersCount} received${app.pendingOffersCount ? ` (${app.pendingOffersCount} pending)` : ""}`}
+        />
+      )}
+      <DetailRow
+        label="Submitted"
+        value={new Date(app.createdAt).toLocaleDateString("en-UG", { day: "numeric", month: "short", year: "numeric" })}
+      />
+    </View>
+  );
+}
+
 function DiscardDraftLink({ applicationId }: { applicationId: string }) {
   const { deleteApplication, isDeleting } = useMyApplicationsViewModel();
   const handleDiscard = () => {
@@ -374,6 +421,7 @@ function DiscardDraftLink({ applicationId }: { applicationId: string }) {
 
 function ApplicationCard({ app }: { app: LoanApplication }) {
   const router = useRouter();
+  const [showDetails, setShowDetails] = useState(false);
 
   // The apply wizard now creates the real application at step 1 and only
   // attaches guarantors at the very end — so a request that's
@@ -435,19 +483,41 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
         </>
       )}
 
-      {app.status === "pending" && (
+      <View style={styles.cardBtnRow}>
+        {app.status === "pending" && (
+          <TouchableOpacity
+            style={[styles.viewOffersBtn, styles.cardBtnFlex]}
+            onPress={() =>
+              router.push({
+                pathname: "/(borrower)/offers",
+                params: { applicationId: app.id },
+              })
+            }
+          >
+            <Text style={styles.viewOffersText}>View Offers</Text>
+          </TouchableOpacity>
+        )}
+        {app.status === "funded" && app.loanStatus && app.loanStatus !== "pending_disbursement" && (
+          <TouchableOpacity
+            style={[styles.viewOffersBtn, styles.cardBtnFlex]}
+            onPress={() =>
+              router.push({
+                pathname: "/(borrower)/payment",
+              })
+            }
+          >
+            <Text style={styles.viewOffersText}>Make Payment</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity
-          style={styles.viewOffersBtn}
-          onPress={() =>
-            router.push({
-              pathname: "/(borrower)/offers",
-              params: { applicationId: app.id },
-            })
-          }
+          style={[styles.outlineBtn, styles.cardBtnFlex, styles.detailsBtn]}
+          onPress={() => setShowDetails((v) => !v)}
         >
-          <Text style={styles.viewOffersText}>View Offers</Text>
+          <Text style={styles.outlineBtnText}>{showDetails ? "Hide Details" : "Details"}</Text>
         </TouchableOpacity>
-      )}
+      </View>
+
+      {showDetails && <RequestDetailPanel app={app} />}
 
       {(app.status === "awaiting_guarantors" || app.status === "pending") && (
         <ApplicationActions app={app} />
@@ -592,6 +662,23 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   viewOffersText: { ...Typography.buttonSmall, color: Colors.teal },
+  cardBtnRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.md },
+  cardBtnFlex: { flex: 1, marginTop: 0 },
+  detailsBtn: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.sm },
+  detailPanel: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: 2,
+  },
+  detailRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: Spacing.xs,
+  },
+  detailLabel: { ...Typography.small, color: Colors.textMuted },
+  detailValue: { ...Typography.smallMedium, color: Colors.textPrimary, flexShrink: 1, textAlign: "right" },
   actionsSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
   actionsRow: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
   outlineBtn: {

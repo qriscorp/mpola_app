@@ -162,10 +162,15 @@ export default function WalletScreen() {
           pagedTransactions.map((tx) => (
             <TransactionItem
               key={tx.id}
+              id={tx.id}
               amount={tx.amount}
               description={tx.description}
               date={tx.date}
               type={tx.amount > 0 ? "credit" : "debit"}
+              status={tx.status}
+              reference={tx.reference}
+              counterparty={tx.counterparty}
+              createdAt={tx.createdAt}
             />
           ))
         )}

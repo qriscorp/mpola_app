@@ -82,6 +82,9 @@ function mapWalletTransaction(tx: RawWalletTransaction): Transaction {
     description: tx.description || TYPE_LABELS[tx.type],
     date: formatTxDate(tx.created_at),
     counterparty: tx.counterparty ?? undefined,
+    status: tx.status,
+    reference: tx.reference,
+    createdAt: tx.created_at,
   };
 }
 

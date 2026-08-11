@@ -96,7 +96,7 @@ export function useApplyViewModel() {
   const totalRepayable = numAmount + totalInterest;
   const monthlyPayment = duration > 0 ? Math.round(totalRepayable / duration) : 0;
 
-  const durationOptions = [3, 6, 12, 18, 24];
+  const durationOptions = [1, 2, 3, 6, 12, 18, 24];
   const loanTypes: LoanType[] = [
     "personal",
     "business",
