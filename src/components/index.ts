@@ -4,6 +4,7 @@ export { StatCard } from "./StatCard";
 export { Badge } from "./Badge";
 export { Input } from "./Input";
 export { TransactionItem } from "./TransactionItem";
+export { TransactionDetailModal } from "./TransactionDetailModal";
 export { ProgressBar } from "./ProgressBar";
 export { WalletSetupModal } from "./WalletSetupModal";
 export { WalletDepositModal } from "./WalletDepositModal";

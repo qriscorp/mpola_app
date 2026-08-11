@@ -158,8 +158,10 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
     maxInterestRate.trim() !== "" &&
     (Number.isNaN(Number(maxInterestRate)) || Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
 
+  const durationInvalid = isEmergency && durationDays == null;
+
   const handleSave = async () => {
-    if (amountInvalid || rateInvalid) return;
+    if (amountInvalid || rateInvalid || durationInvalid) return;
     try {
       await updateApplication({
         id: app.id,
@@ -240,10 +242,15 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
             value={customDays}
             onChangeText={(t) => {
               setCustomDays(t);
+              if (t === "") {
+                setDurationDays(null);
+                return;
+              }
               const n = parseInt(t, 10);
-              if (!Number.isNaN(n) && n >= 1 && n <= 29) setDurationDays(n);
+              setDurationDays(!Number.isNaN(n) && n >= 1 && n <= 29 ? n : null);
             }}
             keyboardType="numeric"
+            error={customDays !== "" && durationDays == null ? "Enter a whole number between 1 and 29" : undefined}
           />
         </>
       ) : (
@@ -293,7 +300,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         <TouchableOpacity style={styles.cancelBtn} onPress={onDone}>
           <Text style={styles.cancelText}>Cancel</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.replaceBtn} onPress={handleSave} disabled={isUpdating || amountInvalid || rateInvalid}>
+        <TouchableOpacity style={styles.replaceBtn} onPress={handleSave} disabled={isUpdating || amountInvalid || rateInvalid || durationInvalid}>
           <Text style={styles.replaceText}>{isUpdating ? "Saving…" : "Save Changes"}</Text>
         </TouchableOpacity>
       </View>

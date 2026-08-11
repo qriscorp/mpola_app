@@ -19,6 +19,7 @@ import type {
   Wallet,
   Transaction,
   TransactionType,
+  TransactionDetail,
   BankOption,
   CardDepositInitiateResult,
   TransferStatusResult,
@@ -180,6 +181,69 @@ export async function fetchWalletTransactionsPage(
     transactions: RawWalletTransaction[];
   }>(`/wallet/transactions?${params.toString()}`);
   return { transactions: res.transactions.map(mapWalletTransaction), total: res.total };
+}
+
+interface RawTransactionLoanSummary {
+  id: string;
+  amount: number;
+  interest_rate: number;
+  duration: number | null;
+  duration_days: number | null;
+  status: string;
+  borrower_name: string | null;
+  lender_name: string | null;
+  total_repayable: number;
+  total_paid: number;
+  paid_instalments: number;
+  total_instalments: number;
+}
+
+interface RawTransactionRepaymentSummary {
+  instalment_number: number;
+  payment_method: string | null;
+}
+
+interface RawTransactionDetail extends RawWalletTransaction {
+  platform_fee: number | null;
+  provider_fee: number | null;
+  total_fee: number | null;
+  fee_category: string | null;
+  loan: RawTransactionLoanSummary | null;
+  repayment: RawTransactionRepaymentSummary | null;
+}
+
+export async function fetchTransactionDetail(id: string): Promise<TransactionDetail> {
+  const raw = await apiAuthGet<RawTransactionDetail>(`/wallet/transactions/${id}`);
+  const base = mapWalletTransaction(raw);
+  return {
+    ...base,
+    platformFee: raw.platform_fee,
+    providerFee: raw.provider_fee,
+    totalFee: raw.total_fee,
+    feeCategory: raw.fee_category,
+    loan: raw.loan
+      ? {
+          id: raw.loan.id,
+          amount: raw.loan.amount,
+          interestRate: raw.loan.interest_rate,
+          duration: raw.loan.duration,
+          durationDays: raw.loan.duration_days,
+          status: raw.loan.status,
+          borrowerName: raw.loan.borrower_name,
+          lenderName: raw.loan.lender_name,
+          totalRepayable: raw.loan.total_repayable,
+          totalPaid: raw.loan.total_paid,
+          paidInstalments: raw.loan.paid_instalments,
+          totalInstalments: raw.loan.total_instalments,
+        }
+      : null,
+    repayment: raw.repayment
+      ? {
+          instalmentNumber: raw.repayment.instalment_number,
+          paymentMethod: raw.repayment.payment_method,
+        }
+      : null,
+  };
 }
 
 async function fetchWallet(): Promise<Wallet> {

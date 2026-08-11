@@ -14,6 +14,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import {
   Card,
   TransactionItem,
+  TransactionDetailModal,
   WalletSetupModal,
   WalletDepositModal,
   WalletWithdrawModal,
@@ -50,6 +51,7 @@ export default function LenderWalletScreen() {
   const [setupVisible, setSetupVisible] = useState(false);
   const [depositVisible, setDepositVisible] = useState(false);
   const [withdrawVisible, setWithdrawVisible] = useState(false);
+  const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
 
   const handleSetup = async (pin: string) => {
     try {
@@ -208,13 +210,15 @@ export default function LenderWalletScreen() {
               description={tx.description}
               date={tx.date}
               type={tx.amount > 0 ? "credit" : "debit"}
-              status={tx.status}
-              reference={tx.reference}
-              counterparty={tx.counterparty}
-              createdAt={tx.createdAt}
+              onPress={() => setSelectedTxId(tx.id)}
             />
           ))
         )}
+
+        <TransactionDetailModal
+          transactionId={selectedTxId}
+          onClose={() => setSelectedTxId(null)}
+        />
 
         {pagedTransactionsTotal > 0 && (
           <View style={styles.paginationRow}>

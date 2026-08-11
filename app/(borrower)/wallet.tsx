@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import {
   TransactionItem,
+  TransactionDetailModal,
   WalletSetupModal,
   WalletDepositModal,
   WalletWithdrawModal,
@@ -45,6 +46,7 @@ export default function WalletScreen() {
   const [setupVisible, setSetupVisible] = useState(false);
   const [depositVisible, setDepositVisible] = useState(false);
   const [withdrawVisible, setWithdrawVisible] = useState(false);
+  const [selectedTxId, setSelectedTxId] = useState<string | null>(null);
 
   const handleSetup = async (pin: string) => {
     try {
@@ -167,13 +169,15 @@ export default function WalletScreen() {
               description={tx.description}
               date={tx.date}
               type={tx.amount > 0 ? "credit" : "debit"}
-              status={tx.status}
-              reference={tx.reference}
-              counterparty={tx.counterparty}
-              createdAt={tx.createdAt}
+              onPress={() => setSelectedTxId(tx.id)}
             />
           ))
         )}
+
+        <TransactionDetailModal
+          transactionId={selectedTxId}
+          onClose={() => setSelectedTxId(null)}
+        />
 
         {pagedTransactionsTotal > 0 && (
           <View style={styles.paginationRow}>
