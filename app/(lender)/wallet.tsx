@@ -209,7 +209,7 @@ export default function LenderWalletScreen() {
               amount={tx.amount}
               description={tx.description}
               date={tx.date}
-              type={tx.amount > 0 ? "credit" : "debit"}
+              type={tx.direction}
               onPress={() => setSelectedTxId(tx.id)}
             />
           ))

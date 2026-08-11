@@ -49,14 +49,13 @@ interface RawWalletTransaction {
   id: string;
   amount: number;
   type: TransactionType;
+  direction: "credit" | "debit";
   status: "pending" | "completed" | "failed";
   description: string | null;
   reference: string | null;
   counterparty: string | null;
   created_at: string;
 }
-
-const DEBIT_TYPES = new Set<TransactionType>(["withdrawal", "repayment"]);
 
 const TYPE_LABELS: Record<TransactionType, string> = {
   deposit: "Deposit",
@@ -73,13 +72,14 @@ function formatTxDate(iso: string): string {
 }
 
 function mapWalletTransaction(tx: RawWalletTransaction): Transaction {
-  const signedAmount = DEBIT_TYPES.has(tx.type)
+  const signedAmount = tx.direction === "debit"
     ? -Math.abs(tx.amount)
     : Math.abs(tx.amount);
   return {
     id: tx.id,
     type: tx.type,
     amount: signedAmount,
+    direction: tx.direction,
     description: tx.description || TYPE_LABELS[tx.type],
     date: formatTxDate(tx.created_at),
     counterparty: tx.counterparty ?? undefined,
@@ -199,6 +199,7 @@ interface RawTransactionLoanSummary {
 }
 
 interface RawTransactionRepaymentSummary {
+  id: string;
   instalment_number: number;
   payment_method: string | null;
 }
@@ -239,6 +240,7 @@ export async function fetchTransactionDetail(id: string): Promise<TransactionDet
       : null,
     repayment: raw.repayment
       ? {
+          id: raw.repayment.id,
           instalmentNumber: raw.repayment.instalment_number,
           paymentMethod: raw.repayment.payment_method,
         }
@@ -496,6 +498,30 @@ export async function downloadRepaymentReceipt(repaymentId: string): Promise<voi
 
   const download = FileSystem.createDownloadResumable(
     `${API_BASE_URL}/loans/repayments/${repaymentId}/receipt`,
+    fileUri,
+    { headers: token ? { Authorization: `Bearer ${token}` } : {} },
+  );
+
+  const result = await download.downloadAsync();
+  if (!result) throw new Error("Receipt download failed");
+
+  if (await Sharing.isAvailableAsync()) {
+    await Sharing.shareAsync(result.uri, { mimeType: "application/pdf" });
+  }
+}
+
+/** Downloads the real PDF receipt for a loan's disbursement, then opens the
+ * native share sheet — same pattern as downloadRepaymentReceipt. */
+export async function downloadDisbursementReceipt(loanId: string): Promise<void> {
+  const FileSystem = await import("expo-file-system");
+  const Sharing = await import("expo-sharing");
+  const { getAccessToken, API_BASE_URL } = await import("./auth");
+
+  const token = await getAccessToken();
+  const fileUri = `${FileSystem.documentDirectory}mpola-disbursement-${loanId}.pdf`;
+
+  const download = FileSystem.createDownloadResumable(
+    `${API_BASE_URL}/loans/${loanId}/disbursement-receipt`,
     fileUri,
     { headers: token ? { Authorization: `Bearer ${token}` } : {} },
   );

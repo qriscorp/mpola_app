@@ -166,6 +166,29 @@ export function WalletDepositModal({
             </Text>
           )}
 
+          {!!Number(amount) && (
+            <View style={styles.feeBox}>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>You&apos;re depositing</Text>
+                <Text style={styles.feeValue}>
+                  UGX {Number(amount).toLocaleString()}
+                </Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>Via</Text>
+                <Text style={styles.feeValue}>
+                  {method === "mobile_money"
+                    ? `${carrier === "MTN" ? "MTN Mobile Money" : "Airtel Money"}${phone.length === 9 ? ` · +256${phone}` : ""}`
+                    : "Card"}
+                </Text>
+              </View>
+              <View style={[styles.feeRow, styles.feeTotalRow]}>
+                <Text style={styles.feeTotalLabel}>Deposit fee</Text>
+                <Text style={styles.feeTotalLabel}>Free</Text>
+              </View>
+            </View>
+          )}
+
           {isSubmittingCard && (
             <Text style={styles.waiting}>Waiting for payment confirmation…</Text>
           )}
@@ -236,6 +259,26 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginBottom: Spacing.lg,
   },
+  feeBox: {
+    backgroundColor: Colors.navyLight,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.md,
+    gap: Spacing.xs,
+  },
+  feeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  feeLabel: { ...Typography.small, color: Colors.textSecondary },
+  feeValue: { ...Typography.small, color: Colors.textSecondary },
+  feeTotalRow: {
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    paddingTop: Spacing.xs,
+    marginTop: Spacing.xs,
+  },
+  feeTotalLabel: { ...Typography.smallMedium, color: Colors.textPrimary },
   waiting: {
     ...Typography.small,
     color: Colors.warning,

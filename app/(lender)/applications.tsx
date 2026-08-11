@@ -46,6 +46,17 @@ function OfferModal({
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
 
   const rateInvalid = rate !== "" && (Number(rate) < 0.1 || Number(rate) > 25);
+  const isEmergency = app.durationDays != null;
+  const numRate = Number(rate) || 0;
+  const totalInterest = isEmergency
+    ? app.amount * (numRate / 100) * ((app.durationDays ?? 0) / 30)
+    : app.amount * (numRate / 100) * (app.duration ?? 0);
+  const totalRepayable = app.amount + totalInterest;
+  const monthlyPayment = isEmergency
+    ? totalRepayable
+    : app.duration
+      ? totalRepayable / app.duration
+      : 0;
 
   const toggleDoc = (label: string) => {
     setRequiredDocs((prev) =>
@@ -91,6 +102,25 @@ function OfferModal({
             </View>
           </View>
 
+          {rate !== "" && !rateInvalid && (
+            <View style={styles.summaryBox}>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>
+                  {isEmergency ? "Repayment due" : "Monthly payment"}
+                </Text>
+                <Text style={styles.summaryValue}>
+                  UGX {Math.round(monthlyPayment).toLocaleString()}
+                </Text>
+              </View>
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Total repayable</Text>
+                <Text style={styles.summaryValue}>
+                  UGX {Math.round(totalRepayable).toLocaleString()}
+                </Text>
+              </View>
+            </View>
+          )}
+
           <Input
             label="Your Rate (%/month)"
             value={rate}
@@ -118,7 +148,8 @@ function OfferModal({
           </View>
 
           <Text style={styles.hint}>
-            If the borrower accepts, funds are disbursed automatically to their Mpola wallet.
+            If the borrower accepts, you&apos;ll need to approve disbursement
+            from your Portfolio to release the funds.
           </Text>
 
           <View style={styles.actions}>

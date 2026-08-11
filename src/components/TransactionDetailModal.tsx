@@ -1,11 +1,13 @@
 import React from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
-import { fetchTransactionDetail } from "../services";
+import { fetchTransactionDetail, downloadRepaymentReceipt, downloadDisbursementReceipt } from "../services";
 import { formatDuration } from "../services/duration";
-import type { TransactionType } from "../models";
+import type { TransactionDetail, TransactionType } from "../models";
 
 const TYPE_LABEL: Record<TransactionType, string> = {
   deposit: "Deposit",
@@ -15,13 +17,12 @@ const TYPE_LABEL: Record<TransactionType, string> = {
   top_up: "Top-up",
 };
 
-const CREDIT_TYPES = new Set<TransactionType>(["deposit", "disbursement", "top_up"]);
-
 const FEE_CATEGORY_LABEL: Record<string, string> = {
   mobile_money_withdrawal: "Mobile money withdrawal fee",
   bank_withdrawal: "Bank transfer fee",
   loan_disbursement: "Disbursement fee",
   loan_repayment: "Repayment fee",
+  late_fee_platform_cut: "Late fee (platform share)",
 };
 
 function formatDateTime(iso: string): string {
@@ -34,6 +35,69 @@ function formatDateTime(iso: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
+}
+
+function receiptText(tx: TransactionDetail): string {
+  const lines: [string, string][] = [
+    ["Amount", `${tx.direction === "credit" ? "+" : "-"}UGX ${Math.abs(tx.amount).toLocaleString()}`],
+    ["Type", TYPE_LABEL[tx.type]],
+    ["Status", tx.status.charAt(0).toUpperCase() + tx.status.slice(1)],
+    ["Description", tx.description || TYPE_LABEL[tx.type]],
+    ["Transaction ID", tx.id],
+  ];
+  if (tx.reference) lines.push(["Reference", tx.reference]);
+  lines.push(["Date & Time", formatDateTime(tx.createdAt)]);
+  if (tx.counterparty && !tx.loan) lines.push(["Counterparty", tx.counterparty]);
+  if (tx.totalFee != null) {
+    if (tx.feeCategory) lines.push(["Fee type", FEE_CATEGORY_LABEL[tx.feeCategory] ?? tx.feeCategory]);
+    if (tx.platformFee) lines.push(["Platform fee", `UGX ${tx.platformFee.toLocaleString()}`]);
+    if (tx.providerFee) lines.push(["Provider fee", `UGX ${tx.providerFee.toLocaleString()}`]);
+    lines.push(["Total charged", `UGX ${tx.totalFee.toLocaleString()}`]);
+  } else {
+    lines.push(["Platform fee", "No fee on this transaction"]);
+  }
+  if (tx.loan) {
+    lines.push(["Loan ID", tx.loan.id]);
+    lines.push(["Principal", `UGX ${tx.loan.amount.toLocaleString()}`]);
+    lines.push(["Interest Rate", `${tx.loan.interestRate}%/month`]);
+    lines.push(["Duration", formatDuration(tx.loan.duration, tx.loan.durationDays)]);
+    if (tx.loan.borrowerName) lines.push(["Borrower", tx.loan.borrowerName]);
+    if (tx.loan.lenderName) lines.push(["Lender", tx.loan.lenderName]);
+    if (tx.repayment) {
+      lines.push(["Instalment", `#${tx.repayment.instalmentNumber} of ${tx.loan.totalInstalments}`]);
+    }
+  }
+  const body = lines.map(([label, value]) => `${label}: ${value}`).join("\n");
+  return `MPOLA — PAYMENT RECEIPT\n${"=".repeat(28)}\n\n${body}\n`;
+}
+
+/** Loan-related transactions (repayment/disbursement) have a real,
+ * backend-generated PDF receipt — prefer that over the generic text one,
+ * which stays as the fallback for deposits/withdrawals (no PDF for those). */
+async function shareReceipt(tx: TransactionDetail) {
+  try {
+    if (tx.type === "repayment" && tx.repayment) {
+      await downloadRepaymentReceipt(tx.repayment.id);
+      return;
+    }
+    if (tx.type === "disbursement" && tx.loan) {
+      await downloadDisbursementReceipt(tx.loan.id);
+      return;
+    }
+
+    const fileUri = `${FileSystem.cacheDirectory}mpola-receipt-${tx.id}.txt`;
+    await FileSystem.writeAsStringAsync(fileUri, receiptText(tx));
+    if (await Sharing.isAvailableAsync()) {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: "text/plain",
+        dialogTitle: "Mpola Receipt",
+      });
+    } else {
+      Alert.alert("Sharing not available", "Sharing isn't supported on this device.");
+    }
+  } catch (e) {
+    Alert.alert("Couldn't share receipt", e instanceof Error ? e.message : "Please try again.");
+  }
 }
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
@@ -95,10 +159,10 @@ export function TransactionDetailModal({
                 <Text
                   style={[
                     styles.heroAmount,
-                    { color: CREDIT_TYPES.has(tx.type) ? Colors.success : Colors.warning },
+                    { color: tx.direction === "credit" ? Colors.success : Colors.warning },
                   ]}
                 >
-                  {CREDIT_TYPES.has(tx.type) ? "+" : "-"}UGX {tx.amount.toLocaleString()}
+                  {tx.direction === "credit" ? "+" : "-"}UGX {Math.abs(tx.amount).toLocaleString()}
                 </Text>
                 <Text style={styles.heroDesc}>{tx.description || TYPE_LABEL[tx.type]}</Text>
                 <View style={styles.badgeRow}>
@@ -181,6 +245,11 @@ export function TransactionDetailModal({
                   />
                 </Section>
               )}
+
+              <TouchableOpacity style={styles.shareBtn} onPress={() => shareReceipt(tx)}>
+                <Ionicons name="share-outline" size={16} color={Colors.textPrimary} />
+                <Text style={styles.shareBtnText}>Share / Save Receipt</Text>
+              </TouchableOpacity>
             </ScrollView>
           )}
         </View>
@@ -251,4 +320,15 @@ const styles = StyleSheet.create({
   rowLabel: { ...Typography.small, color: Colors.textMuted, flexShrink: 0 },
   rowValue: { ...Typography.smallMedium, color: Colors.textPrimary, flexShrink: 1, textAlign: "right" },
   rowValueMono: { fontFamily: "monospace", fontSize: 11 },
+  shareBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: Spacing.xs,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.lg,
+    paddingVertical: Spacing.md,
+  },
+  shareBtnText: { ...Typography.smallMedium, color: Colors.textPrimary },
 });

@@ -20,6 +20,7 @@ import {
   RequiredDocumentsChecklist,
 } from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
+import { calcPlatformFee } from "../../src/services/fees";
 
 export default function PortfolioScreen() {
   const router = useRouter();
@@ -48,9 +49,14 @@ export default function PortfolioScreen() {
   };
 
   const confirmApprove = (loanId: string, borrowerName: string, amount: number) => {
+    const platformFee = calcPlatformFee(amount);
+    const totalDebit = amount + platformFee;
     Alert.alert(
       "Approve disbursement?",
-      `This sends UGX ${amount.toLocaleString()} from your wallet to ${borrowerName} right now. This can't be undone.`,
+      `This sends UGX ${amount.toLocaleString()} from your wallet to ${borrowerName} right now. This can't be undone.\n\n` +
+        `Loan amount: UGX ${amount.toLocaleString()}\n` +
+        `Platform fee (0.5%): UGX ${platformFee.toLocaleString()}\n` +
+        `Total debited from your wallet: UGX ${totalDebit.toLocaleString()}`,
       [
         { text: "Cancel", style: "cancel" },
         {
