@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Linking } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet, Linking, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 import type { RequiredDocumentStatus } from "../models";
@@ -37,19 +37,26 @@ export function RequiredDocumentsChecklist({
     <View style={{ gap: Spacing.xs }}>
       {items.map((item) => {
         const docType = BORROWER_DOC_LABEL_MAP[item.label];
+        const isUploading = !!docType && uploadingType === docType;
         return (
           <View
             key={item.label}
-            style={[styles.row, item.satisfied ? styles.rowSatisfied : styles.rowMissing]}
+            style={[
+              styles.row,
+              isUploading ? styles.rowUploading : item.satisfied ? styles.rowSatisfied : styles.rowMissing,
+            ]}
           >
             <View style={styles.rowLeft}>
-              {item.satisfied ? (
+              {isUploading ? (
+                <ActivityIndicator size="small" color={Colors.teal} />
+              ) : item.satisfied ? (
                 <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
               ) : (
                 <Ionicons name="ellipse-outline" size={16} color={Colors.warning} />
               )}
-              <Text style={item.satisfied ? styles.labelSatisfied : styles.labelMissing}>
+              <Text style={isUploading ? styles.labelUploading : item.satisfied ? styles.labelSatisfied : styles.labelMissing}>
                 {item.label}
+                {isUploading ? " — uploading…" : ""}
               </Text>
             </View>
             {item.satisfied && item.fileUrl && (
@@ -63,14 +70,9 @@ export function RequiredDocumentsChecklist({
                 <Text style={styles.actionLink}>Upload from Profile</Text>
               </TouchableOpacity>
             )}
-            {!readOnly && !item.satisfied && item.source === "borrower_doc" && docType && (
-              <TouchableOpacity
-                onPress={() => onUpload?.(docType)}
-                disabled={uploadingType === docType}
-              >
-                <Text style={styles.actionLink}>
-                  {uploadingType === docType ? "Uploading…" : "Upload"}
-                </Text>
+            {!readOnly && !item.satisfied && item.source === "borrower_doc" && docType && !isUploading && (
+              <TouchableOpacity onPress={() => onUpload?.(docType)}>
+                <Text style={styles.actionLink}>Upload</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -93,9 +95,11 @@ const styles = StyleSheet.create({
   },
   rowSatisfied: { borderColor: Colors.success + "40", backgroundColor: Colors.successBg },
   rowMissing: { borderColor: Colors.warning + "40", backgroundColor: Colors.warningBg },
+  rowUploading: { borderColor: Colors.teal + "40", backgroundColor: Colors.teal + "15" },
   rowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
   labelSatisfied: { ...Typography.small, color: Colors.success },
   labelMissing: { ...Typography.small, color: Colors.warning },
+  labelUploading: { ...Typography.small, color: Colors.teal },
   viewLink: { ...Typography.caption, fontWeight: "700", color: Colors.success, textDecorationLine: "underline" },
   actionLink: { ...Typography.caption, fontWeight: "700", color: Colors.teal, textDecorationLine: "underline" },
   notProvided: { ...Typography.caption, color: Colors.warning },

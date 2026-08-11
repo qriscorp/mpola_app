@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import React, { useState } from "react";
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +24,8 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
     queryFn: getMyKycDocuments,
   });
 
+  const [uploadingType, setUploadingType] = useState<KYCDocumentType | null>(null);
+
   const upload = useMutation({
     mutationFn: ({ documentType, file }: {
       documentType: KYCDocumentType;
@@ -31,6 +33,7 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
     }) => uploadKycDocument(documentType, file),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["kyc-documents"] }),
     onError: (e: any) => Alert.alert("Upload failed", e?.message || "Please try again."),
+    onSettled: () => setUploadingType(null),
   });
 
   const handlePick = async (type: KYCDocumentType) => {
@@ -40,6 +43,7 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
     });
     if (result.canceled || !result.assets?.[0]) return;
     const asset = result.assets[0];
+    setUploadingType(type);
     upload.mutate({
       documentType: type,
       file: { uri: asset.uri, name: asset.name, mimeType: asset.mimeType },
@@ -69,31 +73,41 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
               )}
             </View>
             <View style={{ alignItems: "flex-end", gap: Spacing.xs }}>
-              {existing && (
-                <View
-                  style={[
-                    styles.badge,
-                    existing.verified ? styles.badgeVerified : styles.badgePending,
-                  ]}
-                >
-                  <Text
+              {uploadingType === slot.type ? (
+                <View style={[styles.badge, { backgroundColor: accentColor + "20" }]}>
+                  <Text style={[styles.badgeText, { color: accentColor }]}>Uploading…</Text>
+                </View>
+              ) : (
+                existing && (
+                  <View
                     style={[
-                      styles.badgeText,
-                      { color: existing.verified ? Colors.success : Colors.warning },
+                      styles.badge,
+                      existing.verified ? styles.badgeVerified : styles.badgePending,
                     ]}
                   >
-                    {existing.verified ? "Verified" : "Pending review"}
-                  </Text>
-                </View>
+                    <Text
+                      style={[
+                        styles.badgeText,
+                        { color: existing.verified ? Colors.success : Colors.warning },
+                      ]}
+                    >
+                      {existing.verified ? "Verified" : "Pending review"}
+                    </Text>
+                  </View>
+                )
               )}
               <TouchableOpacity
                 style={[styles.uploadBtn, { borderColor: accentColor }]}
                 onPress={() => handlePick(slot.type)}
                 disabled={upload.isPending}
               >
-                <Ionicons name="cloud-upload-outline" size={14} color={accentColor} />
+                {uploadingType === slot.type ? (
+                  <ActivityIndicator size="small" color={accentColor} />
+                ) : (
+                  <Ionicons name="cloud-upload-outline" size={14} color={accentColor} />
+                )}
                 <Text style={[styles.uploadText, { color: accentColor }]}>
-                  {existing ? "Replace" : "Upload"}
+                  {uploadingType === slot.type ? "Uploading…" : existing ? "Replace" : "Upload"}
                 </Text>
               </TouchableOpacity>
             </View>
