@@ -47,6 +47,21 @@ export default function PortfolioScreen() {
     }
   };
 
+  const confirmApprove = (loanId: string, borrowerName: string, amount: number) => {
+    Alert.alert(
+      "Approve disbursement?",
+      `This sends UGX ${amount.toLocaleString()} from your wallet to ${borrowerName} right now. This can't be undone.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Yes, disburse",
+          style: "destructive",
+          onPress: () => handleApprove(loanId),
+        },
+      ],
+    );
+  };
+
   if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -207,7 +222,9 @@ export default function PortfolioScreen() {
               <TouchableOpacity
                 style={styles.approveBtn}
                 disabled={approvingDisbursement}
-                onPress={() => handleApprove(loan.id)}
+                onPress={() =>
+                  confirmApprove(loan.id, loan.borrowerName, loan.amount)
+                }
               >
                 <Text style={styles.approveBtnText}>
                   {approvingDisbursement ? "Approving…" : "Approve Disbursement"}

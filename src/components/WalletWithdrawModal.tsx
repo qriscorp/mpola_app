@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   View,
@@ -8,6 +8,7 @@ import {
   ScrollView,
   Alert,
 } from "react-native";
+import { useQuery } from "@tanstack/react-query";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 import { Input } from "./Input";
 import { Button } from "./Button";
@@ -15,7 +16,9 @@ import type { BankOption } from "../models";
 import {
   calcMobileMoneyWithdrawalCharges,
   calcBankWithdrawalCharges,
+  detectCarrier,
 } from "../services/fees";
+import { fetchProfile } from "../services";
 import { SkeletonBox } from "./Skeleton";
 
 function formatUgx(n: number): string {
@@ -28,6 +31,7 @@ interface Props {
   onWithdrawMobileMoney: (data: {
     amount: number;
     phone: string;
+    carrier: "MTN" | "AIRTEL";
   }) => Promise<unknown>;
   onWithdrawBank: (data: {
     amount: number;
@@ -55,25 +59,46 @@ export function WalletWithdrawModal({
   isSubmittingBank,
   accentColor = Colors.teal,
 }: Props) {
+  const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
   const [method, setMethod] = useState<Method>("mobile_money");
   const [amount, setAmount] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneTouched, setPhoneTouched] = useState(false);
+  const [carrierOverride, setCarrierOverride] = useState<"MTN" | "AIRTEL" | null>(null);
   const [selectedBank, setSelectedBank] = useState<BankOption | null>(null);
   const [accountNumber, setAccountNumber] = useState("");
   const [beneficiaryName, setBeneficiaryName] = useState("");
 
+  // Auto-fill from the account's saved phone number and auto-select the
+  // matching network — same as kumpi. Only runs before the user has typed
+  // or picked anything themselves, so it never clobbers a manual choice.
+  useEffect(() => {
+    if (!phoneTouched && !phone && profile?.phone) {
+      const digits = profile.phone.replace(/\D/g, "").slice(-9);
+      if (digits.length === 9) {
+        setPhone(digits);
+        setCarrierOverride(detectCarrier(`0${digits}`));
+      }
+    }
+  }, [profile, phone, phoneTouched]);
+
+  const carrier = carrierOverride ?? detectCarrier(phone ? `0${phone}` : "");
+  const phoneError =
+    method === "mobile_money" && phone.length > 0 && phone.length !== 9
+      ? "Enter a full 9-digit number after +256"
+      : null;
   const isSubmitting = isSubmittingMobileMoney || isSubmittingBank;
   const bankValid = !!selectedBank && !!accountNumber && !!beneficiaryName;
   const canSubmit =
     !!amount &&
-    (method === "mobile_money" ? !!phone : bankValid) &&
+    (method === "mobile_money" ? phone.length === 9 : bankValid) &&
     !isSubmitting;
 
   const numericAmount = Number(amount) || 0;
   const charges =
     numericAmount > 0
       ? method === "mobile_money"
-        ? calcMobileMoneyWithdrawalCharges(numericAmount, phone || "MTN")
+        ? calcMobileMoneyWithdrawalCharges(numericAmount, carrier)
         : calcBankWithdrawalCharges(numericAmount)
       : null;
 
@@ -83,7 +108,8 @@ export function WalletWithdrawModal({
       if (method === "mobile_money") {
         const result = (await onWithdrawMobileMoney({
           amount: numericAmount,
-          phone,
+          phone: `+256${phone}`,
+          carrier,
         })) as { fee?: number } | undefined;
         fee = result?.fee;
       } else if (selectedBank) {
@@ -144,18 +170,50 @@ export function WalletWithdrawModal({
             label="Amount (UGX)"
             value={amount}
             onChangeText={setAmount}
-            placeholder="e.g. 500000"
+            placeholder="e.g. 1000"
             keyboardType="numeric"
           />
 
           {method === "mobile_money" ? (
-            <Input
-              label="Phone Number"
-              value={phone}
-              onChangeText={setPhone}
-              placeholder="+256 7XX XXX XXX"
-              keyboardType="phone-pad"
-            />
+            <>
+              <Input
+                label="Phone Number"
+                prefix="+256"
+                value={phone}
+                onChangeText={(t) => {
+                  setPhoneTouched(true);
+                  setPhone(t.replace(/\D/g, "").slice(0, 9));
+                }}
+                placeholder="7XX XXX XXX"
+                keyboardType="phone-pad"
+                error={phoneError ?? undefined}
+              />
+              <Text style={styles.label}>Network</Text>
+              <View style={styles.tabs}>
+                {(["MTN", "AIRTEL"] as const).map((c) => (
+                  <TouchableOpacity
+                    key={c}
+                    onPress={() => {
+                      setPhoneTouched(true);
+                      setCarrierOverride(c);
+                    }}
+                    style={[
+                      styles.tab,
+                      carrier === c && { backgroundColor: Colors.navyLight },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.tabText,
+                        carrier === c && { color: Colors.textPrimary },
+                      ]}
+                    >
+                      {c === "MTN" ? "MTN Mobile Money" : "Airtel Money"}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </>
           ) : (
             <>
               <Text style={styles.label}>Bank</Text>
@@ -236,10 +294,10 @@ export function WalletWithdrawModal({
 
           <View style={styles.actions}>
             <Button
-              title="Cancel"
+              title={isSubmittingBank ? "Close (keeps waiting)" : "Cancel"}
               variant="outline"
               onPress={onClose}
-              disabled={isSubmitting}
+              disabled={isSubmittingMobileMoney}
               style={styles.flex}
             />
             <Button
