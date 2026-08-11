@@ -17,9 +17,6 @@ interface StagedGuarantor {
   username: string;
 }
 
-// Matches mpola_api's default platform rate (routers/loans.py: rate = 3.0, % per month).
-const PLATFORM_RATE_PER_MONTH = 3;
-
 export function useApplyViewModel() {
   const queryClient = useQueryClient();
   const [step, setStep] = useState<ApplicationStep>(1);
@@ -98,7 +95,10 @@ export function useApplyViewModel() {
     maxInterestRate.trim() !== "" &&
     (Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
   const hasRateCap = maxInterestRate.trim() !== "";
-  const displayRate = hasRateCap ? Number(maxInterestRate) : PLATFORM_RATE_PER_MONTH;
+  // Zero, not the platform-average placeholder — until the borrower actually
+  // types a rate cap, there's nothing real to estimate against, and showing
+  // a fabricated number here reads as "the app already decided my rate."
+  const displayRate = hasRateCap ? Number(maxInterestRate) : 0;
   const step1Valid =
     amount.trim() !== "" &&
     numAmount >= 1000 &&

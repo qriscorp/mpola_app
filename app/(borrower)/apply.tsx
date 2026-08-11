@@ -352,7 +352,7 @@ export default function ApplyScreen() {
               <Text style={styles.estimateNote}>
                 {vm.hasRateCap
                   ? "This is only an estimate at your rate cap — nothing here is submitted."
-                  : "You left the rate blank — this matches any lender's offer. The estimate above just uses the platform average and isn't saved anywhere."}
+                  : "You left the rate blank — this matches any lender's offer, at whatever rate they set. Nothing here is submitted; the totals are 0 until you enter a cap or an amount."}
               </Text>
             </Card>
 
@@ -457,7 +457,7 @@ export default function ApplyScreen() {
               </View>
               <View style={styles.reviewRow}>
                 <Text style={styles.reviewLabel}>
-                  {vm.hasRateCap ? "Your Rate Cap" : "Rate (uncapped, est.)"}
+                  {vm.hasRateCap ? "Your Rate Cap" : "Rate (uncapped)"}
                 </Text>
                 <Text style={styles.reviewValue}>{vm.interestRate}%/month</Text>
               </View>

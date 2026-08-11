@@ -429,7 +429,7 @@ function RequestDetailPanel({ app }: { app: LoanApplication }) {
       {app.maxInterestRate != null && (
         <DetailRow label="Your Rate Cap" value={`${app.maxInterestRate}%/month`} />
       )}
-      {app.interestRate != null ? (
+      {app.status === "funded" ? (
         <>
           <DetailRow label="Accepted Interest Rate" value={`${app.interestRate}%/month`} />
           {app.monthlyPayment != null && (
