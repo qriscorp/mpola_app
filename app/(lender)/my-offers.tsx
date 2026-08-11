@@ -14,6 +14,7 @@ import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, SkeletonList } from "../../src/components";
 import { useMyOfferTemplatesViewModel } from "../../src/viewmodels";
 import type { OfferTemplate } from "../../src/models";
+import { formatDuration } from "../../src/services/duration";
 
 const statusVariant: Record<OfferTemplate["status"], "warning" | "default" | "success" | "danger"> = {
   pending_review: "warning",
@@ -144,7 +145,7 @@ export default function MyOffersScreen() {
                     UGX {t.minAmount.toLocaleString()} – {t.maxAmount.toLocaleString()}
                   </Text>
                   <Text style={styles.rate}>
-                    {t.interestRate}%/month · Max {t.maxDuration} months
+                    {t.interestRate}%/month · Max {formatDuration(t.maxDuration, t.maxDurationDays)}
                   </Text>
                   <Text style={styles.types}>
                     {t.acceptedLoanTypes.join(", ") || "Any loan type"}

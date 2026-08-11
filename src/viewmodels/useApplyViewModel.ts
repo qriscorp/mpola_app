@@ -97,6 +97,8 @@ export function useApplyViewModel() {
   const maxRateInvalid =
     maxInterestRate.trim() !== "" &&
     (Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
+  const hasRateCap = maxInterestRate.trim() !== "";
+  const displayRate = hasRateCap ? Number(maxInterestRate) : PLATFORM_RATE_PER_MONTH;
   const step1Valid =
     amount.trim() !== "" &&
     numAmount >= 1000 &&
@@ -104,8 +106,8 @@ export function useApplyViewModel() {
     !maxRateInvalid &&
     (isEmergency ? durationDays != null : duration > 0);
   const totalInterest = isEmergency
-    ? numAmount * (PLATFORM_RATE_PER_MONTH / 100) * ((durationDays ?? 0) / 30)
-    : numAmount * (PLATFORM_RATE_PER_MONTH / 100) * duration;
+    ? numAmount * (displayRate / 100) * ((durationDays ?? 0) / 30)
+    : numAmount * (displayRate / 100) * duration;
   const totalRepayable = numAmount + totalInterest;
   const monthlyPayment = isEmergency
     ? Math.round(totalRepayable)
@@ -296,7 +298,8 @@ export function useApplyViewModel() {
     removeGuarantor,
     guarantorError,
     searchingGuarantor,
-    interestRate: PLATFORM_RATE_PER_MONTH,
+    interestRate: displayRate,
+    hasRateCap,
     monthlyPayment,
     totalRepayable,
     detailsErrors,

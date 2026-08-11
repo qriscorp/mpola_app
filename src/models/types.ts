@@ -309,7 +309,11 @@ export interface OfferTemplate {
   maxAmount: number;
   minAmount: number;
   interestRate: number;
-  maxDuration: number;
+  maxDuration: number | null;
+  // A standing offer is either month-based (maxDuration) or a day-based
+  // "emergency" offer (maxDurationDays) — exactly one is ever set, same
+  // split as LoanApplication/LoanOffer.
+  maxDurationDays: number | null;
   acceptedLoanTypes: string[];
   requiredDocuments: string[];
   description: string | null;
@@ -325,7 +329,8 @@ export interface OfferTemplateInput {
   maxAmount: number;
   minAmount: number;
   interestRate: number;
-  maxDuration: number;
+  maxDuration?: number | null;
+  maxDurationDays?: number | null;
   acceptedLoanTypes: string[];
   requiredDocuments: string[];
   description?: string;

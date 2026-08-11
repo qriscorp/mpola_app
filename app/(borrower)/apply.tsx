@@ -349,6 +349,11 @@ export default function ApplyScreen() {
               <Text style={styles.estimateTotal}>
                 UGX {Math.round(vm.totalRepayable).toLocaleString()} total
               </Text>
+              <Text style={styles.estimateNote}>
+                {vm.hasRateCap
+                  ? "This is only an estimate at your rate cap — nothing here is submitted."
+                  : "You left the rate blank — this matches any lender's offer. The estimate above just uses the platform average and isn't saved anywhere."}
+              </Text>
             </Card>
 
             <Button
@@ -451,7 +456,9 @@ export default function ApplyScreen() {
                 </Text>
               </View>
               <View style={styles.reviewRow}>
-                <Text style={styles.reviewLabel}>Rate</Text>
+                <Text style={styles.reviewLabel}>
+                  {vm.hasRateCap ? "Your Rate Cap" : "Rate (uncapped, est.)"}
+                </Text>
                 <Text style={styles.reviewValue}>{vm.interestRate}%/month</Text>
               </View>
               <View style={[styles.reviewRow, { borderBottomWidth: 0 }]}>
@@ -640,6 +647,11 @@ const styles = StyleSheet.create({
     ...Typography.small,
     color: Colors.textSecondary,
     marginTop: 2,
+  },
+  estimateNote: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    marginTop: Spacing.sm,
   },
   guarantorCard: { marginBottom: Spacing.md },
   guarantorHeader: {

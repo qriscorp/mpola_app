@@ -20,6 +20,7 @@ export {
   LOAN_TYPE_OPTIONS,
   DOCUMENT_OPTIONS,
   DURATION_OPTIONS,
+  DAY_PRESET_OPTIONS,
 } from "./usePostOfferViewModel";
 export { useMyOfferTemplatesViewModel } from "./useMyOfferTemplatesViewModel";
 export { useLenderWalletViewModel } from "./useLenderWalletViewModel";

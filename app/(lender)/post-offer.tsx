@@ -17,6 +17,7 @@ import {
   LOAN_TYPE_OPTIONS,
   DOCUMENT_OPTIONS,
   DURATION_OPTIONS,
+  DAY_PRESET_OPTIONS,
 } from "../../src/viewmodels";
 
 function Chip({
@@ -120,16 +121,75 @@ export default function PostOfferScreen() {
         />
 
         <Text style={styles.fieldLabel}>Max Duration</Text>
-        <View style={styles.chipRow}>
-          {DURATION_OPTIONS.map((d) => (
-            <Chip
-              key={d}
-              label={`${d} mo`}
-              active={vm.maxDuration === d}
-              onPress={() => vm.setMaxDuration(d)}
-            />
-          ))}
+        <View style={styles.unitRow}>
+          <TouchableOpacity
+            style={[styles.unitChip, vm.durationUnit === "months" && styles.unitChipActive]}
+            onPress={() => vm.setDurationUnit("months")}
+          >
+            <Text
+              style={[
+                styles.unitChipText,
+                vm.durationUnit === "months" && styles.unitChipTextActive,
+              ]}
+            >
+              Months
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.unitChip, vm.durationUnit === "days" && styles.unitChipActive]}
+            onPress={() => vm.setDurationUnit("days")}
+          >
+            <Text
+              style={[
+                styles.unitChipText,
+                vm.durationUnit === "days" && styles.unitChipTextActive,
+              ]}
+            >
+              Days (Emergency)
+            </Text>
+          </TouchableOpacity>
         </View>
+        {vm.durationUnit === "months" ? (
+          <View style={styles.chipRow}>
+            {DURATION_OPTIONS.map((d) => (
+              <Chip
+                key={d}
+                label={`${d} mo`}
+                active={vm.maxDuration === d}
+                onPress={() => vm.setMaxDuration(d)}
+              />
+            ))}
+          </View>
+        ) : (
+          <>
+            <View style={styles.chipRow}>
+              {DAY_PRESET_OPTIONS.map((d) => (
+                <Chip
+                  key={d}
+                  label={`${d} day${d === 1 ? "" : "s"}`}
+                  active={vm.maxDurationDays === d && vm.customDays === ""}
+                  onPress={() => vm.selectDayPreset(d)}
+                />
+              ))}
+            </View>
+            <Input
+              label="Custom (1-29 days)"
+              value={vm.customDays}
+              onChangeText={vm.setCustomDurationDays}
+              placeholder="e.g. 21"
+              keyboardType="numeric"
+              error={
+                vm.customDays !== "" && vm.maxDurationDays == null
+                  ? "Enter a whole number between 1 and 29"
+                  : undefined
+              }
+            />
+            <Text style={styles.footnote}>
+              Matches short-term "emergency" requests (1-29 days, single repayment). These never
+              match a month-based offer, and vice versa.
+            </Text>
+          </>
+        )}
 
         <Text style={styles.fieldLabel}>Accepted Loan Types</Text>
         <View style={styles.chipRow}>
@@ -184,7 +244,7 @@ export default function PostOfferScreen() {
             onPress={handleSubmit}
             color={Colors.gold}
             loading={vm.submitting}
-            disabled={vm.editDataLoading || vm.amountRangeInvalid || vm.rateInvalid}
+            disabled={vm.editDataLoading || vm.amountRangeInvalid || vm.rateInvalid || vm.durationInvalid}
             style={{ marginTop: Spacing.md }}
           />
         ) : (
@@ -194,13 +254,13 @@ export default function PostOfferScreen() {
               onPress={handleSubmit}
               color={Colors.gold}
               loading={vm.submitting}
-              disabled={vm.amountRangeInvalid || vm.rateInvalid}
+              disabled={vm.amountRangeInvalid || vm.rateInvalid || vm.durationInvalid}
               style={{ marginTop: Spacing.md }}
             />
             <TouchableOpacity
               style={styles.draftLink}
               onPress={handleSaveDraft}
-              disabled={vm.submitting || vm.amountRangeInvalid || vm.rateInvalid}
+              disabled={vm.submitting || vm.amountRangeInvalid || vm.rateInvalid || vm.durationInvalid}
             >
               <Text style={styles.draftText}>Save as Draft</Text>
             </TouchableOpacity>
@@ -227,6 +287,22 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: Spacing.lg,
   },
+  unitRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginBottom: Spacing.md,
+  },
+  unitChip: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  unitChipActive: { backgroundColor: Colors.gold + "25", borderColor: Colors.gold },
+  unitChipText: { ...Typography.smallMedium, color: Colors.textSecondary },
+  unitChipTextActive: { color: Colors.gold },
   fieldLabel: {
     ...Typography.smallMedium,
     color: Colors.textSecondary,

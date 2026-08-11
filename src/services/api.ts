@@ -1106,7 +1106,8 @@ interface RawOfferTemplate {
   max_amount: number;
   min_amount: number;
   interest_rate: number;
-  max_duration: number;
+  max_duration: number | null;
+  max_duration_days: number | null;
   accepted_loan_types: string[];
   required_documents: string[];
   description: string | null;
@@ -1126,6 +1127,7 @@ function mapOfferTemplate(t: RawOfferTemplate): OfferTemplate {
     minAmount: t.min_amount,
     interestRate: t.interest_rate,
     maxDuration: t.max_duration,
+    maxDurationDays: t.max_duration_days,
     acceptedLoanTypes: t.accepted_loan_types,
     requiredDocuments: t.required_documents,
     description: t.description,
@@ -1144,6 +1146,7 @@ function offerTemplatePayload(data: OfferTemplateInput) {
     min_amount: data.minAmount,
     interest_rate: data.interestRate,
     max_duration: data.maxDuration,
+    max_duration_days: data.maxDurationDays,
     accepted_loan_types: data.acceptedLoanTypes,
     required_documents: data.requiredDocuments,
     description: data.description,

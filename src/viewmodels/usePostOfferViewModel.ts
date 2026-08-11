@@ -24,7 +24,13 @@ export const DOCUMENT_OPTIONS = [
   "URA TIN",
 ];
 
-export const DURATION_OPTIONS = [1, 2, 3, 6, 12, 18, 24];
+// Mirrors the borrower apply wizard's durationOptions exactly
+// (useApplyViewModel.ts) so a lender's max_duration can be set to any
+// value a borrower could actually request.
+export const DURATION_OPTIONS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 18, 24];
+// Mirrors the borrower apply wizard's emergencyDayPresets exactly — a
+// day-based standing offer's maxDurationDays should use the same range.
+export const DAY_PRESET_OPTIONS = [1, 3, 7, 14];
 
 /** Shared create/edit form for a lender's standing offer. Pass an
  * `editId` to load and prefill an existing template (only editable while
@@ -47,7 +53,10 @@ export function usePostOfferViewModel(editId?: string) {
   const [maxAmount, setMaxAmount] = useState("50000000");
   const [minAmount, setMinAmount] = useState("1000");
   const [interestRate, setInterestRate] = useState("2");
+  const [durationUnit, setDurationUnit] = useState<"months" | "days">("months");
   const [maxDuration, setMaxDuration] = useState(6);
+  const [maxDurationDays, setMaxDurationDays] = useState<number | null>(DAY_PRESET_OPTIONS[0]);
+  const [customDays, setCustomDays] = useState("");
   const [acceptedLoanTypes, setAcceptedLoanTypes] = useState<string[]>([
     "business",
     "personal",
@@ -66,7 +75,16 @@ export function usePostOfferViewModel(editId?: string) {
     setMaxAmount(String(editingTemplate.maxAmount));
     setMinAmount(String(editingTemplate.minAmount));
     setInterestRate(String(editingTemplate.interestRate));
-    setMaxDuration(editingTemplate.maxDuration);
+    if (editingTemplate.maxDurationDays != null) {
+      setDurationUnit("days");
+      setMaxDurationDays(editingTemplate.maxDurationDays);
+      if (!DAY_PRESET_OPTIONS.includes(editingTemplate.maxDurationDays)) {
+        setCustomDays(String(editingTemplate.maxDurationDays));
+      }
+    } else if (editingTemplate.maxDuration != null) {
+      setDurationUnit("months");
+      setMaxDuration(editingTemplate.maxDuration);
+    }
     setAcceptedLoanTypes(editingTemplate.acceptedLoanTypes);
     setRequiredDocuments(editingTemplate.requiredDocuments);
     setDescription(editingTemplate.description ?? "");
@@ -77,6 +95,21 @@ export function usePostOfferViewModel(editId?: string) {
     );
     setPrefilled(true);
   }, [editingTemplate, prefilled]);
+
+  const selectDayPreset = (d: number) => {
+    setMaxDurationDays(d);
+    setCustomDays("");
+  };
+
+  const setCustomDurationDays = (v: string) => {
+    setCustomDays(v);
+    if (v === "") {
+      setMaxDurationDays(null);
+      return;
+    }
+    const n = parseInt(v, 10);
+    setMaxDurationDays(!Number.isNaN(n) && n >= 1 && n <= 29 ? n : null);
+  };
 
   const toggleLoanType = (t: string) => {
     setAcceptedLoanTypes((prev) =>
@@ -93,12 +126,14 @@ export function usePostOfferViewModel(editId?: string) {
   const amountRangeInvalid =
     minAmount !== "" && maxAmount !== "" && Number(minAmount) >= Number(maxAmount);
   const rateInvalid = interestRate !== "" && (Number(interestRate) < 0.1 || Number(interestRate) > 25);
+  const durationInvalid = durationUnit === "days" && maxDurationDays == null;
 
   const buildFields = () => ({
     maxAmount: Number(maxAmount),
     minAmount: Number(minAmount),
     interestRate: Number(interestRate),
-    maxDuration,
+    maxDuration: durationUnit === "months" ? maxDuration : null,
+    maxDurationDays: durationUnit === "days" ? maxDurationDays : null,
     acceptedLoanTypes,
     requiredDocuments,
     description: description || undefined,
@@ -113,6 +148,9 @@ export function usePostOfferViewModel(editId?: string) {
       if (interestRate === "" || rateInvalid) {
         throw new Error("Interest rate must be between 0.1% and 25%");
       }
+      if (durationInvalid) {
+        throw new Error("Enter a valid custom duration between 1 and 29 days");
+      }
       return createOfferTemplate({ ...buildFields(), isDraft });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] }),
@@ -125,6 +163,9 @@ export function usePostOfferViewModel(editId?: string) {
       }
       if (interestRate === "" || rateInvalid) {
         throw new Error("Interest rate must be between 0.1% and 25%");
+      }
+      if (durationInvalid) {
+        throw new Error("Enter a valid custom duration between 1 and 29 days");
       }
       return updateOfferTemplate(editId!, buildFields());
     },
@@ -142,8 +183,15 @@ export function usePostOfferViewModel(editId?: string) {
     interestRate,
     setInterestRate,
     rateInvalid,
+    durationUnit,
+    setDurationUnit,
     maxDuration,
     setMaxDuration,
+    maxDurationDays,
+    selectDayPreset,
+    customDays,
+    setCustomDurationDays,
+    durationInvalid,
     acceptedLoanTypes,
     toggleLoanType,
     requiredDocuments,
