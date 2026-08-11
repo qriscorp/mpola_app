@@ -115,10 +115,10 @@ export function WalletDepositModal({
 
           <View style={styles.actions}>
             <Button
-              title="Cancel"
+              title={isSubmittingCard ? "Close (keeps waiting)" : "Cancel"}
               variant="outline"
               onPress={onClose}
-              disabled={isSubmitting}
+              disabled={isSubmittingMobileMoney}
               style={styles.flex}
             />
             <Button
