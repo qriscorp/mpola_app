@@ -50,6 +50,16 @@ export default function MakeOfferScreen() {
           <Text style={styles.subtitle}>Offering to {borrowerName}</Text>
         )}
 
+        {vm.cooldownHoursLeft != null && (
+          <View style={styles.cooldownBanner}>
+            <Text style={styles.cooldownBannerText}>
+              Your standing offer already matched this request and is awaiting the
+              borrower's response. You can send a manual offer in{" "}
+              {vm.cooldownHoursLeft}h if they haven't responded by then.
+            </Text>
+          </View>
+        )}
+
         <Input
           label="Loan Amount (UGX)"
           value={vm.amount}
@@ -176,6 +186,7 @@ export default function MakeOfferScreen() {
           onPress={handleSend}
           color={Colors.gold}
           loading={vm.loading}
+          disabled={vm.cooldownHoursLeft != null}
           style={{ marginTop: Spacing.sm }}
         />
         <TouchableOpacity
@@ -205,6 +216,15 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginBottom: Spacing.lg,
   },
+  cooldownBanner: {
+    backgroundColor: Colors.warningBg,
+    borderWidth: 1,
+    borderColor: Colors.warning,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  cooldownBannerText: { ...Typography.small, color: Colors.warning },
   error: {
     ...Typography.small,
     color: Colors.danger,

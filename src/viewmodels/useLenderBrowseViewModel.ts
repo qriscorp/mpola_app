@@ -1,9 +1,22 @@
 import { useState } from "react";
 import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchMarketplace, fetchApplicationDetail, makeOffer } from "../services";
+import { fetchMarketplace, fetchApplicationDetail, fetchMyOffers, makeOffer } from "../services";
 import { makeOfferSchema } from "../validation";
 import type { LoanType } from "../models";
+
+// A lender's own standing offer may have already auto-matched this
+// application — while it's still pending and inside the 2-day cooldown
+// (see AUTO_MATCH_MANUAL_OFFER_COOLDOWN in routers/loans.py), they can't
+// also hand-craft a manual offer here. Purely informational/UX gating — the
+// backend is the real enforcement.
+function autoMatchCooldownHoursLeft(offer: { status: string; templateId: string | null; autoMatchCooldownEndsAt: string | null } | undefined): number | null {
+  if (!offer || offer.status !== "pending" || !offer.templateId || !offer.autoMatchCooldownEndsAt) {
+    return null;
+  }
+  const msLeft = new Date(offer.autoMatchCooldownEndsAt).getTime() - Date.now();
+  return msLeft > 0 ? Math.ceil(msLeft / 3_600_000) : null;
+}
 
 export function useApplicationDetailViewModel(applicationId: string) {
   const { data: application, isLoading, error, refetch } = useQuery({
@@ -70,6 +83,13 @@ export function useBrowseBorrowersViewModel() {
 
 export function useMakeOfferViewModel(applicationId: string) {
   const queryClient = useQueryClient();
+  const { data: myOffers } = useQuery({
+    queryKey: ["lender", "offers"],
+    queryFn: fetchMyOffers,
+  });
+  const cooldownHoursLeft = autoMatchCooldownHoursLeft(
+    myOffers?.find((o) => o.applicationId === applicationId),
+  );
   const [amount, setAmount] = useState("8000000");
   const [rate, setRate] = useState("3");
   const [duration, setDuration] = useState("18");
@@ -165,6 +185,7 @@ export function useMakeOfferViewModel(applicationId: string) {
     customDocInput,
     setCustomDocInput,
     addCustomDocument,
+    cooldownHoursLeft,
     monthlyPayment,
     totalEarnings: Math.round(totalInterest),
     totalRepayable: Math.round(totalRepayable),

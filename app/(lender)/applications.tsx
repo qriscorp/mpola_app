@@ -20,7 +20,7 @@ import {
   skipApplication,
   makeOffer,
 } from "../../src/services";
-import type { MarketplaceApplication } from "../../src/models";
+import type { MarketplaceApplication, LoanOffer } from "../../src/models";
 import { formatDuration } from "../../src/services/duration";
 
 type Tab = "All" | "Pending" | "Approved" | "Declined";
@@ -32,6 +32,20 @@ function timeSince(dateStr: string): string {
   if (days <= 0) return "today";
   if (days === 1) return "1 day ago";
   return `${days} days ago`;
+}
+
+// A lender's own standing offer may have already auto-matched this
+// application — while it's still pending and inside the 2-day cooldown
+// (see AUTO_MATCH_MANUAL_OFFER_COOLDOWN in routers/loans.py), they can't
+// also hand-craft a manual offer here. Purely informational/UX gating —
+// the backend is the real enforcement.
+function autoMatchCooldown(offer: LoanOffer | undefined): { hoursLeft: number } | null {
+  if (!offer || offer.status !== "pending" || !offer.templateId || !offer.autoMatchCooldownEndsAt) {
+    return null;
+  }
+  const msLeft = new Date(offer.autoMatchCooldownEndsAt).getTime() - Date.now();
+  if (msLeft <= 0) return null;
+  return { hoursLeft: Math.ceil(msLeft / 3_600_000) };
 }
 
 function OfferModal({
@@ -221,6 +235,7 @@ export default function ApplicationsInboxScreen() {
 
   const applications = marketplace?.applications ?? [];
   const pendingOffersCount = (myOffers ?? []).filter((o) => o.status === "pending").length;
+  const myOfferByApplicationId = new Map((myOffers ?? []).map((o) => [o.applicationId, o]));
 
   // The marketplace only ever returns open (pending) applications — once a
   // lender's offer is accepted the application leaves the marketplace, so
@@ -300,12 +315,26 @@ export default function ApplicationsInboxScreen() {
                 </View>
               </View>
               <View style={styles.actionsRow}>
-                <TouchableOpacity
-                  style={styles.approveBtn}
-                  onPress={() => setOfferModalApp(app)}
-                >
-                  <Text style={styles.approveText}>Make Offer</Text>
-                </TouchableOpacity>
+                {(() => {
+                  const cooldown = autoMatchCooldown(myOfferByApplicationId.get(app.id));
+                  if (cooldown) {
+                    return (
+                      <View style={styles.cooldownBadge}>
+                        <Text style={styles.cooldownText}>
+                          Awaiting borrower ({cooldown.hoursLeft}h)
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <TouchableOpacity
+                      style={styles.approveBtn}
+                      onPress={() => setOfferModalApp(app)}
+                    >
+                      <Text style={styles.approveText}>Make Offer</Text>
+                    </TouchableOpacity>
+                  );
+                })()}
                 <TouchableOpacity
                   style={styles.declineBtn}
                   disabled={skip.isPending}
@@ -413,6 +442,16 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   approveText: { ...Typography.smallMedium, color: Colors.white },
+  cooldownBadge: {
+    flex: 1,
+    backgroundColor: Colors.warningBg,
+    borderWidth: 1,
+    borderColor: Colors.warning,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  cooldownText: { ...Typography.caption, color: Colors.warning, fontWeight: "600" },
   declineBtn: {
     flex: 1,
     borderWidth: 1,

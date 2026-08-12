@@ -640,6 +640,7 @@ interface RawOffer {
   total_repayable: number | null;
   status: string;
   template_id: string | null;
+  auto_match_cooldown_ends_at: string | null;
   required_documents: string[];
   required_documents_status: RawRequiredDocumentStatus[];
   created_at: string;
@@ -712,6 +713,7 @@ function mapOffer(o: RawOffer): LoanOffer {
     totalRepayable: o.total_repayable,
     status: o.status as OfferStatus,
     templateId: o.template_id,
+    autoMatchCooldownEndsAt: o.auto_match_cooldown_ends_at,
     requiredDocuments: o.required_documents,
     requiredDocumentsStatus: (o.required_documents_status ?? []).map(mapRequiredDocumentStatus),
     createdAt: o.created_at,
