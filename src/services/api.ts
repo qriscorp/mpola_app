@@ -627,6 +627,7 @@ interface RawOffer {
   id: string;
   application_id: string;
   application_reference: string | null;
+  borrower_name: string | null;
   loan_type: string | null;
   application_status: string | null;
   lender_id: string;
@@ -638,6 +639,7 @@ interface RawOffer {
   monthly_payment: number | null;
   total_repayable: number | null;
   status: string;
+  template_id: string | null;
   required_documents: string[];
   required_documents_status: RawRequiredDocumentStatus[];
   created_at: string;
@@ -697,6 +699,7 @@ function mapOffer(o: RawOffer): LoanOffer {
     id: o.id,
     applicationId: o.application_id,
     applicationReference: o.application_reference,
+    borrowerName: o.borrower_name,
     loanType: (o.loan_type as LoanOffer["loanType"]) ?? null,
     applicationStatus: (o.application_status as LoanOffer["applicationStatus"]) ?? null,
     lenderId: o.lender_id,
@@ -708,6 +711,7 @@ function mapOffer(o: RawOffer): LoanOffer {
     monthlyPayment: o.monthly_payment,
     totalRepayable: o.total_repayable,
     status: o.status as OfferStatus,
+    templateId: o.template_id,
     requiredDocuments: o.required_documents,
     requiredDocumentsStatus: (o.required_documents_status ?? []).map(mapRequiredDocumentStatus),
     createdAt: o.created_at,
@@ -1162,6 +1166,9 @@ interface RawOfferTemplate {
   is_frozen: boolean;
   frozen_by: "lender" | "admin" | null;
   created_at: string;
+  matched_count: number;
+  pending_count: number;
+  accepted_count: number;
 }
 
 function mapOfferTemplate(t: RawOfferTemplate): OfferTemplate {
@@ -1182,6 +1189,9 @@ function mapOfferTemplate(t: RawOfferTemplate): OfferTemplate {
     isFrozen: t.is_frozen,
     frozenBy: t.frozen_by,
     createdAt: t.created_at,
+    matchedCount: t.matched_count,
+    pendingCount: t.pending_count,
+    acceptedCount: t.accepted_count,
   };
 }
 
@@ -1213,6 +1223,13 @@ export async function createOfferTemplate(
 export async function fetchMyOfferTemplates(): Promise<OfferTemplate[]> {
   const res = await apiAuthGet<{ templates: RawOfferTemplate[] }>("/loans/offer-templates/mine");
   return res.templates.map(mapOfferTemplate);
+}
+
+export async function fetchOfferTemplateMatches(templateId: string): Promise<LoanOffer[]> {
+  const res = await apiAuthGet<{ offers: RawOffer[] }>(
+    `/loans/offer-templates/${templateId}/matches`,
+  );
+  return res.offers.map(mapOffer);
 }
 
 export async function updateOfferTemplate(

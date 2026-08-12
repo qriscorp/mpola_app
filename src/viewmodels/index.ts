@@ -22,7 +22,10 @@ export {
   DURATION_OPTIONS,
   DAY_PRESET_OPTIONS,
 } from "./usePostOfferViewModel";
-export { useMyOfferTemplatesViewModel } from "./useMyOfferTemplatesViewModel";
+export {
+  useMyOfferTemplatesViewModel,
+  useOfferTemplateMatchesViewModel,
+} from "./useMyOfferTemplatesViewModel";
 export { useLenderWalletViewModel } from "./useLenderWalletViewModel";
 export { useEarningsViewModel } from "./useEarningsViewModel";
 export { useNotificationsViewModel } from "./useNotificationsViewModel";

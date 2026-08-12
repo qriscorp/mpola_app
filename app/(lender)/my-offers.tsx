@@ -12,8 +12,11 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, SkeletonList } from "../../src/components";
-import { useMyOfferTemplatesViewModel } from "../../src/viewmodels";
-import type { OfferTemplate } from "../../src/models";
+import {
+  useMyOfferTemplatesViewModel,
+  useOfferTemplateMatchesViewModel,
+} from "../../src/viewmodels";
+import type { OfferTemplate, LoanOffer } from "../../src/models";
 import { formatDuration } from "../../src/services/duration";
 
 const statusVariant: Record<OfferTemplate["status"], "warning" | "default" | "success" | "danger"> = {
@@ -29,6 +32,84 @@ const statusLabel: Record<OfferTemplate["status"], string> = {
   approved: "Approved",
   rejected: "Rejected",
 };
+
+const offerStatusVariant: Record<LoanOffer["status"], "warning" | "default" | "success"> = {
+  pending: "warning",
+  accepted: "success",
+  declined: "default",
+  expired: "default",
+};
+
+const offerStatusLabel: Record<LoanOffer["status"], string> = {
+  pending: "Pending",
+  accepted: "Accepted",
+  declined: "Declined",
+  expired: "Expired",
+};
+
+function MatchedRequestsSection({ template }: { template: OfferTemplate }) {
+  const router = useRouter();
+  const [expanded, setExpanded] = React.useState(false);
+  const { matches, isLoading } = useOfferTemplateMatchesViewModel(template.id, expanded);
+
+  return (
+    <View style={styles.matchedBlock}>
+      <TouchableOpacity
+        style={styles.matchedHeader}
+        onPress={() => setExpanded((e) => !e)}
+      >
+        <Text style={styles.matchedHeaderText}>
+          Matched Requests ({template.matchedCount})
+          {template.pendingCount > 0 && (
+            <Text style={styles.matchedPendingText}> · {template.pendingCount} awaiting borrower</Text>
+          )}
+          {template.acceptedCount > 0 && (
+            <Text style={styles.matchedAcceptedText}> · {template.acceptedCount} accepted</Text>
+          )}
+        </Text>
+        <Ionicons
+          name={expanded ? "chevron-up" : "chevron-down"}
+          size={16}
+          color={Colors.textMuted}
+        />
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={{ gap: Spacing.xs }}>
+          {isLoading ? (
+            <Text style={styles.matchedEmpty}>Loading…</Text>
+          ) : matches.length === 0 ? (
+            <Text style={styles.matchedEmpty}>No matches yet.</Text>
+          ) : (
+            matches.map((o) => (
+              <TouchableOpacity
+                key={o.id}
+                style={styles.matchedRow}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(lender)/borrower-profile",
+                    params: { applicationId: o.applicationId },
+                  })
+                }
+              >
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.matchedRowTitle}>
+                    {o.borrowerName ?? "Unknown borrower"} · UGX {o.amount.toLocaleString()}
+                  </Text>
+                  <Text style={styles.matchedRowSubtitle}>
+                    {o.loanType ?? "loan"}
+                    {o.applicationReference ? ` · #${o.applicationReference}` : ""}
+                  </Text>
+                </View>
+                <Badge label={offerStatusLabel[o.status]} variant={offerStatusVariant[o.status]} />
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function MyOffersScreen() {
   const router = useRouter();
@@ -161,6 +242,8 @@ export default function MyOffersScreen() {
                   )}
                 </View>
               </View>
+
+              {t.matchedCount > 0 && <MatchedRequestsSection template={t} />}
 
               {t.status === "pending_review" && (
                 <View style={styles.actionRow}>
@@ -308,6 +391,33 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: Colors.border,
   },
+  matchedBlock: {
+    marginTop: Spacing.md,
+    paddingTop: Spacing.md,
+    borderTopWidth: 1,
+    borderTopColor: Colors.border,
+    gap: Spacing.sm,
+  },
+  matchedHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  matchedHeaderText: { ...Typography.smallMedium, color: Colors.textPrimary, flex: 1 },
+  matchedPendingText: { color: Colors.warning },
+  matchedAcceptedText: { color: Colors.success },
+  matchedEmpty: { ...Typography.small, color: Colors.textMuted },
+  matchedRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: Spacing.sm,
+    backgroundColor: Colors.surfaceLift,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+  },
+  matchedRowTitle: { ...Typography.smallMedium, color: Colors.textPrimary },
+  matchedRowSubtitle: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
   outlineBtn: {
     borderWidth: 1,
     borderColor: Colors.border,

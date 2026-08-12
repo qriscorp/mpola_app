@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   fetchMyOfferTemplates,
+  fetchOfferTemplateMatches,
   deleteOfferTemplate,
   freezeMyOfferTemplate,
   unfreezeMyOfferTemplate,
@@ -52,4 +53,14 @@ export function useMyOfferTemplatesViewModel() {
       extendExpiryMutation.isPending,
     isExtendingExpiry: extendExpiryMutation.isPending,
   };
+}
+
+export function useOfferTemplateMatchesViewModel(templateId: string, enabled: boolean) {
+  const { data: matches = [], isLoading } = useQuery({
+    queryKey: ["lender", "offer-templates", templateId, "matches"],
+    queryFn: () => fetchOfferTemplateMatches(templateId),
+    enabled,
+  });
+
+  return { matches, isLoading };
 }
