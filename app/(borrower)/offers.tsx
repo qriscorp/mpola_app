@@ -74,7 +74,14 @@ function AllOffersView() {
                     </Text>
                   </View>
                   <View style={styles.offerInfo}>
-                    <Text style={styles.offerName}>{offer.lenderName ?? "Lender"}</Text>
+                    <View style={styles.offerNameRow}>
+                      <Text style={styles.offerName}>{offer.lenderName ?? "Lender"}</Text>
+                      {offer.templateId && (
+                        <View style={styles.autoMatchedBadge}>
+                          <Text style={styles.autoMatchedText}>Auto-matched</Text>
+                        </View>
+                      )}
+                    </View>
                     <Text style={styles.offerSub}>
                       {formatDuration(offer.duration, offer.durationDays)}
                       {offer.loanType ? ` · ${offer.loanType}` : ""}
@@ -233,9 +240,16 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
                       </Text>
                     </View>
                     <View style={styles.offerInfo}>
-                      <Text style={styles.offerName}>
-                        {offer.lenderName ?? "Lender"}
-                      </Text>
+                      <View style={styles.offerNameRow}>
+                        <Text style={styles.offerName}>
+                          {offer.lenderName ?? "Lender"}
+                        </Text>
+                        {offer.templateId && (
+                          <View style={styles.autoMatchedBadge}>
+                            <Text style={styles.autoMatchedText}>Auto-matched</Text>
+                          </View>
+                        )}
+                      </View>
                       <Text style={styles.offerSub}>
                         {formatDuration(offer.duration, offer.durationDays)} · UGX{" "}
                         {(offer.monthlyPayment ?? 0).toLocaleString()}
@@ -387,7 +401,15 @@ const styles = StyleSheet.create({
   },
   offerAvatarText: { ...Typography.h4, color: Colors.white },
   offerInfo: { flex: 1 },
+  offerNameRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
   offerName: { ...Typography.bodyMedium, color: Colors.textPrimary },
+  autoMatchedBadge: {
+    backgroundColor: Colors.teal + "25",
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  autoMatchedText: { ...Typography.caption, color: Colors.teal, fontWeight: "600" },
   offerSub: { ...Typography.small, color: Colors.textMuted },
   offerRate: { fontSize: 18, fontWeight: "700", color: Colors.textSecondary },
   offerDetails: {

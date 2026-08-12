@@ -30,6 +30,21 @@ const iconMap: Record<string, { name: string; color: string; bg: string }> = {
     color: Colors.textSecondary,
     bg: Colors.surface,
   },
+  lender_offer_template: {
+    name: "gift-outline",
+    color: Colors.gold,
+    bg: Colors.gold + "25",
+  },
+  auto_match_cooldown_lifted: {
+    name: "time-outline",
+    color: Colors.warning,
+    bg: Colors.warningBg,
+  },
+  offer_expired: {
+    name: "hourglass-outline",
+    color: Colors.textSecondary,
+    bg: Colors.surface,
+  },
   guarantor_response: {
     name: "people-outline",
     color: Colors.teal,

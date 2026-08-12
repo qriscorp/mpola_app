@@ -47,6 +47,9 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["lender", "portfolio"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "earnings"] });
           queryClient.invalidateQueries({ queryKey: ["lender", "offer-templates"] });
+          queryClient.invalidateQueries({ queryKey: ["lender", "offers"] });
+          queryClient.invalidateQueries({ queryKey: ["borrower", "offers-received"] });
+          queryClient.invalidateQueries({ queryKey: ["application"] });
           queryClient.invalidateQueries({ queryKey: ["guarantor-requests"] });
 
           if (msg.type === "loan_pending_disbursement" && msg.title) {
@@ -57,6 +60,23 @@ export function useRealtimeNotifications() {
           } else if (msg.type === "loan_disbursed" && msg.title) {
             Alert.alert(msg.title, msg.message);
           } else if (msg.type === "offer_template_expired" && msg.title) {
+            Alert.alert(msg.title, msg.message);
+          } else if (msg.type === "lender_offer_template" && msg.title) {
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "View", onPress: () => router.push("/(lender)/my-offers") },
+            ]);
+          } else if (msg.type === "offer_awaiting_response" && msg.title) {
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "View", onPress: () => router.push("/(borrower)/offers") },
+            ]);
+          } else if (msg.type === "auto_match_cooldown_lifted" && msg.title) {
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "View", onPress: () => router.push("/(lender)/my-offers") },
+            ]);
+          } else if (msg.type === "offer_expired" && msg.title) {
             Alert.alert(msg.title, msg.message);
           } else if (msg.type === "low_wallet_balance" && msg.title) {
             Alert.alert(msg.title, msg.message, [

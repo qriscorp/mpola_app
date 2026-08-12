@@ -10,12 +10,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { Badge, SkeletonList } from "../../src/components";
 import {
   useMyOfferTemplatesViewModel,
   useOfferTemplateMatchesViewModel,
 } from "../../src/viewmodels";
+import { fetchMyOffers } from "../../src/services";
 import type { OfferTemplate, LoanOffer } from "../../src/models";
 import { formatDuration } from "../../src/services/duration";
 
@@ -46,6 +48,89 @@ const offerStatusLabel: Record<LoanOffer["status"], string> = {
   declined: "Declined",
   expired: "Expired",
 };
+
+const AUTO_MATCH_TABS: Array<"All" | LoanOffer["status"]> = ["All", "pending", "accepted", "declined", "expired"];
+
+/** Combined view of every offer auto-generated across ALL of this lender's
+ * standing offers, sortable by status — so a lender with several templates
+ * doesn't have to dig into each one's card individually to see what's come
+ * in overall. Mirrors mpola_website's Auto-Matched Only filter on the same
+ * page. Reuses the flat GET /loans/offers/mine list already fetched
+ * elsewhere in the app (react-query dedups the identical query key), just
+ * filtered to template-originated rows client-side. */
+function AutoMatchedOverview() {
+  const router = useRouter();
+  const [tab, setTab] = React.useState<"All" | LoanOffer["status"]>("All");
+  const { data: offers, isLoading } = useQuery({
+    queryKey: ["lender", "offers"],
+    queryFn: fetchMyOffers,
+  });
+
+  const autoMatched = (offers ?? []).filter((o) => o.templateId);
+  if (!isLoading && autoMatched.length === 0) return null;
+
+  const filtered = tab === "All" ? autoMatched : autoMatched.filter((o) => o.status === tab);
+
+  return (
+    <View style={styles.overviewBlock}>
+      <Text style={styles.overviewTitle}>Auto-Matched Requests</Text>
+      <Text style={styles.overviewSubtitle}>
+        Every request matched across all your standing offers, in one place.
+      </Text>
+
+      {isLoading ? (
+        <SkeletonList count={2} cardHeight={70} />
+      ) : (
+        <>
+          <View style={styles.overviewTabsRow}>
+            {AUTO_MATCH_TABS.map((t) => (
+              <TouchableOpacity
+                key={t}
+                style={[styles.overviewTab, tab === t && styles.overviewTabActive]}
+                onPress={() => setTab(t)}
+              >
+                <Text style={[styles.overviewTabText, tab === t && styles.overviewTabTextActive]}>
+                  {t === "All" ? "All" : offerStatusLabel[t]} (
+                  {t === "All" ? autoMatched.length : autoMatched.filter((o) => o.status === t).length})
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {filtered.length === 0 ? (
+            <Text style={styles.matchedEmpty}>Nothing in this category.</Text>
+          ) : (
+            <View style={{ gap: Spacing.xs }}>
+              {filtered.map((o) => (
+                <TouchableOpacity
+                  key={o.id}
+                  style={styles.matchedRow}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(lender)/borrower-profile",
+                      params: { applicationId: o.applicationId },
+                    })
+                  }
+                >
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.matchedRowTitle}>
+                      {o.borrowerName ?? "Unknown borrower"} · UGX {o.amount.toLocaleString()}
+                    </Text>
+                    <Text style={styles.matchedRowSubtitle}>
+                      {o.loanType ?? "loan"}
+                      {o.applicationReference ? ` · #${o.applicationReference}` : ""}
+                    </Text>
+                  </View>
+                  <Badge label={offerStatusLabel[o.status]} variant={offerStatusVariant[o.status]} />
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </>
+      )}
+    </View>
+  );
+}
 
 function MatchedRequestsSection({ template }: { template: OfferTemplate }) {
   const router = useRouter();
@@ -203,6 +288,8 @@ export default function MyOffersScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
+        <AutoMatchedOverview />
+
         {isLoading ? (
           <SkeletonList count={3} cardHeight={130} />
         ) : templates.length === 0 ? (
@@ -418,6 +505,27 @@ const styles = StyleSheet.create({
   },
   matchedRowTitle: { ...Typography.smallMedium, color: Colors.textPrimary },
   matchedRowSubtitle: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
+  overviewBlock: {
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.lg,
+    padding: Spacing.lg,
+    marginBottom: Spacing.lg,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.teal,
+  },
+  overviewTitle: { ...Typography.h4, color: Colors.textPrimary },
+  overviewSubtitle: { ...Typography.small, color: Colors.textMuted, marginTop: 2, marginBottom: Spacing.md },
+  overviewTabsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.md },
+  overviewTab: {
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 5,
+    borderRadius: BorderRadius.full,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  overviewTabActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
+  overviewTabText: { ...Typography.caption, color: Colors.textSecondary },
+  overviewTabTextActive: { color: Colors.white, fontWeight: "600" },
   outlineBtn: {
     borderWidth: 1,
     borderColor: Colors.border,
