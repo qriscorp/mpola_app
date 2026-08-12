@@ -78,12 +78,20 @@ export function useMakeOfferViewModel(applicationId: string) {
   // already gives on amount/rate.
   const [isEmergency, setIsEmergency] = useState(false);
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>([]);
+  const [customDocInput, setCustomDocInput] = useState("");
   const [offerErrors, setOfferErrors] = useState<Record<string, string>>({});
 
   const toggleRequiredDocument = (label: string) => {
     setRequiredDocuments((prev) =>
       prev.includes(label) ? prev.filter((d) => d !== label) : [...prev, label],
     );
+  };
+
+  const addCustomDocument = () => {
+    const label = customDocInput.trim();
+    if (!label || requiredDocuments.includes(label)) return;
+    setRequiredDocuments((prev) => [...prev, label]);
+    setCustomDocInput("");
   };
 
   const numAmount = Number(amount) || 0;
@@ -154,6 +162,9 @@ export function useMakeOfferViewModel(applicationId: string) {
     setIsEmergency,
     requiredDocuments,
     toggleRequiredDocument,
+    customDocInput,
+    setCustomDocInput,
+    addCustomDocument,
     monthlyPayment,
     totalEarnings: Math.round(totalInterest),
     totalRepayable: Math.round(totalRepayable),

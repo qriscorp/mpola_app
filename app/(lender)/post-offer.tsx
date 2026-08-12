@@ -213,7 +213,36 @@ export default function PostOfferScreen() {
               onPress={() => vm.toggleDocument(d)}
             />
           ))}
+          {vm.customDocuments.map((d) => (
+            <TouchableOpacity
+              key={d}
+              style={[styles.chip, styles.chipActive]}
+              onPress={() => vm.toggleDocument(d)}
+            >
+              <Text style={styles.chipTextActive}>{d} ×</Text>
+            </TouchableOpacity>
+          ))}
         </View>
+        <View style={styles.customDocRow}>
+          <Input
+            value={vm.customDocInput}
+            onChangeText={vm.setCustomDocInput}
+            placeholder="Other document (e.g. Business License)"
+            maxLength={255}
+            style={{ flex: 1 }}
+          />
+          <TouchableOpacity
+            style={styles.addDocBtn}
+            disabled={!vm.customDocInput.trim()}
+            onPress={vm.addCustomDocument}
+          >
+            <Text style={styles.addDocBtnText}>+ Add</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.footnote}>
+          A custom requirement won&apos;t match a fixed upload slot — the borrower will be able to
+          satisfy it with either a file or a written explanation.
+        </Text>
 
         <Input
           label="Description (optional)"
@@ -332,6 +361,15 @@ const styles = StyleSheet.create({
     textTransform: "capitalize",
   },
   chipTextActive: { color: Colors.white },
+  customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+  addDocBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  addDocBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
   footnote: {
     ...Typography.small,
     color: Colors.textMuted,

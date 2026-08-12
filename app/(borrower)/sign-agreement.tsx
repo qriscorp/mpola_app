@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -43,12 +44,16 @@ export default function SignAgreementScreen() {
     responding,
     uploadRequiredDocument,
     uploadingDocumentType,
+    uploadCustomDocument,
+    saveCustomDocumentText,
+    uploadingCustomLabel,
   } = useOffersViewModel(applicationId);
   const { data: wallet } = useQuery({ queryKey: ["borrower", "wallet"], queryFn: fetchBorrowerWallet });
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
 
   const [accepted, setAccepted] = useState<boolean[]>(Array(TERMS.length).fill(false));
   const [signed, setSigned] = useState(false);
+  const [note, setNote] = useState("");
 
   const offer = offers.find((o) => o.id === offerId);
   const allAccepted = accepted.every(Boolean);
@@ -64,7 +69,7 @@ export default function SignAgreementScreen() {
   const handleSign = async () => {
     if (!offer) return;
     try {
-      await respondToOffer(offer.id, "accepted");
+      await respondToOffer(offer.id, "accepted", note.trim() || undefined);
       setSigned(true);
       router.replace({
         pathname: "/(borrower)/loan-approved",
@@ -149,6 +154,9 @@ export default function SignAgreementScreen() {
                 items={offer.requiredDocumentsStatus}
                 onUpload={uploadRequiredDocument}
                 uploadingType={uploadingDocumentType}
+                onUploadCustom={uploadCustomDocument}
+                onSaveCustomText={saveCustomDocumentText}
+                uploadingCustomLabel={uploadingCustomLabel}
                 onGoToProfile={() => router.push("/(borrower)/profile")}
               />
             </View>
@@ -245,6 +253,21 @@ export default function SignAgreementScreen() {
             </Text>
           )}
 
+          {!signed && (
+            <View style={{ marginTop: Spacing.md }}>
+              <Text style={styles.noteLabel}>Note for the lender (optional)</Text>
+              <TextInput
+                multiline
+                numberOfLines={3}
+                value={note}
+                onChangeText={setNote}
+                placeholder="Anything worth flagging before they approve disbursement..."
+                placeholderTextColor={Colors.textMuted}
+                style={styles.noteInput}
+              />
+            </View>
+          )}
+
           <Button
             title={responding ? "Signing…" : "Sign Agreement"}
             onPress={handleSign}
@@ -332,6 +355,25 @@ const styles = StyleSheet.create({
     gap: Spacing.xs,
   },
   unsignedText: { ...Typography.small, color: Colors.textMuted },
+  noteLabel: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: Spacing.xs,
+  },
+  noteInput: {
+    ...Typography.small,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    minHeight: 70,
+    textAlignVertical: "top",
+  },
   warningText: {
     ...Typography.caption,
     color: Colors.warning,

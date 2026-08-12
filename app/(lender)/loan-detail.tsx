@@ -11,7 +11,13 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Badge, ProgressBar, SkeletonCard, SkeletonList } from "../../src/components";
+import {
+  Badge,
+  ProgressBar,
+  SkeletonCard,
+  SkeletonList,
+  RequiredDocumentsChecklist,
+} from "../../src/components";
 import { fetchLoanDetail } from "../../src/services";
 import { formatDuration } from "../../src/services/duration";
 
@@ -121,6 +127,68 @@ export default function LoanDetailScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Borrower Contact */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Borrower &amp; Terms</Text>
+          <View style={styles.cardRow}>
+            <Text style={styles.cardLabel}>Phone</Text>
+            <Text style={styles.cardValue}>{loan.borrowerPhone ?? "—"}</Text>
+          </View>
+          <View style={[styles.cardRow, { borderBottomWidth: 0 }]}>
+            <Text style={styles.cardLabel}>Email</Text>
+            <Text style={styles.cardValue}>{loan.borrowerEmail ?? "—"}</Text>
+          </View>
+          {loan.borrowerNote && (
+            <View style={styles.noteBox}>
+              <Text style={styles.noteLabel}>Note from borrower</Text>
+              <Text style={styles.noteText}>&ldquo;{loan.borrowerNote}&rdquo;</Text>
+            </View>
+          )}
+        </View>
+
+        {/* Guarantors */}
+        <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Guarantors ({loan.guarantors.length})</Text>
+          {loan.guarantors.length === 0 ? (
+            <Text style={styles.emptyText}>No guarantors on this loan.</Text>
+          ) : (
+            loan.guarantors.map((g, i) => (
+              <View
+                key={g.id}
+                style={[
+                  styles.cardRow,
+                  i === loan.guarantors.length - 1 && { borderBottomWidth: 0 },
+                ]}
+              >
+                <View>
+                  <Text style={styles.cardValue}>{g.fullName ?? g.username}</Text>
+                  <Text style={styles.borrowerMeta}>
+                    {g.relationshipType ?? "—"} · @{g.username}
+                  </Text>
+                </View>
+                <Badge
+                  label={g.status}
+                  variant={
+                    g.status === "accepted"
+                      ? "success"
+                      : g.status === "declined"
+                        ? "danger"
+                        : "warning"
+                  }
+                />
+              </View>
+            ))
+          )}
+        </View>
+
+        {/* Documents */}
+        {loan.requiredDocumentsStatus.length > 0 && (
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>Documents Provided</Text>
+            <RequiredDocumentsChecklist items={loan.requiredDocumentsStatus} readOnly />
+          </View>
+        )}
 
         {/* Repayment Progress */}
         <View style={styles.card}>
@@ -268,4 +336,18 @@ const styles = StyleSheet.create({
   paidText: { ...Typography.smallMedium, color: Colors.success },
   pendingText: { ...Typography.smallMedium, color: Colors.textMuted },
   emptyText: { ...Typography.body, color: Colors.textMuted },
+  noteBox: {
+    backgroundColor: Colors.surfaceLift,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.sm,
+  },
+  noteLabel: {
+    ...Typography.caption,
+    color: Colors.textMuted,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginBottom: Spacing.xs,
+  },
+  noteText: { ...Typography.small, color: Colors.textPrimary, fontStyle: "italic" },
 });

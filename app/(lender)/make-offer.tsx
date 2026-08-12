@@ -117,6 +117,33 @@ export default function MakeOfferScreen() {
               </TouchableOpacity>
             );
           })}
+          {vm.requiredDocuments
+            .filter((d) => !DOCUMENT_OPTIONS.includes(d))
+            .map((label) => (
+              <TouchableOpacity
+                key={label}
+                style={[styles.docChip, styles.docChipSelected]}
+                onPress={() => vm.toggleRequiredDocument(label)}
+              >
+                <Text style={styles.docChipTextSelected}>{label} ×</Text>
+              </TouchableOpacity>
+            ))}
+        </View>
+        <View style={styles.customDocRow}>
+          <Input
+            value={vm.customDocInput}
+            onChangeText={vm.setCustomDocInput}
+            placeholder="Other document..."
+            maxLength={255}
+            style={{ flex: 1 }}
+          />
+          <TouchableOpacity
+            style={styles.addDocBtn}
+            disabled={!vm.customDocInput.trim()}
+            onPress={vm.addCustomDocument}
+          >
+            <Text style={styles.addDocBtnText}>+ Add</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Calculation Preview */}
@@ -222,6 +249,15 @@ const styles = StyleSheet.create({
   docChipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
   docChipText: { ...Typography.caption, color: Colors.textSecondary },
   docChipTextSelected: { color: Colors.white, fontWeight: "600" },
+  customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
+  addDocBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  addDocBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
   previewCard: {
     backgroundColor: Colors.surface,
     borderWidth: 1,

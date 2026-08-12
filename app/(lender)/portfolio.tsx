@@ -21,6 +21,7 @@ import {
 } from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
 import { calcPlatformFee } from "../../src/services/fees";
+import { formatDuration } from "../../src/services/duration";
 
 export default function PortfolioScreen() {
   const router = useRouter();
@@ -48,15 +49,29 @@ export default function PortfolioScreen() {
     }
   };
 
-  const confirmApprove = (loanId: string, borrowerName: string, amount: number) => {
+  const confirmApprove = (
+    loanId: string,
+    borrowerName: string,
+    amount: number,
+    interestRate: number,
+    duration: number | null,
+    durationDays: number | null,
+    totalRepayable: number,
+  ) => {
     const platformFee = calcPlatformFee(amount);
     const totalDebit = amount + platformFee;
+    const totalInterest = totalRepayable - amount;
     Alert.alert(
       "Approve disbursement?",
       `This sends UGX ${amount.toLocaleString()} from your wallet to ${borrowerName} right now. This can't be undone.\n\n` +
         `Loan amount: UGX ${amount.toLocaleString()}\n` +
         `Platform fee (0.5%): UGX ${platformFee.toLocaleString()}\n` +
-        `Total debited from your wallet: UGX ${totalDebit.toLocaleString()}`,
+        `Total debited from your wallet: UGX ${totalDebit.toLocaleString()}\n\n` +
+        `WHAT YOU'LL EARN BACK\n` +
+        `Interest rate: ${interestRate}%/month\n` +
+        `Term: ${formatDuration(duration, durationDays)}\n` +
+        `Total interest: UGX ${totalInterest.toLocaleString()}\n` +
+        `Total repayable to you: UGX ${totalRepayable.toLocaleString()}`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -229,7 +244,15 @@ export default function PortfolioScreen() {
                 style={styles.approveBtn}
                 disabled={approvingDisbursement}
                 onPress={() =>
-                  confirmApprove(loan.id, loan.borrowerName, loan.amount)
+                  confirmApprove(
+                    loan.id,
+                    loan.borrowerName,
+                    loan.amount,
+                    loan.interestRate,
+                    loan.duration,
+                    loan.durationDays,
+                    loan.totalRepayable,
+                  )
                 }
               >
                 <Text style={styles.approveBtnText}>

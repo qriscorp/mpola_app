@@ -66,6 +66,14 @@ export function usePostOfferViewModel(editId?: string) {
     "National ID",
     "Bank Statement (3mo)",
   ]);
+  const [customDocInput, setCustomDocInput] = useState("");
+  const customDocuments = requiredDocuments.filter((d) => !DOCUMENT_OPTIONS.includes(d));
+  const addCustomDocument = () => {
+    const label = customDocInput.trim();
+    if (!label || requiredDocuments.includes(label)) return;
+    setRequiredDocuments((prev) => [...prev, label]);
+    setCustomDocInput("");
+  };
   const [description, setDescription] = useState("");
   const [maxConcurrentLoans, setMaxConcurrentLoans] = useState("10");
   const [prefilled, setPrefilled] = useState(false);
@@ -196,6 +204,10 @@ export function usePostOfferViewModel(editId?: string) {
     toggleLoanType,
     requiredDocuments,
     toggleDocument,
+    customDocuments,
+    customDocInput,
+    setCustomDocInput,
+    addCustomDocument,
     description,
     setDescription,
     maxConcurrentLoans,

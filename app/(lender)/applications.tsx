@@ -44,6 +44,7 @@ function OfferModal({
   const queryClient = useQueryClient();
   const [rate, setRate] = useState("15");
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
+  const [customDocInput, setCustomDocInput] = useState("");
 
   const rateInvalid = rate !== "" && (Number(rate) < 0.1 || Number(rate) > 25);
   const isEmergency = app.durationDays != null;
@@ -62,6 +63,13 @@ function OfferModal({
     setRequiredDocs((prev) =>
       prev.includes(label) ? prev.filter((d) => d !== label) : [...prev, label],
     );
+  };
+
+  const addCustomDoc = () => {
+    const label = customDocInput.trim();
+    if (!label || requiredDocs.includes(label)) return;
+    setRequiredDocs((prev) => [...prev, label]);
+    setCustomDocInput("");
   };
 
   const sendOffer = useMutation({
@@ -145,6 +153,33 @@ function OfferModal({
                 </TouchableOpacity>
               );
             })}
+            {requiredDocs
+              .filter((d) => !DOCUMENT_OPTIONS.includes(d))
+              .map((label) => (
+                <TouchableOpacity
+                  key={label}
+                  style={[styles.chip, styles.chipSelected]}
+                  onPress={() => toggleDoc(label)}
+                >
+                  <Text style={styles.chipTextSelected}>{label} ×</Text>
+                </TouchableOpacity>
+              ))}
+          </View>
+          <View style={styles.customDocRow}>
+            <Input
+              value={customDocInput}
+              onChangeText={setCustomDocInput}
+              placeholder="Other document..."
+              maxLength={255}
+              style={{ flex: 1 }}
+            />
+            <TouchableOpacity
+              style={styles.addDocBtn}
+              disabled={!customDocInput.trim()}
+              onPress={addCustomDoc}
+            >
+              <Text style={styles.addDocBtnText}>+ Add</Text>
+            </TouchableOpacity>
           </View>
 
           <Text style={styles.hint}>
@@ -430,6 +465,15 @@ const styles = StyleSheet.create({
   chipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
   chipText: { ...Typography.caption, color: Colors.textSecondary },
   chipTextSelected: { color: Colors.white, fontWeight: "600" },
+  customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
+  addDocBtn: {
+    paddingHorizontal: Spacing.md,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.md,
+    borderWidth: 1,
+    borderColor: Colors.border,
+  },
+  addDocBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
   hint: { ...Typography.caption, color: Colors.textMuted, marginBottom: Spacing.md },
   actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
   flex: { flex: 1 },

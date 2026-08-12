@@ -6,6 +6,7 @@ import {
   fetchAllOffersReceived,
   respondToOffer,
   uploadBorrowerDocument,
+  submitCustomDocumentResponse,
 } from "../services";
 import type { BorrowerDocumentType } from "../services";
 
@@ -29,8 +30,8 @@ export function useOffersViewModel(applicationId: string) {
   });
 
   const respondMutation = useMutation({
-    mutationFn: (vars: { offerId: string; status: "accepted" | "declined" }) =>
-      respondToOffer(vars.offerId, vars.status),
+    mutationFn: (vars: { offerId: string; status: "accepted" | "declined"; note?: string }) =>
+      respondToOffer(vars.offerId, vars.status, vars.note),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["application", applicationId],
@@ -49,7 +50,19 @@ export function useOffersViewModel(applicationId: string) {
     },
   });
 
+  const customDocMutation = useMutation({
+    mutationFn: (vars: {
+      label: string;
+      textResponse?: string;
+      file?: { uri: string; name: string; mimeType?: string };
+    }) => submitCustomDocumentResponse(applicationId, vars.label, vars),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["application", applicationId] });
+    },
+  });
+
   const [uploadingType, setUploadingType] = useState<string | null>(null);
+  const [uploadingCustomLabel, setUploadingCustomLabel] = useState<string | null>(null);
 
   const uploadRequiredDocument = async (documentType: BorrowerDocumentType) => {
     const result = await DocumentPicker.getDocumentAsync({
@@ -71,17 +84,42 @@ export function useOffersViewModel(applicationId: string) {
     }
   };
 
+  const uploadCustomDocument = async (label: string) => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setUploadingCustomLabel(label);
+    try {
+      await customDocMutation.mutateAsync({
+        label,
+        file: { uri: asset.uri, name: asset.name, mimeType: asset.mimeType },
+      });
+    } finally {
+      setUploadingCustomLabel(null);
+    }
+  };
+
+  const saveCustomDocumentText = (label: string, text: string) => {
+    customDocMutation.mutate({ label, textResponse: text });
+  };
+
   return {
     application,
     offers: application?.offers ?? [],
     isLoading,
     error,
     refetch,
-    respondToOffer: (offerId: string, status: "accepted" | "declined") =>
-      respondMutation.mutateAsync({ offerId, status }),
+    respondToOffer: (offerId: string, status: "accepted" | "declined", note?: string) =>
+      respondMutation.mutateAsync({ offerId, status, note }),
     responding: respondMutation.isPending,
     uploadRequiredDocument,
     uploadingDocumentType: uploadingType,
+    uploadCustomDocument,
+    saveCustomDocumentText,
+    uploadingCustomLabel,
   };
 }
 

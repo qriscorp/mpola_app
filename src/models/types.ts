@@ -32,11 +32,22 @@ export type LoanStatus =
   | "rejected";
 export type ApplicationStep = 1 | 2 | 3;
 
+export interface LoanGuarantor {
+  id: string;
+  fullName: string | null;
+  username: string | null;
+  relationshipType: string | null;
+  status: "pending" | "accepted" | "declined";
+}
+
 export interface Loan {
   id: string;
+  applicationId: string | null;
   borrowerId: string;
   lenderId?: string;
   borrowerName?: string | null;
+  borrowerPhone?: string | null;
+  borrowerEmail?: string | null;
   lenderName?: string | null;
   amount: number;
   duration: number | null; // months — exactly one of duration/durationDays is set
@@ -53,8 +64,10 @@ export interface Loan {
   nextPaymentAmount?: number;
   disbursedAt: string | null;
   createdAt: string;
+  borrowerNote: string | null;
   requiredDocuments: string[];
   requiredDocumentsStatus: RequiredDocumentStatus[];
+  guarantors: LoanGuarantor[];
 }
 
 export interface LoanRepaymentRecord {
@@ -141,11 +154,15 @@ export type OfferStatus = "pending" | "accepted" | "declined" | "expired";
 export interface RequiredDocumentStatus {
   label: string;
   type: string | null;
-  source: "kyc" | "borrower_doc" | null;
+  source: "kyc" | "borrower_doc" | "custom" | null;
   satisfied: boolean;
   fileUrl: string | null;
   fileName: string | null;
   verified: boolean;
+  // Only set for source === "custom" — a lender-specified "Other: ..."
+  // requirement fulfilled (fully or partly) by free text instead of/as
+  // well as a file.
+  textResponse: string | null;
 }
 
 export interface LoanOffer {

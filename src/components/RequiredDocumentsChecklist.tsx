@@ -1,5 +1,5 @@
-import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Linking, ActivityIndicator } from "react-native";
+import { useState } from "react";
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, Linking, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 import type { RequiredDocumentStatus } from "../models";
@@ -14,30 +14,42 @@ const BORROWER_DOC_LABEL_MAP: Record<string, BorrowerDocumentType> = {
 
 /** Shows what a specific offer requires and lets the borrower satisfy it
  * inline — "National ID" routes to the account-wide KYC section on
- * Profile, everything else uploads directly here as a reusable
- * BorrowerDocument that'll also satisfy any future offer asking for the
- * same thing. Pass `readOnly` for the lender's disbursement-review view —
- * verification only, no upload controls. */
+ * Profile, known types upload directly here as a reusable BorrowerDocument,
+ * and a lender's custom "Other: ..." requirement accepts either a file or a
+ * typed explanation (at least one). Already-satisfied items can still be
+ * replaced — documents expire, or the wrong file gets picked. Pass
+ * `readOnly` for the lender's disbursement-review view — verification
+ * only, no upload controls. */
 export function RequiredDocumentsChecklist({
   items,
   onUpload,
   uploadingType,
+  onUploadCustom,
+  onSaveCustomText,
+  uploadingCustomLabel,
   readOnly = false,
   onGoToProfile,
 }: {
   items: RequiredDocumentStatus[];
   onUpload?: (documentType: BorrowerDocumentType) => void;
   uploadingType?: string | null;
+  onUploadCustom?: (label: string) => void;
+  onSaveCustomText?: (label: string, text: string) => void;
+  uploadingCustomLabel?: string | null;
   readOnly?: boolean;
   onGoToProfile?: () => void;
 }) {
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+
   if (items.length === 0) return null;
 
   return (
     <View style={{ gap: Spacing.xs }}>
       {items.map((item) => {
         const docType = BORROWER_DOC_LABEL_MAP[item.label];
-        const isUploading = !!docType && uploadingType === docType;
+        const isCustom = item.source === "custom";
+        const isUploading =
+          (!!docType && uploadingType === docType) || (isCustom && uploadingCustomLabel === item.label);
         return (
           <View
             key={item.label}
@@ -46,34 +58,69 @@ export function RequiredDocumentsChecklist({
               isUploading ? styles.rowUploading : item.satisfied ? styles.rowSatisfied : styles.rowMissing,
             ]}
           >
-            <View style={styles.rowLeft}>
-              {isUploading ? (
-                <ActivityIndicator size="small" color={Colors.teal} />
-              ) : item.satisfied ? (
-                <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
-              ) : (
-                <Ionicons name="ellipse-outline" size={16} color={Colors.warning} />
+            <View style={styles.rowTop}>
+              <View style={styles.rowLeft}>
+                {isUploading ? (
+                  <ActivityIndicator size="small" color={Colors.teal} />
+                ) : item.satisfied ? (
+                  <Ionicons name="checkmark-circle" size={16} color={Colors.success} />
+                ) : (
+                  <Ionicons name="ellipse-outline" size={16} color={Colors.warning} />
+                )}
+                <Text
+                  style={isUploading ? styles.labelUploading : item.satisfied ? styles.labelSatisfied : styles.labelMissing}
+                >
+                  {item.label}
+                  {isUploading ? " — uploading…" : ""}
+                </Text>
+              </View>
+              {item.satisfied && item.fileUrl && (
+                <TouchableOpacity onPress={() => Linking.openURL(item.fileUrl!)}>
+                  <Text style={styles.viewLink}>View</Text>
+                </TouchableOpacity>
               )}
-              <Text style={isUploading ? styles.labelUploading : item.satisfied ? styles.labelSatisfied : styles.labelMissing}>
-                {item.label}
-                {isUploading ? " — uploading…" : ""}
-              </Text>
+              {!item.satisfied && readOnly && <Text style={styles.notProvided}>Not provided</Text>}
+              {!readOnly && item.source === "kyc" && (
+                <TouchableOpacity onPress={onGoToProfile}>
+                  <Text style={styles.actionLink}>
+                    {item.satisfied ? "Replace from Profile" : "Upload from Profile"}
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {!readOnly && item.source === "borrower_doc" && docType && !isUploading && (
+                <TouchableOpacity onPress={() => onUpload?.(docType)}>
+                  <Text style={styles.actionLink}>{item.satisfied ? "Replace" : "Upload"}</Text>
+                </TouchableOpacity>
+              )}
+              {!readOnly && isCustom && !isUploading && (
+                <TouchableOpacity onPress={() => onUploadCustom?.(item.label)}>
+                  <Text style={styles.actionLink}>{item.fileUrl ? "Replace file" : "Upload file"}</Text>
+                </TouchableOpacity>
+              )}
             </View>
-            {item.satisfied && item.fileUrl && (
-              <TouchableOpacity onPress={() => Linking.openURL(item.fileUrl!)}>
-                <Text style={styles.viewLink}>View</Text>
-              </TouchableOpacity>
+
+            {!readOnly && isCustom && (
+              <View style={styles.customTextWrap}>
+                <TextInput
+                  multiline
+                  numberOfLines={2}
+                  defaultValue={item.textResponse ?? ""}
+                  onChangeText={(t) => setDrafts((prev) => ({ ...prev, [item.label]: t }))}
+                  onBlur={() => {
+                    const text = drafts[item.label]?.trim();
+                    if (text) onSaveCustomText?.(item.label, text);
+                  }}
+                  placeholder="Or describe it here instead of uploading a file..."
+                  placeholderTextColor={Colors.textMuted}
+                  style={styles.customTextInput}
+                />
+                <Text style={styles.customHint}>
+                  A file or a written explanation satisfies this — at least one is needed.
+                </Text>
+              </View>
             )}
-            {!item.satisfied && readOnly && <Text style={styles.notProvided}>Not provided</Text>}
-            {!readOnly && !item.satisfied && item.source === "kyc" && (
-              <TouchableOpacity onPress={onGoToProfile}>
-                <Text style={styles.actionLink}>Upload from Profile</Text>
-              </TouchableOpacity>
-            )}
-            {!readOnly && !item.satisfied && item.source === "borrower_doc" && docType && !isUploading && (
-              <TouchableOpacity onPress={() => onUpload?.(docType)}>
-                <Text style={styles.actionLink}>Upload</Text>
-              </TouchableOpacity>
+            {readOnly && isCustom && item.textResponse && (
+              <Text style={styles.customReadOnlyText}>&ldquo;{item.textResponse}&rdquo;</Text>
             )}
           </View>
         );
@@ -84,13 +131,16 @@ export function RequiredDocumentsChecklist({
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     paddingHorizontal: Spacing.sm,
     paddingVertical: Spacing.sm,
+    gap: Spacing.xs,
+  },
+  rowTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     gap: Spacing.sm,
   },
   rowSatisfied: { borderColor: Colors.success + "40", backgroundColor: Colors.successBg },
@@ -103,4 +153,19 @@ const styles = StyleSheet.create({
   viewLink: { ...Typography.caption, fontWeight: "700", color: Colors.success, textDecorationLine: "underline" },
   actionLink: { ...Typography.caption, fontWeight: "700", color: Colors.teal, textDecorationLine: "underline" },
   notProvided: { ...Typography.caption, color: Colors.warning },
+  customTextWrap: { gap: 2 },
+  customTextInput: {
+    ...Typography.small,
+    color: Colors.textPrimary,
+    backgroundColor: Colors.surface,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: Spacing.xs,
+    minHeight: 44,
+    textAlignVertical: "top",
+  },
+  customHint: { ...Typography.caption, color: Colors.textMuted },
+  customReadOnlyText: { ...Typography.caption, color: Colors.textSecondary, fontStyle: "italic" },
 });

@@ -15,6 +15,7 @@ interface Props {
   style?: ViewStyle;
   multiline?: boolean;
   editable?: boolean;
+  maxLength?: number;
 }
 
 export function Input({
@@ -30,6 +31,7 @@ export function Input({
   style,
   multiline,
   editable = true,
+  maxLength,
 }: Props) {
   return (
     <View style={[styles.wrapper, style]}>
@@ -47,6 +49,7 @@ export function Input({
           style={[styles.input, multiline && styles.multiline]}
           multiline={multiline}
           editable={editable}
+          maxLength={maxLength}
         />
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}

@@ -115,6 +115,9 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
     responding,
     uploadRequiredDocument,
     uploadingDocumentType,
+    uploadCustomDocument,
+    saveCustomDocumentText,
+    uploadingCustomLabel,
   } = useOffersViewModel(applicationId);
 
   const acceptedGuarantors = (application?.guarantors ?? []).filter(
@@ -255,6 +258,9 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
                         items={offer.requiredDocumentsStatus}
                         onUpload={uploadRequiredDocument}
                         uploadingType={uploadingDocumentType}
+                        onUploadCustom={uploadCustomDocument}
+                        onSaveCustomText={saveCustomDocumentText}
+                        uploadingCustomLabel={uploadingCustomLabel}
                         onGoToProfile={() => router.push("/(borrower)/profile")}
                       />
                     </View>

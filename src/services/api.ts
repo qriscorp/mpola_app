@@ -355,11 +355,22 @@ export async function fetchBorrowerWallet(): Promise<Wallet> {
 
 // ─── Active Loan / Repayments ───────────────────────────
 
+interface RawLoanGuarantor {
+  id: string;
+  full_name: string | null;
+  username: string | null;
+  relationship_type: string | null;
+  status: "pending" | "accepted" | "declined";
+}
+
 interface RawLoan {
   id: string;
+  application_id: string | null;
   borrower_id: string;
   lender_id: string;
   borrower_name?: string | null;
+  borrower_phone?: string | null;
+  borrower_email?: string | null;
   lender_name?: string | null;
   amount: number;
   interest_rate: number;
@@ -375,8 +386,10 @@ interface RawLoan {
   status: string;
   disbursed_at: string | null;
   created_at: string;
+  borrower_note: string | null;
   required_documents: string[];
   required_documents_status: RawRequiredDocumentStatus[];
+  guarantors: RawLoanGuarantor[];
 }
 
 interface RawRepayment {
@@ -392,9 +405,12 @@ interface RawRepayment {
 function mapLoan(raw: RawLoan): Loan {
   return {
     id: raw.id,
+    applicationId: raw.application_id,
     borrowerId: raw.borrower_id,
     lenderId: raw.lender_id,
     borrowerName: raw.borrower_name ?? null,
+    borrowerPhone: raw.borrower_phone ?? null,
+    borrowerEmail: raw.borrower_email ?? null,
     lenderName: raw.lender_name ?? null,
     amount: raw.amount,
     duration: raw.duration,
@@ -411,8 +427,16 @@ function mapLoan(raw: RawLoan): Loan {
     nextPaymentAmount: raw.next_payment_amount ?? undefined,
     disbursedAt: raw.disbursed_at,
     createdAt: raw.created_at,
+    borrowerNote: raw.borrower_note ?? null,
     requiredDocuments: raw.required_documents ?? [],
     requiredDocumentsStatus: (raw.required_documents_status ?? []).map(mapRequiredDocumentStatus),
+    guarantors: (raw.guarantors ?? []).map((g) => ({
+      id: g.id,
+      fullName: g.full_name,
+      username: g.username,
+      relationshipType: g.relationship_type,
+      status: g.status,
+    })),
   };
 }
 
@@ -591,11 +615,12 @@ interface RawApplicationBorrower {
 interface RawRequiredDocumentStatus {
   label: string;
   type: string | null;
-  source: "kyc" | "borrower_doc" | null;
+  source: "kyc" | "borrower_doc" | "custom" | null;
   satisfied: boolean;
   file_url: string | null;
   file_name: string | null;
   verified: boolean;
+  text_response: string | null;
 }
 
 interface RawOffer {
@@ -627,6 +652,7 @@ function mapRequiredDocumentStatus(d: RawRequiredDocumentStatus): RequiredDocume
     fileUrl: d.file_url,
     fileName: d.file_name,
     verified: d.verified,
+    textResponse: d.text_response,
   };
 }
 
@@ -894,6 +920,24 @@ export async function uploadBorrowerDocument(
   return apiAuthUpload("/users/me/documents", formData);
 }
 
+export async function submitCustomDocumentResponse(
+  applicationId: string,
+  label: string,
+  data: { textResponse?: string; file?: { uri: string; name: string; mimeType?: string } },
+): Promise<{ status: number; message: string }> {
+  const formData = new FormData();
+  formData.append("label", label);
+  if (data.textResponse) formData.append("text_response", data.textResponse);
+  if (data.file) {
+    formData.append("file", {
+      uri: data.file.uri,
+      name: data.file.name,
+      type: data.file.mimeType || "application/octet-stream",
+    } as unknown as Blob);
+  }
+  return apiAuthUpload(`/loans/applications/${applicationId}/custom-document-response`, formData);
+}
+
 export async function submitLoanApplication(data: {
   amount: number;
   duration?: number;
@@ -1000,8 +1044,9 @@ export async function fetchAllOffersReceived(): Promise<LoanOffer[]> {
 export async function respondToOffer(
   offerId: string,
   status: "accepted" | "declined",
+  note?: string,
 ): Promise<{ status: number; message: string }> {
-  return apiAuthPut(`/loans/offers/${offerId}`, { status });
+  return apiAuthPut(`/loans/offers/${offerId}`, { status, note: note || undefined });
 }
 
 // ─── Lender Dashboard ───────────────────────────────────
