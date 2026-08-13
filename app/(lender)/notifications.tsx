@@ -5,12 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { useNotificationsViewModel } from "../../src/viewmodels";
+import { useNotificationsFeedViewModel } from "../../src/viewmodels";
 import { SkeletonList } from "../../src/components";
 import { notificationHref } from "../../src/services/notifications";
 
@@ -90,8 +91,16 @@ const iconMap: Record<string, { name: string; color: string; bg: string }> = {
 
 export default function NotificationsScreen() {
   const router = useRouter();
-  const { notifications, unreadCount, isLoading, markRead, markAllRead } =
-    useNotificationsViewModel();
+  const {
+    notifications,
+    unreadCount,
+    isLoading,
+    markRead,
+    markAllRead,
+    loadMore,
+    hasMore,
+    isLoadingMore,
+  } = useNotificationsFeedViewModel();
 
   return (
     <SafeAreaView style={styles.container}>
@@ -170,6 +179,20 @@ export default function NotificationsScreen() {
             />
             <Text style={styles.emptyText}>No notifications yet</Text>
           </View>
+        )}
+
+        {hasMore && notifications.length > 0 && (
+          <TouchableOpacity
+            style={styles.loadMoreBtn}
+            onPress={() => loadMore()}
+            disabled={isLoadingMore}
+          >
+            {isLoadingMore ? (
+              <ActivityIndicator size="small" color={Colors.gold} />
+            ) : (
+              <Text style={styles.loadMoreText}>Load more</Text>
+            )}
+          </TouchableOpacity>
         )}
       </ScrollView>
       )}
@@ -251,4 +274,11 @@ const styles = StyleSheet.create({
     color: Colors.textMuted,
     marginTop: Spacing.md,
   },
+  loadMoreBtn: {
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    marginTop: Spacing.xs,
+  },
+  loadMoreText: { ...Typography.smallMedium, color: Colors.gold },
 });

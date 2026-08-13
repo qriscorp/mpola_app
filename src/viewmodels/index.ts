@@ -28,6 +28,6 @@ export {
 } from "./useMyOfferTemplatesViewModel";
 export { useLenderWalletViewModel } from "./useLenderWalletViewModel";
 export { useEarningsViewModel } from "./useEarningsViewModel";
-export { useNotificationsViewModel } from "./useNotificationsViewModel";
+export { useNotificationsViewModel, useNotificationsFeedViewModel } from "./useNotificationsViewModel";
 export { useProfileViewModel } from "./useProfileViewModel";
 export { useReceiptsViewModel } from "./useReceiptsViewModel";

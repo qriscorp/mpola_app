@@ -1362,31 +1362,52 @@ interface RawNotification {
   created_at: string;
 }
 
+function mapNotification(n: RawNotification): Notification {
+  let data: Record<string, unknown> | null = null;
+  if (n.data) {
+    try {
+      data = JSON.parse(n.data);
+    } catch {
+      data = null;
+    }
+  }
+  return {
+    id: n.id,
+    title: n.title,
+    message: n.message,
+    type: n.type,
+    data,
+    read: n.is_read,
+    timestamp: n.created_at,
+  };
+}
+
 export async function fetchNotifications(): Promise<Notification[]> {
   const res = await apiAuthGet<{
     total: number;
     unread: number;
     notifications: RawNotification[];
   }>("/notifications/?limit=50");
-  return res.notifications.map((n) => {
-    let data: Record<string, unknown> | null = null;
-    if (n.data) {
-      try {
-        data = JSON.parse(n.data);
-      } catch {
-        data = null;
-      }
-    }
-    return {
-      id: n.id,
-      title: n.title,
-      message: n.message,
-      type: n.type,
-      data,
-      read: n.is_read,
-      timestamp: n.created_at,
-    };
-  });
+  return res.notifications.map(mapNotification);
+}
+
+// Paginated — for the full Notifications screens, which can't just render a
+// flat 50-item cap once a real account accumulates hundreds of
+// notifications. skip/limit drive an infinite-scroll "Load More" list.
+export async function fetchNotificationsPage(
+  skip: number,
+  limit: number = 20,
+): Promise<{ notifications: Notification[]; total: number; unread: number }> {
+  const res = await apiAuthGet<{
+    total: number;
+    unread: number;
+    notifications: RawNotification[];
+  }>(`/notifications/?skip=${skip}&limit=${limit}`);
+  return {
+    notifications: res.notifications.map(mapNotification),
+    total: res.total,
+    unread: res.unread,
+  };
 }
 
 export async function markNotificationRead(id: string): Promise<void> {
