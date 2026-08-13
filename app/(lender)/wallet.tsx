@@ -111,7 +111,17 @@ export default function LenderWalletScreen() {
           <Text style={styles.balanceAmount}>
             UGX {wallet.balance.toLocaleString()}
           </Text>
-          {!wallet.isWalletSetup ? (
+          {wallet.isFrozen && (
+            <View style={styles.frozenBanner}>
+              <Text style={styles.frozenTitle}>Wallet frozen</Text>
+              <Text style={styles.frozenText}>
+                {wallet.frozenReason || "Contact support for details."} You can't deposit,
+                withdraw, or make transactions until it's unfrozen.
+              </Text>
+            </View>
+          )}
+
+          {wallet.isFrozen ? null : !wallet.isWalletSetup ? (
             <>
               <Text style={styles.setupHint}>
                 Set up your wallet to deposit or withdraw
@@ -283,6 +293,15 @@ const styles = StyleSheet.create({
     marginTop: 6,
     textAlign: "center",
   },
+  frozenBanner: {
+    backgroundColor: Colors.dangerBg,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.md,
+    marginTop: Spacing.md,
+    width: "100%",
+  },
+  frozenTitle: { ...Typography.smallMedium, color: Colors.danger, fontWeight: "700" },
+  frozenText: { ...Typography.small, color: Colors.danger, marginTop: 4 },
   balanceActions: {
     flexDirection: "row",
     flexWrap: "wrap",

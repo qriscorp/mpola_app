@@ -250,7 +250,7 @@ export async function fetchTransactionDetail(id: string): Promise<TransactionDet
 
 async function fetchWallet(): Promise<Wallet> {
   const [walletRes, txRes] = await Promise.all([
-    apiAuthGet<{ balance: number; is_wallet_setup: boolean }>("/wallet/"),
+    apiAuthGet<{ balance: number; is_wallet_setup: boolean; is_frozen: boolean; frozen_reason: string | null }>("/wallet/"),
     apiAuthGet<{ total: number; transactions: RawWalletTransaction[] }>(
       "/wallet/transactions",
     ),
@@ -258,6 +258,8 @@ async function fetchWallet(): Promise<Wallet> {
   return {
     balance: walletRes.balance,
     isWalletSetup: walletRes.is_wallet_setup,
+    isFrozen: walletRes.is_frozen,
+    frozenReason: walletRes.frozen_reason,
     transactions: txRes.transactions.map(mapWalletTransaction),
   };
 }

@@ -263,6 +263,8 @@ export interface TransactionDetail extends Transaction {
 export interface Wallet {
   balance: number;
   isWalletSetup: boolean;
+  isFrozen: boolean;
+  frozenReason: string | null;
   transactions: Transaction[];
 }
 
