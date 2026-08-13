@@ -4,8 +4,13 @@ import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
-import { getMyKycDocuments, uploadKycDocument, type KYCDocumentType } from "../services";
+import { getMyKycDocuments, uploadKycDocument, fetchProfile, type KYCDocumentType } from "../services";
 import { SkeletonList } from "./Skeleton";
+
+// Mirrors KYC_REVERIFICATION_LOCK_DAYS in mpola_api/routers/users.py — the
+// backend is the source of truth and will reject the upload regardless;
+// this is just so the button reads "locked" instead of failing silently.
+const KYC_REVERIFICATION_LOCK_DAYS = 730;
 
 const SLOTS: { type: KYCDocumentType; label: string; hint: string }[] = [
   { type: "national_id", label: "National ID", hint: "National ID or Passport required" },
@@ -16,12 +21,19 @@ const SLOTS: { type: KYCDocumentType; label: string; hint: string }[] = [
 
 /** Account-level KYC document upload — shared by the borrower and lender
  * profile screens. Uploading doesn't change kyc_status by itself; an admin
- * still has to review and approve/reject it from the web dashboard. */
+ * still has to review and approve/reject it from the web dashboard. Once
+ * verified, uploads lock for KYC_REVERIFICATION_LOCK_DAYS so a confirmed
+ * identity can't be quietly swapped out — the backend enforces this
+ * regardless of what this screen shows. */
 export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: string }) {
   const qc = useQueryClient();
   const { data: documents, isLoading } = useQuery({
     queryKey: ["kyc-documents"],
     queryFn: getMyKycDocuments,
+  });
+  const { data: profile } = useQuery({
+    queryKey: ["profile"],
+    queryFn: fetchProfile,
   });
 
   const [uploadingType, setUploadingType] = useState<KYCDocumentType | null>(null);
@@ -36,7 +48,27 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
     onSettled: () => setUploadingType(null),
   });
 
+  let locked = false;
+  let lockedUntil: Date | null = null;
+  if (profile?.kycStatus === "verified" && profile.kycVerifiedAt) {
+    const until = new Date(profile.kycVerifiedAt);
+    until.setDate(until.getDate() + KYC_REVERIFICATION_LOCK_DAYS);
+    if (until.getTime() > Date.now()) {
+      locked = true;
+      lockedUntil = until;
+    }
+  }
+
   const handlePick = async (type: KYCDocumentType) => {
+    if (locked) {
+      Alert.alert(
+        "Documents locked",
+        lockedUntil
+          ? `Your KYC is verified — documents are locked until ${lockedUntil.toLocaleDateString()}. Contact support if you need to update one sooner.`
+          : "Your KYC is verified and documents are locked. Contact support if you need to update one.",
+      );
+      return;
+    }
     const result = await DocumentPicker.getDocumentAsync({
       type: ["application/pdf", "image/*"],
       copyToCacheDirectory: true,
@@ -56,8 +88,17 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
 
   return (
     <View>
+      {locked && (
+        <View style={styles.lockBanner}>
+          <Text style={styles.lockBannerText}>
+            Your identity is verified. Documents are locked until{" "}
+            {lockedUntil?.toLocaleDateString()} — contact support for urgent corrections.
+          </Text>
+        </View>
+      )}
       {SLOTS.map((slot, i) => {
         const existing = documents?.find((d) => d.document_type === slot.type);
+        const rejected = !!existing && !existing.verified && !!existing.rejection_reason;
         return (
           <View
             key={slot.type}
@@ -71,6 +112,11 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
                   {existing.file_name}
                 </Text>
               )}
+              {rejected && (
+                <Text style={styles.rejectionReason} numberOfLines={2}>
+                  Rejected: {existing!.rejection_reason}
+                </Text>
+              )}
             </View>
             <View style={{ alignItems: "flex-end", gap: Spacing.xs }}>
               {uploadingType === slot.type ? (
@@ -82,32 +128,54 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
                   <View
                     style={[
                       styles.badge,
-                      existing.verified ? styles.badgeVerified : styles.badgePending,
+                      existing.verified
+                        ? styles.badgeVerified
+                        : rejected
+                          ? styles.badgeRejected
+                          : styles.badgePending,
                     ]}
                   >
                     <Text
                       style={[
                         styles.badgeText,
-                        { color: existing.verified ? Colors.success : Colors.warning },
+                        {
+                          color: existing.verified
+                            ? Colors.success
+                            : rejected
+                              ? Colors.danger
+                              : Colors.warning,
+                        },
                       ]}
                     >
-                      {existing.verified ? "Verified" : "Pending review"}
+                      {existing.verified ? "Verified" : rejected ? "Rejected" : "Pending review"}
                     </Text>
                   </View>
                 )
               )}
               <TouchableOpacity
-                style={[styles.uploadBtn, { borderColor: accentColor }]}
+                style={[
+                  styles.uploadBtn,
+                  { borderColor: locked ? Colors.border : accentColor },
+                ]}
                 onPress={() => handlePick(slot.type)}
                 disabled={upload.isPending}
               >
                 {uploadingType === slot.type ? (
                   <ActivityIndicator size="small" color={accentColor} />
                 ) : (
-                  <Ionicons name="cloud-upload-outline" size={14} color={accentColor} />
+                  <Ionicons
+                    name={locked ? "lock-closed-outline" : "cloud-upload-outline"}
+                    size={14}
+                    color={locked ? Colors.textMuted : accentColor}
+                  />
                 )}
-                <Text style={[styles.uploadText, { color: accentColor }]}>
-                  {uploadingType === slot.type ? "Uploading…" : existing ? "Replace" : "Upload"}
+                <Text
+                  style={[
+                    styles.uploadText,
+                    { color: locked ? Colors.textMuted : accentColor },
+                  ]}
+                >
+                  {uploadingType === slot.type ? "Uploading…" : locked ? "Locked" : existing ? "Replace" : "Upload"}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -130,6 +198,14 @@ const styles = StyleSheet.create({
   label: { ...Typography.bodyMedium, color: Colors.textPrimary },
   hint: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
   fileName: { ...Typography.caption, color: Colors.textSecondary, marginTop: 4 },
+  rejectionReason: { ...Typography.caption, color: Colors.danger, marginTop: 4 },
+  lockBanner: {
+    backgroundColor: Colors.successBg,
+    borderRadius: BorderRadius.md,
+    padding: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  lockBannerText: { ...Typography.caption, color: Colors.success },
   badge: {
     paddingHorizontal: Spacing.sm,
     paddingVertical: 3,
@@ -137,6 +213,7 @@ const styles = StyleSheet.create({
   },
   badgeVerified: { backgroundColor: Colors.successBg },
   badgePending: { backgroundColor: Colors.warningBg },
+  badgeRejected: { backgroundColor: Colors.dangerBg },
   badgeText: { ...Typography.caption, fontWeight: "600" },
   uploadBtn: {
     flexDirection: "row",

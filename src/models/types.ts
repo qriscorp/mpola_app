@@ -10,6 +10,11 @@ export interface User {
   role: UserRole;
   accountType: AccountType;
   kycVerified: boolean;
+  kycStatus: "pending" | "verified" | "rejected";
+  // When kycStatus last became "verified" — starts the 2-year re-upload
+  // lock KYCUploadSection enforces client-side (backend is the source of
+  // truth; see KYC_REVERIFICATION_LOCK_DAYS in routers/users.py).
+  kycVerifiedAt: string | null;
   isPhoneVerified?: boolean;
   twoFactorEnabled?: boolean;
   profileImage?: string;

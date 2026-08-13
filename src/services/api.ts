@@ -272,6 +272,8 @@ interface RawProfile {
   nin: string | null;
   account_type: string;
   is_kyc_verified: boolean;
+  kyc_status: "pending" | "verified" | "rejected";
+  kyc_verified_at: string | null;
   is_phone_verified: boolean;
   two_factor_enabled?: boolean;
   profile_pic: string | null;
@@ -292,6 +294,8 @@ function mapProfile(p: RawProfile): User {
     role: p.account_type === "business" ? "lender" : "borrower",
     accountType: p.account_type as User["accountType"],
     kycVerified: p.is_kyc_verified,
+    kycStatus: p.kyc_status,
+    kycVerifiedAt: p.kyc_verified_at,
     isPhoneVerified: p.is_phone_verified,
     twoFactorEnabled: p.two_factor_enabled ?? false,
     profileImage: p.profile_pic ?? undefined,
@@ -885,6 +889,7 @@ export interface KYCDocument {
   file_url: string;
   file_name: string | null;
   verified: boolean;
+  rejection_reason: string | null;
 }
 
 export async function getMyKycDocuments(): Promise<KYCDocument[]> {
