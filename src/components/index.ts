@@ -21,6 +21,7 @@ export { BiometricToggle } from "./BiometricToggle";
 export { ReferralScreenContent } from "./ReferralScreenContent";
 export { HelpScreenContent } from "./HelpScreenContent";
 export { DisputesScreenContent } from "./DisputesScreenContent";
+export { DisputeDetailScreenContent } from "./DisputeDetailScreenContent";
 export { SessionsSection } from "./SessionsSection";
 export { KYCUploadSection } from "./KYCUploadSection";
 export { ApprovalsList } from "./ApprovalsList";

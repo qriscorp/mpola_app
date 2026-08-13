@@ -102,6 +102,7 @@ export default function BorrowerTabLayout() {
       <Tabs.Screen name="referrals" options={{ href: null }} />
       <Tabs.Screen name="help" options={{ href: null }} />
       <Tabs.Screen name="disputes" options={{ href: null }} />
+      <Tabs.Screen name="dispute-detail" options={{ href: null }} />
     </Tabs>
   );
 }

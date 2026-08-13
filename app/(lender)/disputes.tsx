@@ -18,7 +18,7 @@ export default function LenderDisputesScreen() {
         <View style={{ width: 24 }} />
       </View>
       <ScrollView contentContainerStyle={styles.scroll}>
-        <DisputesScreenContent accentColor={Colors.gold} />
+        <DisputesScreenContent accentColor={Colors.gold} detailRoute="/(lender)/dispute-detail" role="lender" />
       </ScrollView>
     </SafeAreaView>
   );

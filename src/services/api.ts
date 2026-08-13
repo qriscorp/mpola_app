@@ -1477,8 +1477,31 @@ export async function replySupportTicket(id: string, message: string): Promise<S
 
 // ─── Disputes ───────────────────────────────────────────────
 
+export interface DisputeMessage {
+  id: string;
+  sender_id: string | null;
+  sender_name: string | null;
+  is_admin: boolean;
+  message: string;
+  created_at: string;
+}
+
+export interface DisputeProposal {
+  proposed_by_id: string;
+  proposed_by_name: string | null;
+  note: string | null;
+  settlement_amount: number | null;
+  settlement_payer_id: string | null;
+  settlement_payer_name: string | null;
+  status: "pending" | "accepted" | "declined";
+}
+
 export interface Dispute {
   id: string;
+  user_id: string;
+  filer_name: string | null;
+  respondent_id: string | null;
+  respondent_name: string | null;
   category: string;
   description: string;
   status: "open" | "investigating" | "resolved" | "rejected";
@@ -1487,6 +1510,9 @@ export interface Dispute {
   resolved_by: string | null;
   resolved_at: string | null;
   created_at: string;
+  proposal: DisputeProposal | null;
+  message_count: number;
+  messages?: DisputeMessage[];
 }
 
 export async function fileDispute(data: {
@@ -1501,6 +1527,46 @@ export async function fileDispute(data: {
 export async function fetchMyDisputes(): Promise<Dispute[]> {
   const res = await apiAuthGet<{ disputes: Dispute[] }>("/disputes/mine");
   return res.disputes;
+}
+
+export async function fetchDispute(id: string): Promise<Dispute> {
+  const res = await apiAuthGet<{ dispute: Dispute }>(`/disputes/${id}`);
+  return res.dispute;
+}
+
+export async function postDisputeMessage(id: string, message: string): Promise<DisputeMessage> {
+  const res = await apiAuthPost<{ message_data: DisputeMessage }>(`/disputes/${id}/messages`, { message });
+  return res.message_data;
+}
+
+export async function proposeDisputeResolution(
+  id: string,
+  data: { note: string; settlementAmount?: number; payer: "self" | "other" },
+): Promise<Dispute> {
+  const res = await apiAuthPost<{ dispute: Dispute }>(`/disputes/${id}/propose`, {
+    note: data.note,
+    settlement_amount: data.settlementAmount,
+    payer: data.payer,
+  });
+  return res.dispute;
+}
+
+export async function respondToDisputeProposal(id: string, accept: boolean): Promise<Dispute> {
+  const res = await apiAuthPost<{ dispute: Dispute }>(`/disputes/${id}/respond-proposal`, { accept });
+  return res.dispute;
+}
+
+export async function escalateDispute(id: string): Promise<Dispute> {
+  const res = await apiAuthPost<{ dispute: Dispute }>(`/disputes/${id}/escalate`, {});
+  return res.dispute;
+}
+
+// Reuses /loans/active, which despite the name returns every loan (any
+// status) the current user is on as either borrower or lender — exactly
+// what's needed to pick "which loan is this dispute about."
+export async function fetchMyLoansForDispute(): Promise<Loan[]> {
+  const res = await apiAuthGet<{ total: number; loans: RawLoan[] }>("/loans/active?limit=100");
+  return res.loans.map(mapLoan);
 }
 
 // ─── Login sessions ─────────────────────────────────────────
