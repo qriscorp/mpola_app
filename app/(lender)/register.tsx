@@ -257,6 +257,13 @@ export default function LenderRegisterScreen() {
           secureTextEntry
           error={vm.errors.password}
         />
+        <Input
+          label="Referral Code (optional)"
+          value={vm.referralCode}
+          onChangeText={vm.setReferralCode}
+          placeholder="e.g. AB12CD3"
+          autoCapitalize="characters"
+        />
 
         {/* Terms */}
         <View style={styles.termsRow}>

@@ -30,6 +30,7 @@ export function useAuthViewModel() {
   const [password, setPassword] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("individual");
   const [agreed, setAgreed] = useState(false);
+  const [referralCode, setReferralCode] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
   const [authUser, setAuthUser] = useState<AuthUser | null>(null);
   const [signupDraft, setSignupDraft] = useState<SignupDraftState | null>(null);
@@ -45,6 +46,7 @@ export function useAuthViewModel() {
       accountType: string;
       role: "borrower" | "lender";
       agreedToTerms: boolean;
+      referredByCode?: string;
     }) => apiRegister(params),
     onSuccess: (draft) => setSignupDraft(draft),
   });
@@ -103,6 +105,7 @@ export function useAuthViewModel() {
         accountType,
         role,
         agreedToTerms: agreed,
+        referredByCode: referralCode.trim() || undefined,
       });
       return true;
     } catch (e: any) {
@@ -156,6 +159,8 @@ export function useAuthViewModel() {
     setAccountType,
     agreed,
     setAgreed,
+    referralCode,
+    setReferralCode,
     errors,
     authUser,
     signupDraft,

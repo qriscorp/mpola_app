@@ -34,9 +34,13 @@ export function ReferralScreenContent({ accentColor = Colors.teal }: { accentCol
         <View style={[styles.iconCircle, { backgroundColor: accentColor + "25" }]}>
           <Ionicons name="gift-outline" size={28} color={accentColor} />
         </View>
-        <Text style={styles.title}>Invite friends to Mpola</Text>
+        <Text style={styles.title}>
+          Invite friends, earn UGX {(data?.bonus_per_referral ?? 20).toLocaleString()}
+        </Text>
         <Text style={styles.sub}>
-          Share your link — anyone who signs up with it is linked to your account.
+          Share your link — the moment someone signs up with it, UGX{" "}
+          {(data?.bonus_per_referral ?? 20).toLocaleString()} lands straight in your wallet.
+          No limit on how many friends you invite.
         </Text>
 
         <View style={styles.linkBox}>
@@ -55,6 +59,17 @@ export function ReferralScreenContent({ accentColor = Colors.teal }: { accentCol
         <Text style={styles.code}>
           Your code: <Text style={{ fontWeight: "700" }}>{data?.referral_code}</Text>
         </Text>
+
+        <View style={styles.statsRow}>
+          <View style={[styles.statBox, { backgroundColor: accentColor + "18" }]}>
+            <Text style={styles.statValue}>{data?.total_referred ?? 0}</Text>
+            <Text style={styles.statLabel}>Friends joined</Text>
+          </View>
+          <View style={[styles.statBox, { backgroundColor: accentColor + "18" }]}>
+            <Text style={styles.statValue}>UGX {(data?.total_earned ?? 0).toLocaleString()}</Text>
+            <Text style={styles.statLabel}>Total earned</Text>
+          </View>
+        </View>
       </Card>
 
       <Card>
@@ -115,6 +130,21 @@ const styles = StyleSheet.create({
   },
   copyBtnText: { ...Typography.buttonSmall, color: Colors.white },
   code: { ...Typography.small, color: Colors.textMuted, marginTop: Spacing.md },
+  statsRow: {
+    flexDirection: "row",
+    gap: Spacing.sm,
+    marginTop: Spacing.lg,
+    width: "100%",
+  },
+  statBox: {
+    flex: 1,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.sm,
+    alignItems: "center",
+  },
+  statValue: { ...Typography.h4, color: Colors.textPrimary },
+  statLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
   sectionTitle: { ...Typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
   emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
   referredRow: {

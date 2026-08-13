@@ -1424,6 +1424,8 @@ export interface ReferralInfo {
   referral_code: string;
   referral_link: string;
   total_referred: number;
+  bonus_per_referral: number;
+  total_earned: number;
   referred_users: { full_name: string | null; role: string; created_at: string }[];
 }
 
