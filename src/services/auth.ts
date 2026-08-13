@@ -381,6 +381,7 @@ export async function apiRegister(data: {
   password: string;
   accountType: string;
   role: "borrower" | "lender";
+  agreedToTerms: boolean;
 }): Promise<SignupDraftState> {
   const res = await apiPost<SignupDraftResponse>("/auth/register_start", {
     email: data.email,
@@ -390,6 +391,7 @@ export async function apiRegister(data: {
     nin: data.nin,
     account_type: data.accountType,
     role: data.role,
+    agree_to_terms: data.agreedToTerms,
   });
 
   const draft: SignupDraftState = {

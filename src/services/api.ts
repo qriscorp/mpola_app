@@ -276,6 +276,10 @@ interface RawProfile {
   two_factor_enabled?: boolean;
   profile_pic: string | null;
   created_at: string;
+  terms_accepted_at: string | null;
+  licence_number: string | null;
+  licence_status: "not_issued" | "active" | "expired" | null;
+  licence_valid_until: string | null;
 }
 
 function mapProfile(p: RawProfile): User {
@@ -292,11 +296,20 @@ function mapProfile(p: RawProfile): User {
     twoFactorEnabled: p.two_factor_enabled ?? false,
     profileImage: p.profile_pic ?? undefined,
     createdAt: p.created_at,
+    termsAcceptedAt: p.terms_accepted_at,
+    licenceNumber: p.licence_number,
+    licenceStatus: p.licence_status,
+    licenceValidUntil: p.licence_valid_until,
   };
 }
 
 export async function fetchProfile(): Promise<User> {
   const p = await apiAuthGet<RawProfile>("/users/me");
+  return mapProfile(p);
+}
+
+export async function signLenderAgreement(): Promise<User> {
+  const p = await apiAuthPost<RawProfile>("/users/me/sign-lender-agreement", {});
   return mapProfile(p);
 }
 

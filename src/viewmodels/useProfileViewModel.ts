@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchProfile, updateProfile, apiSignOut } from "../services";
+import { fetchProfile, updateProfile, apiSignOut, signLenderAgreement } from "../services";
 import { router } from "expo-router";
 
 export function useProfileViewModel() {
@@ -15,6 +15,11 @@ export function useProfileViewModel() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profile"] }),
   });
 
+  const signAgreementMutation = useMutation({
+    mutationFn: signLenderAgreement,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["profile"] }),
+  });
+
   async function signOut() {
     await apiSignOut();
     router.replace("/sign-in");
@@ -27,6 +32,8 @@ export function useProfileViewModel() {
     refetch,
     updateProfile: updateMutation.mutate,
     isUpdating: updateMutation.isPending,
+    signAgreement: signAgreementMutation.mutate,
+    isSigningAgreement: signAgreementMutation.isPending,
     signOut,
   };
 }

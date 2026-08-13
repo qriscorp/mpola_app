@@ -6,13 +6,194 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
 import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
+
+const MPOLA_WEB_URL = "https://mpola.co";
+
+const licenceStatusMeta: Record<string, { label: string; color: string; bg: string }> = {
+  active: { label: "Active", color: Colors.success, bg: Colors.successBg },
+  not_issued: { label: "Not Yet Issued", color: Colors.warning, bg: Colors.warningBg },
+  expired: { label: "Expired", color: Colors.danger, bg: Colors.dangerBg },
+};
+
+function LicenceCard({
+  licenceNumber,
+  licenceStatus,
+  licenceValidUntil,
+  canSign,
+  onSign,
+  signing,
+}: {
+  licenceNumber: string | null;
+  licenceStatus: "not_issued" | "active" | "expired" | null;
+  licenceValidUntil: string | null;
+  canSign: boolean;
+  onSign: () => void;
+  signing: boolean;
+}) {
+  const [agreed, setAgreed] = useState(false);
+  const status = licenceStatus ?? "not_issued";
+  const meta = licenceStatusMeta[status];
+  const showSignAction = canSign && (status === "not_issued" || status === "expired");
+
+  return (
+    <View style={licenceStyles.card}>
+      <View style={licenceStyles.header}>
+        <View style={licenceStyles.iconBox}>
+          <Ionicons name="shield-checkmark" size={20} color={Colors.white} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={licenceStyles.title}>Mpola Lender Licence</Text>
+          <Text style={licenceStyles.subtitle}>
+            {status === "active"
+              ? "Issued under Mpola's licensing framework"
+              : status === "expired"
+                ? "Expired — sign the agreement again to renew"
+                : canSign
+                  ? "Sign the agreement below to issue your licence"
+                  : "Issued once your KYC is verified"}
+          </Text>
+        </View>
+      </View>
+
+      <View style={licenceStyles.grid}>
+        <View style={licenceStyles.cell}>
+          <Text style={licenceStyles.cellLabel}>Licence No.</Text>
+          <Text style={licenceStyles.cellValue}>{licenceNumber ?? "—"}</Text>
+        </View>
+        <View style={licenceStyles.cell}>
+          <Text style={licenceStyles.cellLabel}>Valid Until</Text>
+          <Text style={[licenceStyles.cellValue, { color: Colors.gold }]}>
+            {licenceValidUntil ? new Date(licenceValidUntil).toLocaleDateString() : "Not yet issued"}
+          </Text>
+        </View>
+        <View style={licenceStyles.cell}>
+          <Text style={licenceStyles.cellLabel}>Max Pool</Text>
+          <Text style={licenceStyles.cellValue}>—</Text>
+        </View>
+        <View style={licenceStyles.cell}>
+          <Text style={licenceStyles.cellLabel}>Status</Text>
+          <View style={[licenceStyles.badge, { backgroundColor: meta.bg }]}>
+            <Text style={[licenceStyles.badgeText, { color: meta.color }]}>{meta.label}</Text>
+          </View>
+        </View>
+      </View>
+
+      {showSignAction && (
+        <View style={licenceStyles.signBlock}>
+          <TouchableOpacity
+            style={licenceStyles.agreeRow}
+            onPress={() => setAgreed(!agreed)}
+          >
+            <View style={[licenceStyles.checkbox, agreed && licenceStyles.checkboxActive]}>
+              {agreed && <Text style={licenceStyles.checkmark}>✓</Text>}
+            </View>
+            <Text style={licenceStyles.agreeText} onPress={() => setAgreed(!agreed)}>
+              I agree to the{" "}
+              <Text
+                style={licenceStyles.agreeLink}
+                onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/platform-terms`)}
+              >
+                Terms of Service
+              </Text>
+              ,{" "}
+              <Text
+                style={licenceStyles.agreeLink}
+                onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/privacy-policy`)}
+              >
+                Privacy Policy
+              </Text>
+              , and{" "}
+              <Text
+                style={licenceStyles.agreeLink}
+                onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/lender-code-of-conduct`)}
+              >
+                Lender Code of Conduct
+              </Text>
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[licenceStyles.signBtn, (!agreed || signing) && { opacity: 0.4 }]}
+            disabled={!agreed || signing}
+            onPress={() => {
+              onSign();
+              setAgreed(false);
+            }}
+          >
+            <Text style={licenceStyles.signBtnText}>
+              {signing ? "Signing…" : status === "expired" ? "Sign & Renew Licence" : "Sign Agreement"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
+    </View>
+  );
+}
+
+const licenceStyles = StyleSheet.create({
+  card: {
+    backgroundColor: Colors.navy,
+    borderRadius: BorderRadius.lg,
+    borderWidth: 2,
+    borderColor: Colors.gold,
+    padding: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  header: { flexDirection: "row", gap: Spacing.md, marginBottom: Spacing.lg },
+  iconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Colors.gold,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  title: { ...Typography.bodyMedium, color: Colors.white, fontWeight: "700" },
+  subtitle: { ...Typography.caption, color: Colors.white + "80", marginTop: 2 },
+  grid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.lg },
+  cell: { width: "42%" },
+  cellLabel: { ...Typography.caption, color: Colors.white + "80", textTransform: "uppercase", letterSpacing: 0.5 },
+  cellValue: { ...Typography.bodyMedium, color: Colors.white, fontWeight: "700", marginTop: 2 },
+  badge: { alignSelf: "flex-start", paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: BorderRadius.full, marginTop: 2 },
+  badgeText: { ...Typography.caption, fontWeight: "600" },
+  signBlock: {
+    marginTop: Spacing.lg,
+    paddingTop: Spacing.lg,
+    borderTopWidth: 1,
+    borderTopColor: Colors.white + "20",
+    gap: Spacing.md,
+  },
+  agreeRow: { flexDirection: "row", gap: Spacing.sm },
+  checkbox: {
+    width: 20,
+    height: 20,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: Colors.white + "60",
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  checkboxActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+  checkmark: { color: Colors.navy, fontSize: 12, fontWeight: "700" },
+  agreeText: { ...Typography.small, color: Colors.white + "cc", flex: 1 },
+  agreeLink: { color: Colors.gold, fontWeight: "600" },
+  signBtn: {
+    backgroundColor: Colors.gold,
+    borderRadius: BorderRadius.md,
+    paddingVertical: Spacing.sm,
+    alignItems: "center",
+  },
+  signBtnText: { ...Typography.buttonSmall, color: Colors.navy },
+});
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   return (
@@ -34,7 +215,7 @@ const menuStyles = StyleSheet.create({
 
 export default function LenderAccountScreen() {
   const router = useRouter();
-  const { profile, isLoading, error, signOut } = useProfileViewModel();
+  const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement } = useProfileViewModel();
   const [offersNotif, setOffersNotif] = useState(true);
   const [repayNotif, setRepayNotif] = useState(true);
 
@@ -92,6 +273,21 @@ export default function LenderAccountScreen() {
           <Text style={styles.name}>{profile.fullName}</Text>
           <Text style={styles.sub}>{profile.email}</Text>
         </View>
+
+        {/* Licence */}
+        <LicenceCard
+          licenceNumber={profile.licenceNumber}
+          licenceStatus={profile.licenceStatus}
+          licenceValidUntil={profile.licenceValidUntil}
+          canSign={profile.kycVerified}
+          signing={isSigningAgreement}
+          onSign={() =>
+            signAgreement(undefined, {
+              onError: (e: any) =>
+                Alert.alert("Failed to sign", e?.message || "Please try again."),
+            })
+          }
+        />
 
         {/* KYC */}
         <Text style={styles.sectionLabel}>KYC VERIFICATION</Text>

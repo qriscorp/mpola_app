@@ -8,7 +8,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import * as WebBrowser from "expo-web-browser";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+
+const MPOLA_WEB_URL = "https://mpola.co";
 import { Button, Input } from "../../src/components";
 import { useAuthViewModel } from "../../src/viewmodels";
 import {
@@ -257,19 +260,37 @@ export default function BorrowerRegisterScreen() {
         />
 
         {/* Terms */}
-        <TouchableOpacity
-          style={styles.termsRow}
-          onPress={() => vm.setAgreed(!vm.agreed)}
-        >
-          <View style={[styles.checkbox, vm.agreed && styles.checkboxActive]}>
+        <View style={styles.termsRow}>
+          <TouchableOpacity
+            style={[styles.checkbox, vm.agreed && styles.checkboxActive]}
+            onPress={() => vm.setAgreed(!vm.agreed)}
+          >
             {vm.agreed && <Text style={styles.checkmark}>✓</Text>}
-          </View>
-          <Text style={styles.termsText}>
+          </TouchableOpacity>
+          <Text style={styles.termsText} onPress={() => vm.setAgreed(!vm.agreed)}>
             I agree to the{" "}
-            <Text style={styles.termsLink}>Terms of Service</Text> and{" "}
-            <Text style={styles.termsLink}>Privacy Policy</Text>
+            <Text
+              style={styles.termsLink}
+              onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/platform-terms`)}
+            >
+              Terms of Service
+            </Text>
+            ,{" "}
+            <Text
+              style={styles.termsLink}
+              onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/privacy-policy`)}
+            >
+              Privacy Policy
+            </Text>
+            , and{" "}
+            <Text
+              style={styles.termsLink}
+              onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/borrower-code-of-conduct`)}
+            >
+              Borrower Code of Conduct
+            </Text>
           </Text>
-        </TouchableOpacity>
+        </View>
 
         <Button
           title="Continue to Verification →"

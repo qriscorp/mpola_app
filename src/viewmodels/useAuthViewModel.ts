@@ -44,6 +44,7 @@ export function useAuthViewModel() {
       password: string;
       accountType: string;
       role: "borrower" | "lender";
+      agreedToTerms: boolean;
     }) => apiRegister(params),
     onSuccess: (draft) => setSignupDraft(draft),
   });
@@ -101,6 +102,7 @@ export function useAuthViewModel() {
         password,
         accountType,
         role,
+        agreedToTerms: agreed,
       });
       return true;
     } catch (e: any) {

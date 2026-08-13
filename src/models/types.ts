@@ -14,6 +14,13 @@ export interface User {
   twoFactorEnabled?: boolean;
   profileImage?: string;
   createdAt: string;
+  termsAcceptedAt: string | null;
+  // Lender-only — null for borrowers. "not_issued" until KYC is verified
+  // AND the agreement has been accepted; "active" while within
+  // LENDER_LICENCE_VALIDITY_DAYS of termsAcceptedAt; "expired" after.
+  licenceNumber: string | null;
+  licenceStatus: "not_issued" | "active" | "expired" | null;
+  licenceValidUntil: string | null;
 }
 
 export type LoanType =
