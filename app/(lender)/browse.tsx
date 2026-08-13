@@ -116,13 +116,11 @@ export default function BrowseBorrowersScreen() {
                       <Text style={styles.borrowerName}>
                         {app.borrower?.fullName ?? "Borrower"}
                       </Text>
-                      {verified && (
-                        <Ionicons
-                          name="checkmark-circle"
-                          size={14}
-                          color={Colors.teal}
-                        />
-                      )}
+                      <Ionicons
+                        name={verified ? "checkmark-circle" : "help-circle-outline"}
+                        size={14}
+                        color={verified ? Colors.teal : Colors.textMuted}
+                      />
                     </View>
                     <Text style={styles.borrowerMeta}>
                       Credit score: {app.borrower?.creditScore ?? "—"}

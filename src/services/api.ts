@@ -632,6 +632,7 @@ interface RawOffer {
   application_status: string | null;
   lender_id: string;
   lender_name: string | null;
+  lender_kyc_status: "pending" | "verified" | "rejected" | null;
   amount: number;
   interest_rate: number;
   duration: number | null;
@@ -705,6 +706,7 @@ function mapOffer(o: RawOffer): LoanOffer {
     applicationStatus: (o.application_status as LoanOffer["applicationStatus"]) ?? null,
     lenderId: o.lender_id,
     lenderName: o.lender_name,
+    lenderKycStatus: o.lender_kyc_status,
     amount: o.amount,
     interestRate: o.interest_rate,
     duration: o.duration,

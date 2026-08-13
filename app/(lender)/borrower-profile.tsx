@@ -86,16 +86,16 @@ export default function BorrowerProfileScreen() {
             Credit score: {application.borrower?.creditScore ?? "—"}
           </Text>
           <View style={styles.badges}>
-            {verified && (
-              <View style={styles.kycBadge}>
-                <Ionicons
-                  name="checkmark-circle"
-                  size={14}
-                  color={Colors.teal}
-                />
-                <Text style={styles.kycText}>KYC Verified</Text>
-              </View>
-            )}
+            <View style={[styles.kycBadge, !verified && styles.kycBadgeUnverified]}>
+              <Ionicons
+                name={verified ? "checkmark-circle" : "help-circle-outline"}
+                size={14}
+                color={verified ? Colors.teal : Colors.textMuted}
+              />
+              <Text style={[styles.kycText, !verified && styles.kycTextUnverified]}>
+                {verified ? "Verified" : "Not Verified"}
+              </Text>
+            </View>
             <Badge
               label={
                 application.loanType === "personal" ? "Personal" : "Business"
@@ -222,7 +222,9 @@ const styles = StyleSheet.create({
     marginTop: Spacing.sm,
   },
   kycBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
+  kycBadgeUnverified: { opacity: 0.9 },
   kycText: { ...Typography.smallMedium, color: Colors.teal },
+  kycTextUnverified: { color: Colors.textMuted },
   card: {
     backgroundColor: Colors.surface,
     borderRadius: BorderRadius.lg,

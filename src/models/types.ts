@@ -174,6 +174,7 @@ export interface LoanOffer {
   applicationStatus: ApplicationStatus | null;
   lenderId: string;
   lenderName: string | null;
+  lenderKycStatus: "pending" | "verified" | "rejected" | null;
   amount: number;
   interestRate: number;
   duration: number | null;

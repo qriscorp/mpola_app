@@ -119,7 +119,24 @@ export default function SignAgreementScreen() {
         {/* Offer Summary */}
         <Card style={styles.summaryCard}>
           <Text style={styles.summaryTitle}>Loan Offer Summary</Text>
-          <Text style={styles.summarySub}>{offer.lenderName ?? "Lender"}</Text>
+          <View style={styles.summarySubRow}>
+            <Text style={styles.summarySub}>{offer.lenderName ?? "Lender"}</Text>
+            <View
+              style={[
+                styles.verifiedBadge,
+                offer.lenderKycStatus !== "verified" && styles.verifiedBadgeMuted,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.verifiedText,
+                  offer.lenderKycStatus !== "verified" && styles.verifiedTextMuted,
+                ]}
+              >
+                {offer.lenderKycStatus === "verified" ? "Verified" : "Not Verified"}
+              </Text>
+            </View>
+          </View>
           <View style={styles.summaryGrid}>
             <View style={styles.summaryCell}>
               <Text style={styles.summaryLabel}>Loan Amount</Text>
@@ -297,7 +314,17 @@ const styles = StyleSheet.create({
   emptyText: { ...Typography.body, color: Colors.textMuted },
   summaryCard: { gap: 2 },
   summaryTitle: { ...Typography.h4, color: Colors.textPrimary },
-  summarySub: { ...Typography.small, color: Colors.textMuted, marginBottom: Spacing.md },
+  summarySubRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, marginBottom: Spacing.md },
+  summarySub: { ...Typography.small, color: Colors.textMuted },
+  verifiedBadge: {
+    backgroundColor: Colors.teal + "25",
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  verifiedBadgeMuted: { backgroundColor: Colors.border },
+  verifiedText: { ...Typography.caption, color: Colors.teal, fontWeight: "600" },
+  verifiedTextMuted: { color: Colors.textMuted },
   summaryGrid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.lg },
   summaryCell: { width: "40%" },
   summaryLabel: { ...Typography.caption, color: Colors.textMuted },

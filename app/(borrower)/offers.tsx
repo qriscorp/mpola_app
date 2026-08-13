@@ -76,6 +76,21 @@ function AllOffersView() {
                   <View style={styles.offerInfo}>
                     <View style={styles.offerNameRow}>
                       <Text style={styles.offerName}>{offer.lenderName ?? "Lender"}</Text>
+                      <View
+                        style={[
+                          styles.verifiedBadge,
+                          offer.lenderKycStatus !== "verified" && styles.verifiedBadgeMuted,
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.verifiedText,
+                            offer.lenderKycStatus !== "verified" && styles.verifiedTextMuted,
+                          ]}
+                        >
+                          {offer.lenderKycStatus === "verified" ? "Verified" : "Not Verified"}
+                        </Text>
+                      </View>
                       {offer.templateId && (
                         <View style={styles.autoMatchedBadge}>
                           <Text style={styles.autoMatchedText}>Auto-matched</Text>
@@ -244,6 +259,21 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
                         <Text style={styles.offerName}>
                           {offer.lenderName ?? "Lender"}
                         </Text>
+                        <View
+                          style={[
+                            styles.verifiedBadge,
+                            offer.lenderKycStatus !== "verified" && styles.verifiedBadgeMuted,
+                          ]}
+                        >
+                          <Text
+                            style={[
+                              styles.verifiedText,
+                              offer.lenderKycStatus !== "verified" && styles.verifiedTextMuted,
+                            ]}
+                          >
+                            {offer.lenderKycStatus === "verified" ? "Verified" : "Not Verified"}
+                          </Text>
+                        </View>
                         {offer.templateId && (
                           <View style={styles.autoMatchedBadge}>
                             <Text style={styles.autoMatchedText}>Auto-matched</Text>
@@ -410,6 +440,15 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.full,
   },
   autoMatchedText: { ...Typography.caption, color: Colors.teal, fontWeight: "600" },
+  verifiedBadge: {
+    backgroundColor: Colors.teal + "25",
+    paddingHorizontal: Spacing.xs,
+    paddingVertical: 2,
+    borderRadius: BorderRadius.full,
+  },
+  verifiedBadgeMuted: { backgroundColor: Colors.border },
+  verifiedText: { ...Typography.caption, color: Colors.teal, fontWeight: "600" },
+  verifiedTextMuted: { color: Colors.textMuted },
   offerSub: { ...Typography.small, color: Colors.textMuted },
   offerRate: { fontSize: 18, fontWeight: "700", color: Colors.textSecondary },
   offerDetails: {
