@@ -23,6 +23,7 @@ export { HelpScreenContent } from "./HelpScreenContent";
 export { DisputesScreenContent } from "./DisputesScreenContent";
 export { DisputeDetailScreenContent } from "./DisputeDetailScreenContent";
 export { SessionsSection } from "./SessionsSection";
+export { SettingsScreenContent } from "./SettingsScreenContent";
 export { KYCUploadSection } from "./KYCUploadSection";
 export { ApprovalsList } from "./ApprovalsList";
 export { InfoTip } from "./InfoTip";

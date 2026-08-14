@@ -19,7 +19,7 @@ export default function SettingsScreen() {
         <View style={{ width: 24 }} />
       </View>
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <SettingsScreenContent accentColor={Colors.gold} />
+        <SettingsScreenContent accentColor={Colors.teal} />
       </ScrollView>
     </SafeAreaView>
   );

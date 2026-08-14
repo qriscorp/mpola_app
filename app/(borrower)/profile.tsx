@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -34,9 +34,7 @@ const menuStyles = StyleSheet.create({
 
 export default function ProfileScreen() {
   const router = useRouter();
-  const { profile, isLoading, error, signOut } = useProfileViewModel();
-  const [offersNotif, setOffersNotif] = useState(true);
-  const [repayNotif, setRepayNotif] = useState(false);
+  const { profile, isLoading, error, signOut, updateProfile } = useProfileViewModel();
 
   if (error) {
     return (
@@ -108,8 +106,8 @@ export default function ProfileScreen() {
               <Text style={styles.toggleSub}>When lenders respond</Text>
             </View>
             <Switch
-              value={offersNotif}
-              onValueChange={setOffersNotif}
+              value={profile.notifOfferReceived ?? true}
+              onValueChange={(v) => updateProfile({ notifOfferReceived: v })}
               trackColor={{ true: Colors.teal }}
             />
           </View>
@@ -120,12 +118,28 @@ export default function ProfileScreen() {
             ]}
           >
             <View>
-              <Text style={styles.toggleTitle}>Repayment Reminders</Text>
-              <Text style={styles.toggleSub}>3 days before due date</Text>
+              <Text style={styles.toggleTitle}>Payment Reminders</Text>
+              <Text style={styles.toggleSub}>A few days before due date</Text>
             </View>
             <Switch
-              value={repayNotif}
-              onValueChange={setRepayNotif}
+              value={profile.notifPaymentReminder ?? true}
+              onValueChange={(v) => updateProfile({ notifPaymentReminder: v })}
+              trackColor={{ true: Colors.teal }}
+            />
+          </View>
+          <View
+            style={[
+              styles.toggleRow,
+              { borderTopWidth: 1, borderTopColor: Colors.border },
+            ]}
+          >
+            <View>
+              <Text style={styles.toggleTitle}>Application Status</Text>
+              <Text style={styles.toggleSub}>When your loan request expires or changes</Text>
+            </View>
+            <Switch
+              value={profile.notifApplicationStatus ?? true}
+              onValueChange={(v) => updateProfile({ notifApplicationStatus: v })}
               trackColor={{ true: Colors.teal }}
             />
           </View>
@@ -134,7 +148,10 @@ export default function ProfileScreen() {
         {/* Support & Settings */}
         <Text style={styles.sectionLabel}>SUPPORT & SETTINGS</Text>
         <View style={[styles.card, { paddingVertical: 0 }]}>
-          <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(borrower)/referrals")} />
+          <MenuRow icon="settings-outline" label="Settings" onPress={() => router.push("/(borrower)/settings")} />
+          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
+            <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(borrower)/referrals")} />
+          </View>
           <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
             <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => router.push("/(borrower)/help")} />
           </View>
@@ -146,6 +163,18 @@ export default function ProfileScreen() {
         {/* Security */}
         <Text style={styles.sectionLabel}>SECURITY</Text>
         <View style={styles.card}>
+          <View style={styles.toggleRow}>
+            <View>
+              <Text style={styles.toggleTitle}>Two-Factor Authentication</Text>
+              <Text style={styles.toggleSub}>SMS code on login</Text>
+            </View>
+            <Switch
+              value={!!profile.twoFactorEnabled}
+              onValueChange={(v) => updateProfile({ twoFactorEnabled: v })}
+              trackColor={{ true: Colors.teal }}
+            />
+          </View>
+          <View style={{ height: Spacing.md }} />
           <BiometricToggle accentColor={Colors.teal} />
           <View style={{ height: Spacing.md }} />
           <SessionsSection accentColor={Colors.teal} />

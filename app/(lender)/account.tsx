@@ -215,9 +215,7 @@ const menuStyles = StyleSheet.create({
 
 export default function LenderAccountScreen() {
   const router = useRouter();
-  const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement } = useProfileViewModel();
-  const [offersNotif, setOffersNotif] = useState(true);
-  const [repayNotif, setRepayNotif] = useState(true);
+  const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement, updateProfile } = useProfileViewModel();
 
   if (error) {
     return (
@@ -304,8 +302,8 @@ export default function LenderAccountScreen() {
               <Text style={styles.toggleSub}>When borrowers apply</Text>
             </View>
             <Switch
-              value={offersNotif}
-              onValueChange={setOffersNotif}
+              value={profile.notifNewApplication ?? true}
+              onValueChange={(v) => updateProfile({ notifNewApplication: v })}
               trackColor={{ true: Colors.gold }}
             />
           </View>
@@ -320,8 +318,40 @@ export default function LenderAccountScreen() {
               <Text style={styles.toggleSub}>When borrower pays</Text>
             </View>
             <Switch
-              value={repayNotif}
-              onValueChange={setRepayNotif}
+              value={profile.notifRepaymentReceived ?? true}
+              onValueChange={(v) => updateProfile({ notifRepaymentReceived: v })}
+              trackColor={{ true: Colors.gold }}
+            />
+          </View>
+          <View
+            style={[
+              styles.toggleRow,
+              { borderTopWidth: 1, borderTopColor: Colors.border },
+            ]}
+          >
+            <View>
+              <Text style={styles.toggleTitle}>Overdue Loan Alerts</Text>
+              <Text style={styles.toggleSub}>When a repayment is missed</Text>
+            </View>
+            <Switch
+              value={profile.notifLoanOverdue ?? true}
+              onValueChange={(v) => updateProfile({ notifLoanOverdue: v })}
+              trackColor={{ true: Colors.gold }}
+            />
+          </View>
+          <View
+            style={[
+              styles.toggleRow,
+              { borderTopWidth: 1, borderTopColor: Colors.border },
+            ]}
+          >
+            <View>
+              <Text style={styles.toggleTitle}>Weekly Portfolio Digest</Text>
+              <Text style={styles.toggleSub}>In-app summary of your active book</Text>
+            </View>
+            <Switch
+              value={profile.notifPortfolioDigest ?? false}
+              onValueChange={(v) => updateProfile({ notifPortfolioDigest: v })}
               trackColor={{ true: Colors.gold }}
             />
           </View>
