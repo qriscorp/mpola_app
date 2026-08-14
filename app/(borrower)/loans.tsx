@@ -49,7 +49,14 @@ export default function LoansScreen() {
     );
   }
 
-  const progress = loan.paidInstalments / loan.totalInstalments;
+  // Amount-based, not instalment-count-based — paidInstalments only
+  // advances once a full instalment clears (see make_repayment in
+  // routers/loans.py), so a partial payment the borrower already made
+  // would otherwise show as 0% progress here even though totalPaid
+  // reflects it.
+  const progress = loan.totalRepayable
+    ? Math.min(1, (loan.totalPaid ?? 0) / loan.totalRepayable)
+    : 0;
 
   return (
     <SafeAreaView style={styles.container}>
@@ -104,7 +111,7 @@ export default function LoansScreen() {
             <View style={styles.progressLabelRow}>
               <Text style={styles.progressLabel}>Payment Progress</Text>
               <Text style={styles.progressLabel}>
-                {loan.paidInstalments}/{loan.totalInstalments}
+                UGX {(loan.totalPaid ?? 0).toLocaleString()} / UGX {loan.totalRepayable.toLocaleString()}
               </Text>
             </View>
             <ProgressBar progress={progress} color={Colors.teal} height={6} />

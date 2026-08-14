@@ -8,8 +8,13 @@ export function useBorrowerDashboardViewModel() {
   });
 
   const loan = data?.loan;
-  const paymentProgress = loan
-    ? loan.paidInstalments / loan.totalInstalments
+  // Amount-based, not instalment-count-based — paidInstalments only
+  // advances once a full instalment clears (see make_repayment in
+  // routers/loans.py), so a partial payment the borrower already made
+  // would otherwise show as 0% progress here even though totalPaid
+  // reflects it.
+  const paymentProgress = loan && loan.totalRepayable
+    ? Math.min(1, (loan.totalPaid ?? 0) / loan.totalRepayable)
     : 0;
   const remainingPayments = loan
     ? loan.totalInstalments - loan.paidInstalments

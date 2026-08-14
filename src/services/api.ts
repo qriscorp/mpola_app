@@ -1434,7 +1434,12 @@ export async function fetchPortfolio(): Promise<
   return res.loans.map(mapLoan).map((l) => ({
     ...l,
     borrowerName: l.borrowerName ?? "Unknown",
-    progress: l.totalInstalments ? l.paidInstalments / l.totalInstalments : 0,
+    // Amount-based, not instalment-count-based — paidInstalments only
+    // advances once a full instalment clears (see make_repayment in
+    // routers/loans.py), so a partial payment the borrower already made
+    // would otherwise show as 0% progress here even though totalPaid
+    // reflects it.
+    progress: l.totalRepayable ? Math.min(1, (l.totalPaid ?? 0) / l.totalRepayable) : 0,
   }));
 }
 

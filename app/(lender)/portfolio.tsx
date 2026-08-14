@@ -226,7 +226,7 @@ export default function PortfolioScreen() {
               <View style={styles.progressSection}>
                 <View style={styles.progressLabelRow}>
                   <Text style={styles.progressLabel}>
-                    {loan.paidInstalments} of {loan.totalInstalments} payments
+                    UGX {(loan.totalPaid ?? 0).toLocaleString()} / UGX {loan.totalRepayable.toLocaleString()}
                   </Text>
                   <Text style={styles.progressPercent}>
                     {Math.round(loan.progress * 100)}%

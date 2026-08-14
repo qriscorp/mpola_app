@@ -55,8 +55,14 @@ export default function LoanDetailScreen() {
   }
 
   const borrowerName = loan.borrowerName ?? "Unknown";
-  const progress = loan.totalInstalments
-    ? loan.paidInstalments / loan.totalInstalments
+  // Amount-based, not instalment-count-based — paidInstalments only
+  // advances once a full instalment clears (see make_repayment in
+  // routers/loans.py), so a partial payment the borrower already made
+  // would otherwise show as 0% progress here even though totalPaid
+  // reflects it.
+  const totalPaid = loan.totalPaid ?? 0;
+  const progress = loan.totalRepayable
+    ? Math.min(1, totalPaid / loan.totalRepayable)
     : 0;
 
   return (
@@ -195,7 +201,7 @@ export default function LoanDetailScreen() {
           <Text style={styles.sectionTitle}>Repayment Progress</Text>
           <View style={styles.progressLabelRow}>
             <Text style={styles.progressLabel}>
-              {loan.paidInstalments} of {loan.totalInstalments} payments
+              UGX {totalPaid.toLocaleString()} / UGX {loan.totalRepayable.toLocaleString()}
             </Text>
             <Text style={styles.progressPercent}>
               {Math.round(progress * 100)}%
@@ -205,6 +211,9 @@ export default function LoanDetailScreen() {
             progress={progress}
             color={loan.status === "overdue" ? Colors.danger : Colors.gold}
           />
+          <Text style={styles.borrowerMeta}>
+            {loan.paidInstalments} of {loan.totalInstalments} instalments completed
+          </Text>
         </View>
 
         {/* Repayment History */}
