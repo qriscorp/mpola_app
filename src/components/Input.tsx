@@ -1,5 +1,6 @@
-import React from "react";
-import { View, Text, TextInput, StyleSheet, ViewStyle } from "react-native";
+import React, { useState } from "react";
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 
 interface Props {
@@ -33,6 +34,8 @@ export function Input({
   editable = true,
   maxLength,
 }: Props) {
+  const [revealed, setRevealed] = useState(false);
+
   return (
     <View style={[styles.wrapper, style]}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -45,12 +48,24 @@ export function Input({
           placeholderTextColor={Colors.textMuted}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
-          secureTextEntry={secureTextEntry}
+          secureTextEntry={secureTextEntry && !revealed}
           style={[styles.input, multiline && styles.multiline]}
           multiline={multiline}
           editable={editable}
           maxLength={maxLength}
         />
+        {secureTextEntry && (
+          <TouchableOpacity
+            onPress={() => setRevealed((v) => !v)}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name={revealed ? "eye-off-outline" : "eye-outline"}
+              size={20}
+              color={Colors.textMuted}
+            />
+          </TouchableOpacity>
+        )}
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
@@ -75,6 +90,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     paddingHorizontal: Spacing.md,
     minHeight: 50,
+    gap: Spacing.sm,
   },
   inputError: {
     borderColor: Colors.danger,
