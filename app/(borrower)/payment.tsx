@@ -141,37 +141,44 @@ export default function PaymentScreen() {
           </Text>
         </Card>
 
-        {vm.showPayoffOption && (
-          <>
-            <Text style={styles.sectionLabel}>How much would you like to pay?</Text>
-            <View style={styles.payModeRow}>
-              <TouchableOpacity
-                style={[
-                  styles.payModeCard,
-                  vm.payMode === "instalment" && styles.payModeCardActive,
-                ]}
-                onPress={() => vm.setAmountInput(String(vm.dueAmount))}
-              >
-                <Text style={styles.payModeLabel}>Pay this instalment</Text>
-                <Text style={styles.payModeValue}>
-                  UGX {vm.dueAmount.toLocaleString()}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.payModeCard,
-                  vm.payMode === "full" && styles.payModeCardActive,
-                ]}
-                onPress={() => vm.setAmountInput(String(vm.remainingBalance))}
-              >
-                <Text style={styles.payModeLabel}>Pay off full balance</Text>
-                <Text style={styles.payModeValue}>
-                  UGX {vm.remainingBalance.toLocaleString()}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </>
-        )}
+        <Text style={styles.sectionLabel}>How much would you like to pay?</Text>
+        <View style={styles.payModeRow}>
+          <TouchableOpacity
+            style={[
+              styles.payModeCard,
+              vm.payMode === "instalment" && styles.payModeCardActive,
+            ]}
+            onPress={() => vm.setAmountInput(String(vm.dueAmount))}
+          >
+            <Text style={styles.payModeLabel}>Pay this instalment</Text>
+            <Text style={styles.payModeValue}>
+              UGX {vm.dueAmount.toLocaleString()}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.payModeCard}
+            onPress={() => vm.setAmountInput(String(Math.round(vm.dueAmount / 2)))}
+          >
+            <Text style={styles.payModeLabel}>Pay half now</Text>
+            <Text style={styles.payModeValue}>
+              UGX {Math.round(vm.dueAmount / 2).toLocaleString()}
+            </Text>
+          </TouchableOpacity>
+          {vm.showPayoffOption && (
+            <TouchableOpacity
+              style={[
+                styles.payModeCard,
+                vm.payMode === "full" && styles.payModeCardActive,
+              ]}
+              onPress={() => vm.setAmountInput(String(vm.remainingBalance))}
+            >
+              <Text style={styles.payModeLabel}>Pay off full balance</Text>
+              <Text style={styles.payModeValue}>
+                UGX {vm.remainingBalance.toLocaleString()}
+              </Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
         {/* Wallet Balance */}
         <Text style={styles.sectionLabel}>Paying From</Text>
@@ -216,9 +223,18 @@ export default function PaymentScreen() {
           keyboardType="numeric"
         />
         <Text style={styles.amountHint}>
-          Defaults to the amount due. You can pay more to get ahead on your
-          loan.
+          You can pay this instalment in full, pay part of it now and cover the rest before the
+          due date, or pay off your whole remaining balance in one go — whichever suits you.
+          Whatever&apos;s left after your payment stays as your next payment amount; if it&apos;s
+          still unpaid after the due date, a late fee applies to just that remaining balance, not
+          the full instalment. You can&apos;t pay more than what you actually owe on this loan.
         </Text>
+        {vm.exceedsBalance && (
+          <Text style={styles.amountError}>
+            That&apos;s more than your remaining balance of UGX {vm.remainingBalance.toLocaleString()}.
+            Lower the amount or use &quot;Pay off full balance&quot; above.
+          </Text>
+        )}
 
         {/* Breakdown */}
         <Card style={{ marginBottom: Spacing.xxl, marginTop: Spacing.lg }}>
@@ -273,7 +289,7 @@ export default function PaymentScreen() {
           }}
           color={Colors.teal}
           loading={vm.loading}
-          disabled={!vm.sufficient}
+          disabled={!vm.sufficient || vm.exceedsBalance}
         />
 
         <TouchableOpacity
@@ -352,11 +368,13 @@ const styles = StyleSheet.create({
   },
   payModeRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.md,
     marginBottom: Spacing.lg,
   },
   payModeCard: {
-    flex: 1,
+    flexBasis: "45%",
+    flexGrow: 1,
     borderWidth: 1,
     borderColor: Colors.border,
     borderRadius: BorderRadius.lg,
@@ -391,6 +409,12 @@ const styles = StyleSheet.create({
   amountHint: {
     ...Typography.small,
     color: Colors.textMuted,
+    marginTop: Spacing.xs,
+  },
+  amountError: {
+    ...Typography.small,
+    color: Colors.danger,
+    fontWeight: "600",
     marginTop: Spacing.xs,
   },
   sectionLabel: {

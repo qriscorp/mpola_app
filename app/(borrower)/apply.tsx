@@ -95,7 +95,7 @@ export default function ApplyScreen() {
     ]);
   };
 
-  if (vm.resuming) {
+  if (vm.resuming || vm.eligibilityLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
@@ -107,6 +107,43 @@ export default function ApplyScreen() {
         </View>
         <View style={styles.resumingBox}>
           <ActivityIndicator color={Colors.teal} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // No unfinished draft to resume, and an existing loan still has a
+  // balance — block starting a new request instead of letting them fill
+  // out the whole wizard just to get rejected at the end (backend enforces
+  // this too, at createApplication — this is purely upfront UX).
+  if (!vm.resumedFromDraft && vm.eligibility && !vm.eligibility.canApply && vm.eligibility.blockingLoan) {
+    const loan = vm.eligibility.blockingLoan;
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Apply for a Loan</Text>
+          <View style={{ width: 24 }} />
+        </View>
+        <View style={styles.blockedBox}>
+          <View style={styles.blockedIconCircle}>
+            <Ionicons name="warning" size={28} color={Colors.warning} />
+          </View>
+          <Text style={styles.blockedTitle}>You have an outstanding loan</Text>
+          <Text style={styles.blockedText}>
+            Settle your current loan before applying for a new one — you still owe{" "}
+            <Text style={styles.blockedBold}>UGX {loan.remainingBalance.toLocaleString()}</Text> of
+            {" "}UGX {loan.totalRepayable.toLocaleString()}
+            {loan.status === "overdue" ? " (overdue)" : ""}
+            {loan.status === "defaulted" ? " (defaulted)" : ""}.
+          </Text>
+          <Button
+            title="Go to My Loans"
+            onPress={() => router.push("/(borrower)/loans")}
+            color={Colors.teal}
+          />
         </View>
       </SafeAreaView>
     );
@@ -517,6 +554,30 @@ const styles = StyleSheet.create({
   headerTitle: { ...Typography.h3, color: Colors.white },
   discardText: { ...Typography.smallMedium, color: Colors.danger },
   resumingBox: { flex: 1, alignItems: "center", justifyContent: "center" },
+  blockedBox: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: Spacing.xl,
+    gap: Spacing.md,
+  },
+  blockedIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: Colors.warning + "20",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: Spacing.xs,
+  },
+  blockedTitle: { ...Typography.h4, color: Colors.textPrimary, textAlign: "center" },
+  blockedText: {
+    ...Typography.body,
+    color: Colors.textSecondary,
+    textAlign: "center",
+    marginBottom: Spacing.md,
+  },
+  blockedBold: { fontWeight: "700", color: Colors.textPrimary },
   resumeBanner: {
     marginHorizontal: Spacing.lg,
     marginBottom: Spacing.sm,

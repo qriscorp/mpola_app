@@ -1096,6 +1096,55 @@ export async function fetchDraftApplication(): Promise<LoanApplication | null> {
   return mapApplication(res.draft);
 }
 
+export interface ApplicationEligibility {
+  canApply: boolean;
+  blockingLoan: {
+    id: string;
+    amount: number;
+    status: string;
+    totalRepayable: number;
+    totalPaid: number;
+    remainingBalance: number;
+    nextPaymentDate: string | null;
+    nextPaymentAmount: number | null;
+  } | null;
+}
+
+// Checked before letting a borrower start the Apply wizard — one
+// outstanding loan at a time (see OUTSTANDING_LOAN_STATUSES in
+// routers/loans.py, the authoritative gate that also blocks the actual
+// createApplication call).
+export async function fetchApplicationEligibility(): Promise<ApplicationEligibility> {
+  const res = await apiAuthGet<{
+    can_apply: boolean;
+    blocking_loan: {
+      id: string;
+      amount: number;
+      status: string;
+      total_repayable: number;
+      total_paid: number;
+      remaining_balance: number;
+      next_payment_date: string | null;
+      next_payment_amount: number | null;
+    } | null;
+  }>("/loans/applications/eligibility");
+  return {
+    canApply: res.can_apply,
+    blockingLoan: res.blocking_loan
+      ? {
+          id: res.blocking_loan.id,
+          amount: res.blocking_loan.amount,
+          status: res.blocking_loan.status,
+          totalRepayable: res.blocking_loan.total_repayable,
+          totalPaid: res.blocking_loan.total_paid,
+          remainingBalance: res.blocking_loan.remaining_balance,
+          nextPaymentDate: res.blocking_loan.next_payment_date,
+          nextPaymentAmount: res.blocking_loan.next_payment_amount,
+        }
+      : null,
+  };
+}
+
 // ─── Offers ──────────────────────────────────────────────
 
 export async function fetchBorrowerOffers(

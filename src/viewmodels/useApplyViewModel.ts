@@ -6,6 +6,7 @@ import {
   updateApplication,
   deleteApplication,
   fetchDraftApplication,
+  fetchApplicationEligibility,
   searchGuarantorCandidate,
   attachGuarantors,
 } from "../services";
@@ -59,6 +60,11 @@ export function useApplyViewModel() {
   const { data: draft, isLoading: draftLoading } = useQuery({
     queryKey: ["borrower", "apply-draft"],
     queryFn: fetchDraftApplication,
+  });
+
+  const { data: eligibility, isLoading: eligibilityLoading } = useQuery({
+    queryKey: ["borrower", "apply-eligibility"],
+    queryFn: fetchApplicationEligibility,
   });
 
   // Resume-where-you-left-off: runs once, the first time the draft check
@@ -272,6 +278,8 @@ export function useApplyViewModel() {
     step1Valid,
     resuming,
     resumedFromDraft,
+    eligibility,
+    eligibilityLoading,
     applicationId,
     discardDraft: discardMutation.mutateAsync,
     discardingDraft: discardMutation.isPending,

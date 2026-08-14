@@ -98,6 +98,10 @@ export function usePaymentViewModel() {
   const totalDeducted = amount + processingFee;
   const shortfall = totalDeducted - walletBalance;
   const sufficient = shortfall <= 0;
+  // Paying more than what's actually owed sends real money the loan has no
+  // way to credit back — the quick-select buttons never produce this, but a
+  // hand-typed custom amount can. The backend enforces the same cap.
+  const exceedsBalance = amount > remainingBalance + 1;
 
   const paymentMutation = useMutation({
     mutationFn: makeRepayment,
@@ -109,6 +113,7 @@ export function usePaymentViewModel() {
 
   const confirmPayment = async () => {
     if (!loan) throw new Error("No active loan to pay");
+    if (exceedsBalance) throw new Error("That's more than your remaining loan balance");
     return paymentMutation.mutateAsync({
       loanId: loan.id,
       amount,
@@ -134,6 +139,7 @@ export function usePaymentViewModel() {
     totalDeducted,
     shortfall,
     sufficient,
+    exceedsBalance,
     loading: paymentMutation.isPending,
     confirmPayment,
     depositModalVisible,
