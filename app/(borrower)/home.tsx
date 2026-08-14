@@ -129,7 +129,7 @@ export default function BorrowerHomeScreen() {
               <Text style={styles.statLabel}>Credit Score</Text>
               <InfoTip
                 title="About your credit score"
-                text="Starts at a neutral 50 and only moves once one of your loans is fully resolved — repaying it in full raises your score, defaulting or going overdue lowers it. Recalculated once a day, so it won't move while a loan is still active."
+                text="Lenders see this score when deciding whether to offer you a loan at all, and some won't lend below a certain score — so it can be the difference between getting an offer or not. It starts at a neutral 50 (no track record yet) and only moves once a loan is fully resolved: repaying in full and on time raises it, defaulting or going overdue lowers it sharply since it's based on so few resolved loans. Recalculated once a day, so it won't move while a loan is still active."
               />
             </View>
           </View>

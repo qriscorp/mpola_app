@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Input, Button } from "../../src/components";
+import { Input, Button, InfoTip } from "../../src/components";
 import { DOCUMENT_OPTIONS } from "../../src/viewmodels";
 import {
   fetchMarketplace,
@@ -315,10 +315,16 @@ export default function ApplicationsInboxScreen() {
                 </View>
                 <View style={styles.cardInfo}>
                   <Text style={styles.borrowerName}>{app.borrower?.fullName ?? "Unknown"}</Text>
-                  <Text style={styles.borrowerMeta}>
-                    {app.loanType} · {timeSince(app.createdAt)} · Score{" "}
-                    {app.borrower?.creditScore ?? "—"}/100
-                  </Text>
+                  <View style={styles.scoreMetaRow}>
+                    <Text style={styles.borrowerMeta}>
+                      {app.loanType} · {timeSince(app.createdAt)} · Score{" "}
+                      {app.borrower?.creditScore ?? "—"}/100
+                    </Text>
+                    <InfoTip
+                      title="About credit scores"
+                      text="A new borrower starts at a neutral 50 — no resolved loan history yet, not a red flag by itself. It only moves once a loan is fully resolved: rising toward 100 for full, on-time repayment, dropping toward 0 for a default or overdue history. With few resolved loans the swings are sharp, so weigh it alongside KYC status and guarantors, especially for a borrower with only one or two loans behind them."
+                    />
+                  </View>
                 </View>
                 <View style={styles.amountBox}>
                   <Text style={styles.amount}>UGX {app.amount.toLocaleString()}</Text>
@@ -441,6 +447,7 @@ const styles = StyleSheet.create({
   cardInfo: { flex: 1 },
   borrowerName: { ...Typography.bodyMedium, color: Colors.textPrimary },
   borrowerMeta: { ...Typography.caption, color: Colors.textMuted, marginTop: 2, textTransform: "capitalize" },
+  scoreMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   amountBox: { alignItems: "flex-end" },
   amount: { ...Typography.bodyMedium, color: Colors.textPrimary },
   duration: { ...Typography.caption, color: Colors.textMuted },

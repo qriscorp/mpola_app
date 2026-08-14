@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { Button, Badge, SkeletonHero, SkeletonCard } from "../../src/components";
+import { Button, Badge, InfoTip, SkeletonHero, SkeletonCard } from "../../src/components";
 import { useApplicationDetailViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel } from "../../src/services/applicationStatus";
 import { formatDuration } from "../../src/services/duration";
@@ -82,9 +82,15 @@ export default function BorrowerProfileScreen() {
           <Text style={styles.name}>
             {application.borrower?.fullName ?? "Borrower"}
           </Text>
-          <Text style={styles.meta}>
-            Credit score: {application.borrower?.creditScore ?? "—"}
-          </Text>
+          <View style={styles.scoreMetaRow}>
+            <Text style={styles.meta}>
+              Credit score: {application.borrower?.creditScore ?? "—"}
+            </Text>
+            <InfoTip
+              title="About credit scores"
+              text="A new borrower starts at a neutral 50 — no resolved loan history yet, not a red flag by itself. It only moves once a loan is fully resolved: rising toward 100 for full, on-time repayment, dropping toward 0 for a default or overdue history. With few resolved loans the swings are sharp, so weigh it alongside KYC status and guarantors, especially for a borrower with only one or two loans behind them."
+            />
+          </View>
           <View style={styles.badges}>
             <View style={[styles.kycBadge, !verified && styles.kycBadgeUnverified]}>
               <Ionicons
@@ -215,6 +221,7 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
     marginTop: 2,
   },
+  scoreMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   badges: {
     flexDirection: "row",
     alignItems: "center",

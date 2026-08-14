@@ -122,9 +122,15 @@ export default function BrowseBorrowersScreen() {
                         color={verified ? Colors.teal : Colors.textMuted}
                       />
                     </View>
-                    <Text style={styles.borrowerMeta}>
-                      Credit score: {app.borrower?.creditScore ?? "—"}
-                    </Text>
+                    <View style={styles.nameRow}>
+                      <Text style={styles.borrowerMeta}>
+                        Credit score: {app.borrower?.creditScore ?? "—"}
+                      </Text>
+                      <InfoTip
+                        title="About credit scores"
+                        text="A new borrower starts at a neutral 50 — no resolved loan history yet, not a red flag by itself. It only moves once a loan is fully resolved: rising toward 100 for full, on-time repayment, dropping toward 0 for a default or overdue history. With few resolved loans the swings are sharp, so weigh it alongside KYC status and guarantors, especially for a borrower with only one or two loans behind them."
+                      />
+                    </View>
                   </View>
                   <Badge
                     label={
