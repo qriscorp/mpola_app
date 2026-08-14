@@ -4,6 +4,7 @@ import {
   createOfferTemplate,
   updateOfferTemplate,
   fetchMyOfferTemplates,
+  fetchLendingLimits,
 } from "../services";
 
 export const LOAN_TYPE_OPTIONS = [
@@ -49,6 +50,16 @@ export function usePostOfferViewModel(editId?: string) {
   // since submitting now would overwrite the template with the form's
   // still-default values instead of the user's real edits.
   const editDataLoading = isEditing && !editingTemplate;
+
+  // Live, admin-configured cap (Settings > Max Interest Rate) — the fallback
+  // (25, the model's absolute structural ceiling) only applies for the one
+  // frame before this resolves.
+  const { data: lendingLimits } = useQuery({
+    queryKey: ["lending-limits"],
+    queryFn: fetchLendingLimits,
+    staleTime: 5 * 60 * 1000,
+  });
+  const maxRateAllowed = lendingLimits?.maxInterestRate ?? 25;
 
   const [maxAmount, setMaxAmount] = useState("50000000");
   const [minAmount, setMinAmount] = useState("1000");
@@ -133,7 +144,7 @@ export function usePostOfferViewModel(editId?: string) {
 
   const amountRangeInvalid =
     minAmount !== "" && maxAmount !== "" && Number(minAmount) >= Number(maxAmount);
-  const rateInvalid = interestRate !== "" && (Number(interestRate) < 0.1 || Number(interestRate) > 25);
+  const rateInvalid = interestRate !== "" && (Number(interestRate) < 0.1 || Number(interestRate) > maxRateAllowed);
   const durationInvalid = durationUnit === "days" && maxDurationDays == null;
 
   const buildFields = () => ({
@@ -154,7 +165,7 @@ export function usePostOfferViewModel(editId?: string) {
         throw new Error("Min loan amount must be less than max loan amount");
       }
       if (interestRate === "" || rateInvalid) {
-        throw new Error("Interest rate must be between 0.1% and 25%");
+        throw new Error(`Interest rate must be between 0.1% and ${maxRateAllowed}%`);
       }
       if (durationInvalid) {
         throw new Error("Enter a valid custom duration between 1 and 29 days");
@@ -170,7 +181,7 @@ export function usePostOfferViewModel(editId?: string) {
         throw new Error("Min loan amount must be less than max loan amount");
       }
       if (interestRate === "" || rateInvalid) {
-        throw new Error("Interest rate must be between 0.1% and 25%");
+        throw new Error(`Interest rate must be between 0.1% and ${maxRateAllowed}%`);
       }
       if (durationInvalid) {
         throw new Error("Enter a valid custom duration between 1 and 29 days");
@@ -191,6 +202,7 @@ export function usePostOfferViewModel(editId?: string) {
     interestRate,
     setInterestRate,
     rateInvalid,
+    maxRateAllowed,
     durationUnit,
     setDurationUnit,
     maxDuration,

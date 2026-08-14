@@ -10,7 +10,7 @@ import {
   searchGuarantorCandidate,
   attachGuarantors,
 } from "../services";
-import { loanDetailsSchema } from "../validation";
+import { makeLoanDetailsSchema } from "../validation";
 
 interface StagedGuarantor {
   userId: string;
@@ -97,6 +97,12 @@ export function useApplyViewModel() {
   const isEmergency = loanType === "emergency";
   const emergencyDayPresets = [1, 3, 7, 14];
   const numAmount = Number(amount) || 0;
+  // Live, admin-configured bounds (Settings > Min/Max Loan Amount) — the
+  // fallback only covers the moment before eligibility resolves; the wizard
+  // gates on eligibilityLoading before rendering Step 1, so real form
+  // interaction always happens against real numbers.
+  const minAmount = eligibility?.minAmount ?? 1000;
+  const maxAmount = eligibility?.maxAmount ?? 50000000;
   const maxRateInvalid =
     maxInterestRate.trim() !== "" &&
     (Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
@@ -107,8 +113,8 @@ export function useApplyViewModel() {
   const displayRate = hasRateCap ? Number(maxInterestRate) : 0;
   const step1Valid =
     amount.trim() !== "" &&
-    numAmount >= 1000 &&
-    numAmount <= 50000000 &&
+    numAmount >= minAmount &&
+    numAmount <= maxAmount &&
     !maxRateInvalid &&
     (isEmergency ? durationDays != null : duration > 0);
   const totalInterest = isEmergency
@@ -143,7 +149,7 @@ export function useApplyViewModel() {
   };
 
   const validateDetails = () => {
-    const result = loanDetailsSchema.safeParse({
+    const result = makeLoanDetailsSchema(minAmount, maxAmount).safeParse({
       amount,
       duration: isEmergency ? null : duration,
       durationDays: isEmergency ? durationDays : null,
@@ -280,6 +286,8 @@ export function useApplyViewModel() {
     resumedFromDraft,
     eligibility,
     eligibilityLoading,
+    minAmount,
+    maxAmount,
     applicationId,
     discardDraft: discardMutation.mutateAsync,
     discardingDraft: discardMutation.isPending,

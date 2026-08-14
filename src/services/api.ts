@@ -1108,12 +1108,16 @@ export interface ApplicationEligibility {
     nextPaymentDate: string | null;
     nextPaymentAmount: number | null;
   } | null;
+  minAmount: number;
+  maxAmount: number;
 }
 
 // Checked before letting a borrower start the Apply wizard — one
 // outstanding loan at a time (see OUTSTANDING_LOAN_STATUSES in
 // routers/loans.py, the authoritative gate that also blocks the actual
-// createApplication call).
+// createApplication call). Also carries the live admin-configured loan
+// amount bounds (Settings > Min/Max Loan Amount) so the wizard's client-side
+// validation always matches what the server will actually accept.
 export async function fetchApplicationEligibility(): Promise<ApplicationEligibility> {
   const res = await apiAuthGet<{
     can_apply: boolean;
@@ -1127,6 +1131,8 @@ export async function fetchApplicationEligibility(): Promise<ApplicationEligibil
       next_payment_date: string | null;
       next_payment_amount: number | null;
     } | null;
+    min_amount: number;
+    max_amount: number;
   }>("/loans/applications/eligibility");
   return {
     canApply: res.can_apply,
@@ -1142,6 +1148,30 @@ export async function fetchApplicationEligibility(): Promise<ApplicationEligibil
           nextPaymentAmount: res.blocking_loan.next_payment_amount,
         }
       : null,
+    minAmount: res.min_amount,
+    maxAmount: res.max_amount,
+  };
+}
+
+export interface LendingLimits {
+  minAmount: number;
+  maxAmount: number;
+  maxInterestRate: number;
+}
+
+// Live, admin-configured lending bounds (Settings > Min/Max Loan Amount,
+// Max Interest Rate) — used by lender-side forms (manual offer, standing
+// offer template) so none of them drift from a hardcoded guess.
+export async function fetchLendingLimits(): Promise<LendingLimits> {
+  const res = await apiAuthGet<{
+    min_amount: number;
+    max_amount: number;
+    max_interest_rate: number;
+  }>("/loans/limits");
+  return {
+    minAmount: res.min_amount,
+    maxAmount: res.max_amount,
+    maxInterestRate: res.max_interest_rate,
   };
 }
 

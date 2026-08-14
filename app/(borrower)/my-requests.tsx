@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import {
   View,
   Text,
@@ -15,6 +16,7 @@ import { Badge, Input, SkeletonList, InfoTip } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
 import { formatDuration } from "../../src/services/duration";
+import { fetchApplicationEligibility } from "../../src/services";
 import type { LoanApplication, Guarantor } from "../../src/models";
 
 const TABS = ["All", "Pending", "Funded", "Closed"] as const;
@@ -150,10 +152,18 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
     app.maxInterestRate != null ? String(app.maxInterestRate) : "",
   );
   const [validUntil, setValidUntil] = useState<string | null>(app.validUntil);
+  // Live, admin-configured bounds (Settings > Min/Max Loan Amount) — the
+  // fallbacks only apply for the one frame before this resolves.
+  const { data: eligibility } = useQuery({
+    queryKey: ["borrower", "apply-eligibility"],
+    queryFn: fetchApplicationEligibility,
+  });
+  const minAmount = eligibility?.minAmount ?? 1000;
+  const maxAmount = eligibility?.maxAmount ?? 50000000;
 
   const isEmergency = loanType === "emergency";
   const numAmount = Number(amount);
-  const amountInvalid = !amount.trim() || Number.isNaN(numAmount) || numAmount < 1000 || numAmount > 50000000;
+  const amountInvalid = !amount.trim() || Number.isNaN(numAmount) || numAmount < minAmount || numAmount > maxAmount;
   const rateInvalid =
     maxInterestRate.trim() !== "" &&
     (Number.isNaN(Number(maxInterestRate)) || Number(maxInterestRate) < 0.1 || Number(maxInterestRate) > 25);
@@ -195,7 +205,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
         value={amount}
         onChangeText={setAmount}
         keyboardType="numeric"
-        error={amountInvalid ? "Between UGX 1,000 and UGX 50,000,000" : undefined}
+        error={amountInvalid ? `Between UGX ${minAmount.toLocaleString()} and UGX ${maxAmount.toLocaleString()}` : undefined}
       />
 
       <Text style={styles.editLabel}>Loan Type</Text>

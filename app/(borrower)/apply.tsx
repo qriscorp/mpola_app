@@ -236,7 +236,7 @@ export default function ApplyScreen() {
               label="Loan Amount"
               value={vm.amount}
               onChangeText={vm.setAmount}
-              placeholder="e.g. 1,000 (min) — 50,000,000 (max)"
+              placeholder={`e.g. ${vm.minAmount.toLocaleString()} (min) — ${vm.maxAmount.toLocaleString()} (max)`}
               prefix="UGX"
               keyboardType="numeric"
               error={vm.detailsErrors.amount}

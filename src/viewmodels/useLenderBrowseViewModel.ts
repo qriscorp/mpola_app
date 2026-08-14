@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { z } from "zod";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { fetchMarketplace, fetchApplicationDetail, fetchMyOffers, makeOffer } from "../services";
-import { makeOfferSchema } from "../validation";
+import { fetchMarketplace, fetchApplicationDetail, fetchMyOffers, makeOffer, fetchLendingLimits } from "../services";
+import { makeMakeOfferSchema } from "../validation";
 import type { LoanType } from "../models";
 
 // A lender's own standing offer may have already auto-matched this
@@ -90,6 +90,17 @@ export function useMakeOfferViewModel(applicationId: string) {
   const cooldownHoursLeft = autoMatchCooldownHoursLeft(
     myOffers?.find((o) => o.applicationId === applicationId),
   );
+  // Live, admin-configured bounds (Settings > Min/Max Loan Amount, Max
+  // Interest Rate) — the fallbacks only apply for the one frame before this
+  // resolves.
+  const { data: lendingLimits } = useQuery({
+    queryKey: ["lending-limits"],
+    queryFn: fetchLendingLimits,
+    staleTime: 5 * 60 * 1000,
+  });
+  const minOfferAmount = lendingLimits?.minAmount ?? 1000;
+  const maxOfferAmount = lendingLimits?.maxAmount ?? 100000000;
+  const maxRateAllowed = lendingLimits?.maxInterestRate ?? 25;
   const [amount, setAmount] = useState("8000000");
   const [rate, setRate] = useState("3");
   const [duration, setDuration] = useState("18");
@@ -139,8 +150,9 @@ export function useMakeOfferViewModel(applicationId: string) {
   });
 
   const sendOffer = async () => {
+    const offerSchema = makeMakeOfferSchema(minOfferAmount, maxOfferAmount, maxRateAllowed);
     const result = isEmergency
-      ? makeOfferSchema
+      ? offerSchema
           .omit({ duration: true })
           .extend({
             duration: z.string().refine(
@@ -149,7 +161,7 @@ export function useMakeOfferViewModel(applicationId: string) {
             ),
           })
           .safeParse({ amount, rate, duration })
-      : makeOfferSchema.safeParse({ amount, rate, duration });
+      : offerSchema.safeParse({ amount, rate, duration });
     if (!result.success) {
       const errs: Record<string, string> = {};
       for (const issue of result.error.issues) {
@@ -192,5 +204,8 @@ export function useMakeOfferViewModel(applicationId: string) {
     offerErrors,
     loading: offerMutation.isPending,
     sendOffer,
+    minOfferAmount,
+    maxOfferAmount,
+    maxRateAllowed,
   };
 }

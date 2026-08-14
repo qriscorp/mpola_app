@@ -19,6 +19,7 @@ import {
   fetchMyOffers,
   skipApplication,
   makeOffer,
+  fetchLendingLimits,
 } from "../../src/services";
 import type { MarketplaceApplication, LoanOffer } from "../../src/models";
 import { formatDuration } from "../../src/services/duration";
@@ -60,7 +61,17 @@ function OfferModal({
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
   const [customDocInput, setCustomDocInput] = useState("");
 
-  const rateInvalid = rate !== "" && (Number(rate) < 0.1 || Number(rate) > 25);
+  // Live, admin-configured cap (Settings > Max Interest Rate) — the fallback
+  // (25, the model's absolute structural ceiling) only applies for the one
+  // frame before this resolves.
+  const { data: lendingLimits } = useQuery({
+    queryKey: ["lending-limits"],
+    queryFn: fetchLendingLimits,
+    staleTime: 5 * 60 * 1000,
+  });
+  const maxRateAllowed = lendingLimits?.maxInterestRate ?? 25;
+
+  const rateInvalid = rate !== "" && (Number(rate) < 0.1 || Number(rate) > maxRateAllowed);
   const isEmergency = app.durationDays != null;
   const numRate = Number(rate) || 0;
   const totalInterest = isEmergency
@@ -148,7 +159,7 @@ function OfferModal({
             value={rate}
             onChangeText={setRate}
             keyboardType="numeric"
-            error={rateInvalid ? "Must be between 0.1% and 25%" : undefined}
+            error={rateInvalid ? `Must be between 0.1% and ${maxRateAllowed}%` : undefined}
           />
 
           <Text style={styles.fieldLabel}>Documents required to accept (optional)</Text>

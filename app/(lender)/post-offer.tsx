@@ -117,7 +117,7 @@ export default function PostOfferScreen() {
           onChangeText={vm.setInterestRate}
           placeholder="2"
           keyboardType="numeric"
-          error={vm.rateInvalid ? "Must be between 0.1% and 25%" : undefined}
+          error={vm.rateInvalid ? `Must be between 0.1% and ${vm.maxRateAllowed}%` : undefined}
         />
 
         <Text style={styles.fieldLabel}>Max Duration</Text>
