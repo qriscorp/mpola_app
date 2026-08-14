@@ -11,6 +11,7 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { useProfileViewModel } from "../viewmodels";
 import { changePassword, exportMyData, deactivateMyAccount } from "../services";
+import { passwordRequirementErrors, PASSWORD_REQUIREMENTS_HINT } from "../validation";
 
 const MPOLA_WEB_URL = "https://mpola.co";
 
@@ -28,6 +29,15 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
     },
     onError: (e: Error) => Alert.alert("Couldn't change password", e.message),
   });
+
+  function handleChangePassword() {
+    const errors = passwordRequirementErrors(newPassword);
+    if (errors.length) {
+      Alert.alert("Password too weak", `New password needs: ${errors.join(", ").toLowerCase()}`);
+      return;
+    }
+    changePasswordMutation.mutate();
+  }
 
   const exportMutation = useMutation({
     mutationFn: exportMyData,
@@ -99,9 +109,10 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
           onChangeText={setNewPassword}
           secureTextEntry
         />
+        <Text style={styles.passwordHint}>{PASSWORD_REQUIREMENTS_HINT}</Text>
         <Button
           title={changePasswordMutation.isPending ? "Changing…" : "Change Password"}
-          onPress={() => changePasswordMutation.mutate()}
+          onPress={handleChangePassword}
           variant="outline"
           color={accentColor}
           disabled={changePasswordMutation.isPending || oldPassword.length === 0 || newPassword.length < 8}
@@ -186,6 +197,7 @@ const styles = StyleSheet.create({
   toggleRow: { flexDirection: "row", alignItems: "center", paddingVertical: Spacing.sm },
   toggleLabel: { ...Typography.bodyMedium, color: Colors.textPrimary },
   toggleSub: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
+  passwordHint: { ...Typography.small, color: Colors.textMuted, marginTop: -Spacing.sm, marginBottom: Spacing.sm },
   divider: { height: 1, backgroundColor: Colors.border, marginVertical: Spacing.sm },
   fieldLabel: { ...Typography.smallMedium, color: Colors.textSecondary, marginBottom: Spacing.sm },
   menuRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.sm },

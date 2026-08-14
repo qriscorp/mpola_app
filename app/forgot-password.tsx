@@ -18,6 +18,7 @@ import {
   apiForgotPasswordVerify,
   apiForgotPasswordReset,
 } from "../src/services/auth";
+import { passwordRequirementErrors, PASSWORD_REQUIREMENTS_HINT } from "../src/validation";
 
 type Step = "request" | "verify" | "reset";
 
@@ -82,8 +83,9 @@ export default function ForgotPasswordScreen() {
 
   // ── Step 3: set new password ──────────────────────────────
   const handleReset = async () => {
-    if (newPassword.length < 8) {
-      setError("Password must be at least 8 characters.");
+    const pwErrors = passwordRequirementErrors(newPassword);
+    if (pwErrors.length) {
+      setError(`Password needs: ${pwErrors.join(", ").toLowerCase()}`);
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -291,6 +293,7 @@ export default function ForgotPasswordScreen() {
               placeholder="Min. 8 characters"
               secureTextEntry
             />
+            <Text style={styles.passwordHint}>{PASSWORD_REQUIREMENTS_HINT}</Text>
             <View style={{ height: Spacing.md }} />
             <Input
               label="Confirm Password"
@@ -315,6 +318,7 @@ export default function ForgotPasswordScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  passwordHint: { ...Typography.small, color: Colors.textMuted },
   scroll: { flex: 1 },
   content: {
     paddingHorizontal: Spacing.xxl,

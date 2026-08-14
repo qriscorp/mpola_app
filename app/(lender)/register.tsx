@@ -23,6 +23,7 @@ import {
   saveSignupFormDraft,
   type SignupDraftState,
 } from "../../src/services/auth";
+import { PASSWORD_REQUIREMENTS_HINT } from "../../src/validation";
 
 export default function LenderRegisterScreen() {
   const router = useRouter();
@@ -257,6 +258,9 @@ export default function LenderRegisterScreen() {
           secureTextEntry
           error={vm.errors.password}
         />
+        {!vm.errors.password && (
+          <Text style={styles.passwordHint}>{PASSWORD_REQUIREMENTS_HINT}</Text>
+        )}
         <Input
           label="Referral Code (optional)"
           value={vm.referralCode}
@@ -320,6 +324,12 @@ export default function LenderRegisterScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
+  passwordHint: {
+    ...Typography.small,
+    color: Colors.textMuted,
+    marginTop: -Spacing.sm,
+    marginBottom: Spacing.md,
+  },
   header: {
     paddingHorizontal: Spacing.xxl,
     paddingVertical: Spacing.xxl,

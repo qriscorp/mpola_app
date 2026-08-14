@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { passwordRequirementErrors, PASSWORD_REQUIREMENTS_HINT } from "./password";
 
 // ─── Auth Schemas ─────────────────────────────────────────
 
@@ -15,9 +16,10 @@ export const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters")
-    .regex(/[A-Z]/, "Must contain an uppercase letter")
-    .regex(/[0-9]/, "Must contain a number"),
+    .min(8, PASSWORD_REQUIREMENTS_HINT)
+    .refine((pw) => passwordRequirementErrors(pw).length === 0, {
+      message: PASSWORD_REQUIREMENTS_HINT,
+    }),
   accountType: z.enum(["individual", "business", "company"]),
   agreed: z.literal(true, {
     errorMap: () => ({ message: "You must agree to the terms" }),
