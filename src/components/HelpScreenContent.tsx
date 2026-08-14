@@ -8,6 +8,7 @@ import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { SkeletonList } from "./Skeleton";
 import {
+  fetchFaqs,
   fetchMySupportTickets,
   fetchSupportTicket,
   createSupportTicket,
@@ -15,20 +16,25 @@ import {
   type SupportTicket,
 } from "../services";
 
-const FAQ = [
-  {
-    q: "How is my platform fee calculated?",
-    a: "Mpola charges a 0.5% platform fee on withdrawals, loan disbursements, and repayments, plus the mobile money/bank provider's own surcharge. Deposits are always free.",
-  },
-  {
-    q: "How long does a loan disbursement take?",
-    a: "Once a lender accepts and funds your loan, it's transferred directly to your Mpola wallet — usually within seconds.",
-  },
-  {
-    q: "What happens if I miss a repayment?",
-    a: "There's a short grace period before a missed instalment is marked overdue, at which point a late fee applies. Continued non-payment can lead to the loan being marked defaulted.",
-  },
+const CATEGORIES: { value: string; label: string }[] = [
+  { value: "general", label: "General" },
+  { value: "wallet", label: "Wallet" },
+  { value: "loan", label: "Loan" },
+  { value: "kyc", label: "KYC" },
+  { value: "bug", label: "Bug" },
+  { value: "other", label: "Other" },
 ];
+
+function Chip({ label, active, onPress, color }: { label: string; active: boolean; onPress: () => void; color: string }) {
+  return (
+    <TouchableOpacity
+      style={[styles.chip, active && { backgroundColor: color, borderColor: color }]}
+      onPress={onPress}
+    >
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
 
 const statusVariant: Record<string, "info" | "warning" | "success" | "default"> = {
   open: "info",
@@ -39,6 +45,11 @@ const statusVariant: Record<string, "info" | "warning" | "success" | "default"> 
 
 export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?: string }) {
   const qc = useQueryClient();
+  const [faqSearch, setFaqSearch] = useState("");
+  const { data: faqs, isLoading: faqsLoading } = useQuery({
+    queryKey: ["faqs", faqSearch],
+    queryFn: () => fetchFaqs(faqSearch.trim() || undefined),
+  });
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["support", "mine"],
     queryFn: fetchMySupportTickets,
@@ -46,6 +57,7 @@ export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?:
 
   const [showForm, setShowForm] = useState(false);
   const [subject, setSubject] = useState("");
+  const [category, setCategory] = useState("general");
   const [message, setMessage] = useState("");
   const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
   const [reply, setReply] = useState("");
@@ -61,6 +73,7 @@ export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?:
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["support", "mine"] });
       setSubject("");
+      setCategory("general");
       setMessage("");
       setShowForm(false);
     },
@@ -79,12 +92,30 @@ export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?:
     <View style={{ gap: Spacing.lg }}>
       <Card>
         <Text style={styles.sectionTitle}>Frequently Asked Questions</Text>
-        {FAQ.map((item) => (
-          <View key={item.q} style={styles.faqItem}>
-            <Text style={styles.faqQ}>{item.q}</Text>
-            <Text style={styles.faqA}>{item.a}</Text>
-          </View>
-        ))}
+        <View style={styles.searchBox}>
+          <Ionicons name="search-outline" size={16} color={Colors.textMuted} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search FAQs..."
+            placeholderTextColor={Colors.textMuted}
+            value={faqSearch}
+            onChangeText={setFaqSearch}
+          />
+        </View>
+        {faqsLoading ? (
+          <SkeletonList count={2} cardHeight={48} />
+        ) : !faqs?.length ? (
+          <Text style={styles.emptyText}>
+            {faqSearch ? "No FAQs match your search." : "No FAQs available right now."}
+          </Text>
+        ) : (
+          faqs.map((item) => (
+            <View key={item.id} style={styles.faqItem}>
+              <Text style={styles.faqQ}>{item.question}</Text>
+              <Text style={styles.faqA}>{item.answer}</Text>
+            </View>
+          ))
+        )}
       </Card>
 
       <Card>
@@ -104,6 +135,12 @@ export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?:
               value={subject}
               onChangeText={setSubject}
             />
+            <Text style={styles.fieldLabel}>Category</Text>
+            <View style={styles.chipRow}>
+              {CATEGORIES.map((c) => (
+                <Chip key={c.value} label={c.label} active={category === c.value} onPress={() => setCategory(c.value)} color={accentColor} />
+              ))}
+            </View>
             <TextInput
               style={[styles.input, { height: 90, textAlignVertical: "top" }]}
               placeholder="Describe your issue..."
@@ -114,7 +151,7 @@ export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?:
             />
             <Button
               title={create.isPending ? "Submitting…" : "Submit Ticket"}
-              onPress={() => create.mutate({ subject, category: "general", message })}
+              onPress={() => create.mutate({ subject, category, message })}
               color={accentColor}
               disabled={create.isPending || !subject.trim() || !message.trim()}
             />
@@ -191,6 +228,28 @@ const styles = StyleSheet.create({
   faqItem: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
   faqQ: { ...Typography.bodyMedium, color: Colors.textPrimary },
   faqA: { ...Typography.small, color: Colors.textSecondary, marginTop: 4 },
+  searchBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.xs,
+    backgroundColor: Colors.surfaceLift,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    marginTop: Spacing.sm,
+    marginBottom: Spacing.sm,
+  },
+  searchInput: { flex: 1, paddingVertical: Spacing.sm, color: Colors.textPrimary, ...Typography.body },
+  fieldLabel: { ...Typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.xs },
+  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.xs },
+  chip: {
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: BorderRadius.full,
+    paddingHorizontal: Spacing.md,
+    paddingVertical: 6,
+  },
+  chipText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: "600" },
+  chipTextActive: { color: Colors.white },
   formBox: { gap: Spacing.sm, marginBottom: Spacing.md, paddingTop: Spacing.sm },
   input: {
     backgroundColor: Colors.surfaceLift,

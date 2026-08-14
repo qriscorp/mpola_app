@@ -11,12 +11,23 @@ export interface User {
   accountType: AccountType;
   kycVerified: boolean;
   kycStatus: "pending" | "verified" | "rejected";
-  // When kycStatus last became "verified" — starts the 2-year re-upload
-  // lock KYCUploadSection enforces client-side (backend is the source of
-  // truth; see KYC_REVERIFICATION_LOCK_DAYS in routers/users.py).
+  // When kycStatus last became "verified" — each KYCDocument has its own
+  // verified_at/locked_until now (see KYCUploadSection), this is just the
+  // account-wide timestamp, not a lock driver on its own.
   kycVerifiedAt: string | null;
   isPhoneVerified?: boolean;
   twoFactorEnabled?: boolean;
+  // Lender-facing — only ever gate notifications sent to loan.lender_id.
+  notifNewApplication?: boolean;
+  notifRepaymentReceived?: boolean;
+  notifLoanOverdue?: boolean;
+  notifPortfolioDigest?: boolean;
+  // Borrower-facing counterparts — gate notifications sent to loan.borrower_id.
+  notifOfferReceived?: boolean;
+  notifPaymentReminder?: boolean;
+  notifApplicationStatus?: boolean;
+  // Role-agnostic.
+  notifLoginAlerts?: boolean;
   profileImage?: string;
   createdAt: string;
   termsAcceptedAt: string | null;

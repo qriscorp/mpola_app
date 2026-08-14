@@ -51,6 +51,7 @@ export function useRealtimeNotifications() {
           queryClient.invalidateQueries({ queryKey: ["borrower", "offers-received"] });
           queryClient.invalidateQueries({ queryKey: ["application"] });
           queryClient.invalidateQueries({ queryKey: ["guarantor-requests"] });
+          queryClient.invalidateQueries({ queryKey: ["support"] });
 
           if (msg.type === "loan_pending_disbursement" && msg.title) {
             Alert.alert(msg.title, msg.message, [
@@ -107,6 +108,13 @@ export function useRealtimeNotifications() {
             ]);
           } else if (msg.type === "guarantor_request_expired" && msg.title) {
             Alert.alert(msg.title, msg.message);
+          } else if (msg.type === "support_reply" && msg.title) {
+            // Relative push, same reasoning as guarantor_invite_received above —
+            // resolves to whichever role's "help" tab this hook is mounted under.
+            Alert.alert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              { text: "View", onPress: () => router.push("help") },
+            ]);
           }
         } catch {
           // ignore malformed frames

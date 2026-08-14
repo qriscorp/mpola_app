@@ -278,6 +278,14 @@ interface RawProfile {
   kyc_verified_at: string | null;
   is_phone_verified: boolean;
   two_factor_enabled?: boolean;
+  notif_new_application?: boolean;
+  notif_repayment_received?: boolean;
+  notif_loan_overdue?: boolean;
+  notif_portfolio_digest?: boolean;
+  notif_offer_received?: boolean;
+  notif_payment_reminder?: boolean;
+  notif_application_status?: boolean;
+  notif_login_alerts?: boolean;
   profile_pic: string | null;
   created_at: string;
   terms_accepted_at: string | null;
@@ -300,6 +308,14 @@ function mapProfile(p: RawProfile): User {
     kycVerifiedAt: p.kyc_verified_at,
     isPhoneVerified: p.is_phone_verified,
     twoFactorEnabled: p.two_factor_enabled ?? false,
+    notifNewApplication: p.notif_new_application ?? true,
+    notifRepaymentReceived: p.notif_repayment_received ?? true,
+    notifLoanOverdue: p.notif_loan_overdue ?? true,
+    notifPortfolioDigest: p.notif_portfolio_digest ?? false,
+    notifOfferReceived: p.notif_offer_received ?? true,
+    notifPaymentReminder: p.notif_payment_reminder ?? true,
+    notifApplicationStatus: p.notif_application_status ?? true,
+    notifLoginAlerts: p.notif_login_alerts ?? true,
     profileImage: p.profile_pic ?? undefined,
     createdAt: p.created_at,
     termsAcceptedAt: p.terms_accepted_at,
@@ -319,19 +335,48 @@ export async function signLenderAgreement(): Promise<User> {
   return mapProfile(p);
 }
 
+// phone and email are deliberately not accepted here — both are the
+// channels OTP verification relies on, so neither is user-editable after
+// signup (backend's UserUpdate model doesn't accept them either).
 export async function updateProfile(data: {
   fullName?: string;
-  phone?: string;
   nin?: string;
   twoFactorEnabled?: boolean;
+  notifNewApplication?: boolean;
+  notifRepaymentReceived?: boolean;
+  notifLoanOverdue?: boolean;
+  notifPortfolioDigest?: boolean;
+  notifOfferReceived?: boolean;
+  notifPaymentReminder?: boolean;
+  notifApplicationStatus?: boolean;
+  notifLoginAlerts?: boolean;
 }): Promise<User> {
   const p = await apiAuthPut<RawProfile>("/users/me", {
     full_name: data.fullName,
-    phone_number: data.phone,
     nin: data.nin,
     two_factor_enabled: data.twoFactorEnabled,
+    notif_new_application: data.notifNewApplication,
+    notif_repayment_received: data.notifRepaymentReceived,
+    notif_loan_overdue: data.notifLoanOverdue,
+    notif_portfolio_digest: data.notifPortfolioDigest,
+    notif_offer_received: data.notifOfferReceived,
+    notif_payment_reminder: data.notifPaymentReminder,
+    notif_application_status: data.notifApplicationStatus,
+    notif_login_alerts: data.notifLoginAlerts,
   });
   return mapProfile(p);
+}
+
+export async function changePassword(oldPassword: string, newPassword: string): Promise<{ status: number; message: string }> {
+  return apiAuthPost("/auth/change_password", { old_password: oldPassword, new_password: newPassword });
+}
+
+export async function exportMyData(): Promise<Record<string, unknown>> {
+  return apiAuthGet("/users/me/export");
+}
+
+export async function deactivateMyAccount(password: string, reason?: string): Promise<{ status: number; message: string }> {
+  return apiAuthPost("/users/me/deactivate", { password, reason });
 }
 
 // ─── Borrower Dashboard ──────────────────────────────────
@@ -892,6 +937,7 @@ export interface KYCDocument {
   file_name: string | null;
   verified: boolean;
   rejection_reason: string | null;
+  locked_until: string | null;
 }
 
 export async function getMyKycDocuments(): Promise<KYCDocument[]> {
@@ -1441,6 +1487,22 @@ export interface SupportMessage {
   is_admin: boolean;
   sender_name: string | null;
   created_at: string;
+}
+
+export interface Faq {
+  id: string;
+  category: string;
+  role: string;
+  question: string;
+  answer: string;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export async function fetchFaqs(q?: string): Promise<Faq[]> {
+  const suffix = q ? `?q=${encodeURIComponent(q)}` : "";
+  const res = await apiAuthGet<{ faqs: Faq[] }>(`/faqs${suffix}`);
+  return res.faqs;
 }
 
 export interface SupportTicket {
