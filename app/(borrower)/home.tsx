@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
-import { ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
+import { InfoTip, ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
 import {
   useBorrowerDashboardViewModel,
   useNotificationsViewModel,
@@ -125,7 +125,13 @@ export default function BorrowerHomeScreen() {
           </View>
           <View style={[styles.statBox, styles.statBorder]}>
             <Text style={styles.statValue}>{stats.creditScore || "—"}</Text>
-            <Text style={styles.statLabel}>Credit Score</Text>
+            <View style={styles.statLabelRow}>
+              <Text style={styles.statLabel}>Credit Score</Text>
+              <InfoTip
+                title="About your credit score"
+                text="Starts at a neutral 50 and only moves once one of your loans is fully resolved — repaying it in full raises your score, defaulting or going overdue lowers it. Recalculated once a day, so it won't move while a loan is still active."
+              />
+            </View>
           </View>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>{stats.loansTaken ?? "—"}</Text>
@@ -277,6 +283,12 @@ const styles = StyleSheet.create({
   },
   statValue: { ...Typography.h4, color: Colors.textPrimary },
   statLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
+  statLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 3,
+    marginTop: 2,
+  },
   sectionLabel: {
     ...Typography.caption,
     color: Colors.textMuted,
