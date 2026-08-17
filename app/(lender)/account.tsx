@@ -262,11 +262,17 @@ export default function LenderAccountScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        {/* Header */}
+        {/* Header — Account is reached by pushing from Home's avatar, not
+            a tab root, so it needs a real way back rather than the logo
+            mark tab roots show. */}
         <View style={styles.header}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Account</Text>
           <View style={styles.avatarSmall}>
             <Text style={styles.avatarSmallText}>{initials}</Text>
@@ -410,15 +416,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       marginBottom: Spacing.xl,
       gap: Spacing.sm,
     },
-    logoBox: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.gold,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
     headerTitle: { ...typography.h3, color: Colors.white, flex: 1 },
     avatarSmall: {
       width: 36,

@@ -69,9 +69,14 @@ export default function LenderHomeScreen() {
             />
             {unreadCount > 0 && <View style={styles.bellDot} />}
           </TouchableOpacity>
-          <View style={styles.avatarBtn}>
+          <TouchableOpacity
+            style={styles.avatarBtn}
+            onPress={() => router.push("/(lender)/account")}
+            accessibilityLabel="Open your account"
+            accessibilityRole="button"
+          >
             <Text style={styles.avatarText}>{initials}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Greeting */}

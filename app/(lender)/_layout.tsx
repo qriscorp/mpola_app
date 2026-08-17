@@ -57,15 +57,6 @@ export default function LenderTabLayout() {
         }}
       />
       <Tabs.Screen
-        name="browse"
-        options={{
-          title: "Browse",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="search-outline" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name="applications"
         options={{
           title: "Applications",
@@ -104,16 +95,13 @@ export default function LenderTabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="account"
-        options={{
-          title: "Account",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
       {/* Hidden screens */}
+      {/* Account — reached via the avatar in Home's header, not a bottom
+          tab, same pattern as the borrower side. Browse is reachable from
+          the "Browse Borrowers" action on Home, so it doesn't need its own
+          tab either. */}
+      <Tabs.Screen name="account" options={{ href: null }} />
+      <Tabs.Screen name="browse" options={{ href: null }} />
       <Tabs.Screen name="register" options={{ href: null }} />
       <Tabs.Screen name="borrower-profile" options={{ href: null }} />
       <Tabs.Screen name="make-offer" options={{ href: null }} />

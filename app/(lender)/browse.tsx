@@ -45,8 +45,17 @@ export default function BrowseBorrowersScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
+      {/* Header — reached by pushing from Home's "Browse Borrowers" action,
+          not a tab root, so it needs a real way back. */}
       <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+          style={{ marginBottom: Spacing.sm }}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
+        </TouchableOpacity>
         <View style={styles.titleRow}>
           <Text style={styles.title}>Browse Marketplace</Text>
           <InfoTip text="Only requests whose 2 guarantors have both already approved show up here. Making an offer doesn't commit any money — the borrower still has to accept it, and only one offer per request ever gets accepted." />
