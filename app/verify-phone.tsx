@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { BorderRadius, Colors, Spacing, Typography } from "../src/theme";
+import { BorderRadius, Colors, Spacing, useScaledTypography } from "../src/theme";
 import { Button, Input } from "../src/components";
 import {
   apiRefreshSignupDraft,
@@ -36,6 +36,8 @@ export default function VerifyPhoneScreen() {
   const params = useLocalSearchParams<{ portal?: string }>();
   const portal = toPortal(params.portal);
   const accent = portal === "lender" ? Colors.gold : Colors.teal;
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   const [draft, setDraft] = useState<SignupDraftState | null>(null);
   const [phone, setPhone] = useState("");
@@ -266,63 +268,65 @@ export default function VerifyPhoneScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { flex: 1 },
-  content: {
-    paddingHorizontal: Spacing.xxl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.section,
-  },
-  backBtn: { marginBottom: Spacing.lg },
-  backText: { ...Typography.bodyMedium },
-  title: {
-    ...Typography.h2,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.sm,
-  },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xl,
-  },
-  errorBox: {
-    borderWidth: 1,
-    borderColor: Colors.danger,
-    backgroundColor: Colors.dangerBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  errorText: { ...Typography.small, color: Colors.dangerLight },
-  otpRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
-    marginTop: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  otpInput: {
-    flex: 1,
-    minHeight: 54,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    backgroundColor: Colors.surfaceLift,
-    color: Colors.textPrimary,
-    ...Typography.h3,
-  },
-  inlineBtn: {
-    alignItems: "center",
-    marginTop: Spacing.lg,
-  },
-  mutedBtnText: { ...Typography.bodyMedium, color: Colors.textMuted },
-  emptyWrap: {
-    flex: 1,
-    paddingHorizontal: Spacing.xxl,
-    justifyContent: "center",
-    gap: Spacing.md,
-  },
-  emptyTitle: { ...Typography.h3, color: Colors.textPrimary },
-  emptyText: { ...Typography.body, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { flex: 1 },
+    content: {
+      paddingHorizontal: Spacing.xxl,
+      paddingTop: Spacing.lg,
+      paddingBottom: Spacing.section,
+    },
+    backBtn: { marginBottom: Spacing.lg },
+    backText: { ...typography.bodyMedium },
+    title: {
+      ...typography.h2,
+      color: Colors.textPrimary,
+      marginBottom: Spacing.sm,
+    },
+    subtitle: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      marginBottom: Spacing.xl,
+    },
+    errorBox: {
+      borderWidth: 1,
+      borderColor: Colors.danger,
+      backgroundColor: Colors.dangerBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    errorText: { ...typography.small, color: Colors.dangerLight },
+    otpRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: Spacing.sm,
+      marginTop: Spacing.xl,
+      marginBottom: Spacing.xl,
+    },
+    otpInput: {
+      flex: 1,
+      minHeight: 54,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      backgroundColor: Colors.surfaceLift,
+      color: Colors.textPrimary,
+      ...typography.h3,
+    },
+    inlineBtn: {
+      alignItems: "center",
+      marginTop: Spacing.lg,
+    },
+    mutedBtnText: { ...typography.bodyMedium, color: Colors.textMuted },
+    emptyWrap: {
+      flex: 1,
+      paddingHorizontal: Spacing.xxl,
+      justifyContent: "center",
+      gap: Spacing.md,
+    },
+    emptyTitle: { ...typography.h3, color: Colors.textPrimary },
+    emptyText: { ...typography.body, color: Colors.textSecondary },
+  });
+}

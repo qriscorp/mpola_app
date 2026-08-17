@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,11 +10,13 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
 import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection, SettingsScreenContent } from "../../src/components";
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+  const typography = useScaledTypography();
+  const menuStyles = useMemo(() => makeMenuStyles(typography), [typography]);
   return (
     <TouchableOpacity style={menuStyles.row} onPress={onPress}>
       <View style={menuStyles.left}>
@@ -26,15 +28,19 @@ function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMa
   );
 }
 
-const menuStyles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.md },
-  left: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
-  label: { ...Typography.bodyMedium, color: Colors.textPrimary },
-});
+function makeMenuStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.md },
+    left: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+    label: { ...typography.bodyMedium, color: Colors.textPrimary },
+  });
+}
 
 export default function ProfileScreen() {
   const router = useRouter();
   const { profile, isLoading, error, signOut, updateProfile } = useProfileViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (error) {
     return (
@@ -184,91 +190,93 @@ export default function ProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 48 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.xl,
-    gap: Spacing.sm,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
-  avatarSmall: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarSmallText: {
-    ...Typography.bodyMedium,
-    color: Colors.white,
-    fontWeight: "700",
-  },
-  avatarSection: { alignItems: "center", marginBottom: Spacing.xxl },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.md,
-  },
-  initials: { ...Typography.h2, color: Colors.white },
-  name: { ...Typography.h3, color: Colors.white },
-  sub: { ...Typography.small, color: Colors.textMuted, marginTop: 4 },
-  sectionLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.lg,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  kycRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-  },
-  kycRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  kycLabel: { ...Typography.body, color: Colors.textPrimary, flex: 1 },
-  kycBadge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  kycVerified: { backgroundColor: Colors.successBg },
-  kycPending: { backgroundColor: Colors.warningBg },
-  kycBadgeText: { ...Typography.caption, fontWeight: "600" },
-  kycVerifiedText: { color: Colors.success },
-  kycPendingText: { color: Colors.warning },
-  toggleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-  },
-  toggleTitle: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  toggleSub: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
-  signOutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.danger + "50",
-  },
-  signOutText: { ...Typography.buttonSmall, color: Colors.danger },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 48 },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: Spacing.xl,
+      gap: Spacing.sm,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white, flex: 1 },
+    avatarSmall: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarSmallText: {
+      ...typography.bodyMedium,
+      color: Colors.white,
+      fontWeight: "700",
+    },
+    avatarSection: { alignItems: "center", marginBottom: Spacing.xxl },
+    avatar: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.md,
+    },
+    initials: { ...typography.h2, color: Colors.white },
+    name: { ...typography.h3, color: Colors.white },
+    sub: { ...typography.small, color: Colors.textMuted, marginTop: 4 },
+    sectionLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      marginBottom: Spacing.sm,
+      marginTop: Spacing.lg,
+    },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    kycRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+    },
+    kycRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+    kycLabel: { ...typography.body, color: Colors.textPrimary, flex: 1 },
+    kycBadge: {
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+    },
+    kycVerified: { backgroundColor: Colors.successBg },
+    kycPending: { backgroundColor: Colors.warningBg },
+    kycBadgeText: { ...typography.caption, fontWeight: "600" },
+    kycVerifiedText: { color: Colors.success },
+    kycPendingText: { color: Colors.warning },
+    toggleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+    },
+    toggleTitle: { ...typography.bodyMedium, color: Colors.textPrimary },
+    toggleSub: { ...typography.small, color: Colors.textMuted, marginTop: 2 },
+    signOutBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.sm,
+      marginTop: Spacing.xl,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      borderColor: Colors.danger + "50",
+    },
+    signOutText: { ...typography.buttonSmall, color: Colors.danger },
+  });
+}

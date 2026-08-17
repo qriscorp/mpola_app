@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
 import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
 
@@ -43,6 +43,8 @@ function LicenceCard({
   const status = licenceStatus ?? "not_issued";
   const meta = licenceStatusMeta[status];
   const showSignAction = canSign && (status === "not_issued" || status === "expired");
+  const typography = useScaledTypography();
+  const licenceStyles = useMemo(() => makeLicenceStyles(typography), [typography]);
 
   return (
     <View style={licenceStyles.card}>
@@ -138,64 +140,68 @@ function LicenceCard({
   );
 }
 
-const licenceStyles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.navy,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 2,
-    borderColor: Colors.gold,
-    padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  header: { flexDirection: "row", gap: Spacing.md, marginBottom: Spacing.lg },
-  iconBox: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  title: { ...Typography.bodyMedium, color: Colors.white, fontWeight: "700" },
-  subtitle: { ...Typography.caption, color: Colors.white + "80", marginTop: 2 },
-  grid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.lg },
-  cell: { width: "42%" },
-  cellLabel: { ...Typography.caption, color: Colors.white + "80", textTransform: "uppercase", letterSpacing: 0.5 },
-  cellValue: { ...Typography.bodyMedium, color: Colors.white, fontWeight: "700", marginTop: 2 },
-  badge: { alignSelf: "flex-start", paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: BorderRadius.full, marginTop: 2 },
-  badgeText: { ...Typography.caption, fontWeight: "600" },
-  signBlock: {
-    marginTop: Spacing.lg,
-    paddingTop: Spacing.lg,
-    borderTopWidth: 1,
-    borderTopColor: Colors.white + "20",
-    gap: Spacing.md,
-  },
-  agreeRow: { flexDirection: "row", gap: Spacing.sm },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
-    borderWidth: 1.5,
-    borderColor: Colors.white + "60",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 1,
-  },
-  checkboxActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  checkmark: { color: Colors.navy, fontSize: 12, fontWeight: "700" },
-  agreeText: { ...Typography.small, color: Colors.white + "cc", flex: 1 },
-  agreeLink: { color: Colors.gold, fontWeight: "600" },
-  signBtn: {
-    backgroundColor: Colors.gold,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  signBtnText: { ...Typography.buttonSmall, color: Colors.navy },
-});
+function makeLicenceStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: Colors.navy,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 2,
+      borderColor: Colors.gold,
+      padding: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    header: { flexDirection: "row", gap: Spacing.md, marginBottom: Spacing.lg },
+    iconBox: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: Colors.gold,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    title: { ...typography.bodyMedium, color: Colors.white, fontWeight: "700" },
+    subtitle: { ...typography.caption, color: Colors.white + "80", marginTop: 2 },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.lg },
+    cell: { width: "42%" },
+    cellLabel: { ...typography.caption, color: Colors.white + "80", textTransform: "uppercase", letterSpacing: 0.5 },
+    cellValue: { ...typography.bodyMedium, color: Colors.white, fontWeight: "700", marginTop: 2 },
+    badge: { alignSelf: "flex-start", paddingHorizontal: Spacing.sm, paddingVertical: 3, borderRadius: BorderRadius.full, marginTop: 2 },
+    badgeText: { ...typography.caption, fontWeight: "600" },
+    signBlock: {
+      marginTop: Spacing.lg,
+      paddingTop: Spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: Colors.white + "20",
+      gap: Spacing.md,
+    },
+    agreeRow: { flexDirection: "row", gap: Spacing.sm },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 5,
+      borderWidth: 1.5,
+      borderColor: Colors.white + "60",
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 1,
+    },
+    checkboxActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    checkmark: { color: Colors.navy, fontSize: 12, fontWeight: "700" },
+    agreeText: { ...typography.small, color: Colors.white + "cc", flex: 1 },
+    agreeLink: { color: Colors.gold, fontWeight: "600" },
+    signBtn: {
+      backgroundColor: Colors.gold,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    signBtnText: { ...typography.buttonSmall, color: Colors.navy },
+  });
+}
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
+  const typography = useScaledTypography();
+  const menuStyles = useMemo(() => makeMenuStyles(typography), [typography]);
   return (
     <TouchableOpacity style={menuStyles.row} onPress={onPress}>
       <View style={menuStyles.left}>
@@ -207,15 +213,19 @@ function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMa
   );
 }
 
-const menuStyles = StyleSheet.create({
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.md },
-  left: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
-  label: { ...Typography.bodyMedium, color: Colors.textPrimary },
-});
+function makeMenuStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.md },
+    left: { flexDirection: "row", alignItems: "center", gap: Spacing.md },
+    label: { ...typography.bodyMedium, color: Colors.textPrimary },
+  });
+}
 
 export default function LenderAccountScreen() {
   const router = useRouter();
   const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement, updateProfile } = useProfileViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (error) {
     return (
@@ -390,101 +400,103 @@ export default function LenderAccountScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 48 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.xl,
-    gap: Spacing.sm,
-  },
-  logoBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: Colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
-  headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
-  avatarSmall: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarSmallText: {
-    ...Typography.bodyMedium,
-    color: Colors.white,
-    fontWeight: "700",
-  },
-  avatarSection: { alignItems: "center", marginBottom: Spacing.xxl },
-  avatar: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: Colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.md,
-  },
-  initials: { ...Typography.h2, color: Colors.white },
-  name: { ...Typography.h3, color: Colors.white },
-  sub: { ...Typography.small, color: Colors.textMuted, marginTop: 4 },
-  sectionLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: Spacing.sm,
-    marginTop: Spacing.lg,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  kycRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-  },
-  kycRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  kycLabel: { ...Typography.body, color: Colors.textPrimary, flex: 1 },
-  kycBadge: {
-    backgroundColor: Colors.successBg,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  kycBadgeText: {
-    ...Typography.caption,
-    color: Colors.success,
-    fontWeight: "600",
-  },
-  toggleRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-  },
-  toggleTitle: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  toggleSub: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
-  signOutBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.xl,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.lg,
-    borderWidth: 1,
-    borderColor: Colors.danger + "50",
-  },
-  signOutText: { ...Typography.buttonSmall, color: Colors.danger },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 48 },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: Spacing.xl,
+      gap: Spacing.sm,
+    },
+    logoBox: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      backgroundColor: Colors.gold,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+    headerTitle: { ...typography.h3, color: Colors.white, flex: 1 },
+    avatarSmall: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: Colors.gold,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarSmallText: {
+      ...typography.bodyMedium,
+      color: Colors.white,
+      fontWeight: "700",
+    },
+    avatarSection: { alignItems: "center", marginBottom: Spacing.xxl },
+    avatar: {
+      width: 80,
+      height: 80,
+      borderRadius: 40,
+      backgroundColor: Colors.gold,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.md,
+    },
+    initials: { ...typography.h2, color: Colors.white },
+    name: { ...typography.h3, color: Colors.white },
+    sub: { ...typography.small, color: Colors.textMuted, marginTop: 4 },
+    sectionLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      marginBottom: Spacing.sm,
+      marginTop: Spacing.lg,
+    },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    kycRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+    },
+    kycRowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+    kycLabel: { ...typography.body, color: Colors.textPrimary, flex: 1 },
+    kycBadge: {
+      backgroundColor: Colors.successBg,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+    },
+    kycBadgeText: {
+      ...typography.caption,
+      color: Colors.success,
+      fontWeight: "600",
+    },
+    toggleRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+    },
+    toggleTitle: { ...typography.bodyMedium, color: Colors.textPrimary },
+    toggleSub: { ...typography.small, color: Colors.textMuted, marginTop: 2 },
+    signOutBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.sm,
+      marginTop: Spacing.xl,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.lg,
+      borderWidth: 1,
+      borderColor: Colors.danger + "50",
+    },
+    signOutText: { ...typography.buttonSmall, color: Colors.danger },
+  });
+}

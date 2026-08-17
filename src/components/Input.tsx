@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ViewStyle } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 
 interface Props {
   label?: string;
@@ -35,6 +35,8 @@ export function Input({
   maxLength,
 }: Props) {
   const [revealed, setRevealed] = useState(false);
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   return (
     <View style={[styles.wrapper, style]}>
@@ -72,47 +74,49 @@ export function Input({
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: { marginBottom: Spacing.lg },
-  label: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xs,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-  },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.surfaceLift,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    minHeight: 50,
-    gap: Spacing.sm,
-  },
-  inputError: {
-    borderColor: Colors.danger,
-  },
-  prefix: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginRight: Spacing.xs,
-  },
-  input: {
-    flex: 1,
-    ...Typography.body,
-    color: Colors.textPrimary,
-    paddingVertical: Spacing.sm,
-  },
-  multiline: {
-    minHeight: 80,
-    textAlignVertical: "top",
-  },
-  errorText: {
-    ...Typography.small,
-    color: Colors.danger,
-    marginTop: Spacing.xs,
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    wrapper: { marginBottom: Spacing.lg },
+    label: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginBottom: Spacing.xs,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+    },
+    inputRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: Colors.surfaceLift,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      minHeight: 50,
+      gap: Spacing.sm,
+    },
+    inputError: {
+      borderColor: Colors.danger,
+    },
+    prefix: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      marginRight: Spacing.xs,
+    },
+    input: {
+      flex: 1,
+      ...typography.body,
+      color: Colors.textPrimary,
+      paddingVertical: Spacing.sm,
+    },
+    multiline: {
+      minHeight: 80,
+      textAlignVertical: "top",
+    },
+    errorText: {
+      ...typography.small,
+      color: Colors.danger,
+      marginTop: Spacing.xs,
+    },
+  });
+}

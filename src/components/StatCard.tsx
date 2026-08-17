@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 
 interface Props {
   label: string;
@@ -19,6 +19,8 @@ export function StatCard({
   icon,
   style,
 }: Props) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <View style={[styles.container, style]}>
       {icon && (
@@ -33,35 +35,37 @@ export function StatCard({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 80,
-  },
-  iconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.xs,
-  },
-  value: {
-    ...Typography.h3,
-    color: Colors.textPrimary,
-  },
-  label: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  sub: {
-    ...Typography.smallMedium,
-    marginTop: 2,
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+      minHeight: 80,
+    },
+    iconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.xs,
+    },
+    value: {
+      ...typography.h3,
+      color: Colors.textPrimary,
+    },
+    label: {
+      ...typography.small,
+      color: Colors.textSecondary,
+      marginTop: 2,
+    },
+    sub: {
+      ...typography.smallMedium,
+      marginTop: 2,
+    },
+  });
+}

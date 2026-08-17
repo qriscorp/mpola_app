@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
 import { Button, Input } from "../src/components";
 import {
   apiForgotPasswordSend,
@@ -24,6 +24,8 @@ type Step = "request" | "verify" | "reset";
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [step, setStep] = useState<Step>("request");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -316,97 +318,99 @@ export default function ForgotPasswordScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  passwordHint: { ...Typography.small, color: Colors.textMuted },
-  scroll: { flex: 1 },
-  content: {
-    paddingHorizontal: Spacing.xxl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.section,
-  },
-  back: { marginBottom: Spacing.lg },
-  backText: { ...Typography.body, color: Colors.teal },
-  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.sm },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xl,
-  },
-  // step indicator
-  stepRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.xl,
-  },
-  stepItem: { alignItems: "center" },
-  stepCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 2,
-    borderColor: Colors.border,
-  },
-  stepCircleActive: {
-    backgroundColor: Colors.teal,
-    borderColor: Colors.teal,
-  },
-  stepNumber: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    fontWeight: "700",
-  },
-  stepNumberActive: { color: Colors.white },
-  stepLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    marginTop: 4,
-  },
-  stepLabelActive: { color: Colors.teal },
-  stepLine: {
-    flex: 1,
-    height: 2,
-    backgroundColor: Colors.border,
-    marginBottom: Spacing.lg,
-    marginHorizontal: 4,
-  },
-  stepLineActive: { backgroundColor: Colors.teal },
-  // error
-  errorBox: {
-    backgroundColor: Colors.dangerBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  errorText: { ...Typography.small, color: Colors.danger },
-  // otp
-  otpHint: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    marginBottom: Spacing.lg,
-    textAlign: "center",
-  },
-  bold: { color: Colors.white, fontWeight: "700" },
-  otpRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  otpBox: {
-    flex: 1,
-    height: 56,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surfaceLift,
-    color: Colors.white,
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  otpBoxFilled: { borderColor: Colors.teal },
-  resendBtn: { marginTop: Spacing.lg, alignItems: "center" },
-  resendText: { ...Typography.body, color: Colors.teal },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    passwordHint: { ...typography.small, color: Colors.textMuted },
+    scroll: { flex: 1 },
+    content: {
+      paddingHorizontal: Spacing.xxl,
+      paddingTop: Spacing.lg,
+      paddingBottom: Spacing.section,
+    },
+    back: { marginBottom: Spacing.lg },
+    backText: { ...typography.body, color: Colors.teal },
+    title: { ...typography.h2, color: Colors.white, marginBottom: Spacing.sm },
+    subtitle: {
+      ...typography.body,
+      color: Colors.textMuted,
+      marginBottom: Spacing.xl,
+    },
+    // step indicator
+    stepRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: Spacing.xl,
+    },
+    stepItem: { alignItems: "center" },
+    stepCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: Colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      borderWidth: 2,
+      borderColor: Colors.border,
+    },
+    stepCircleActive: {
+      backgroundColor: Colors.teal,
+      borderColor: Colors.teal,
+    },
+    stepNumber: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      fontWeight: "700",
+    },
+    stepNumberActive: { color: Colors.white },
+    stepLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      marginTop: 4,
+    },
+    stepLabelActive: { color: Colors.teal },
+    stepLine: {
+      flex: 1,
+      height: 2,
+      backgroundColor: Colors.border,
+      marginBottom: Spacing.lg,
+      marginHorizontal: 4,
+    },
+    stepLineActive: { backgroundColor: Colors.teal },
+    // error
+    errorBox: {
+      backgroundColor: Colors.dangerBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    errorText: { ...typography.small, color: Colors.danger },
+    // otp
+    otpHint: {
+      ...typography.body,
+      color: Colors.textMuted,
+      marginBottom: Spacing.lg,
+      textAlign: "center",
+    },
+    bold: { color: Colors.white, fontWeight: "700" },
+    otpRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    otpBox: {
+      flex: 1,
+      height: 56,
+      borderRadius: BorderRadius.md,
+      borderWidth: 2,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surfaceLift,
+      color: Colors.white,
+      fontSize: 24,
+      fontWeight: "700",
+    },
+    otpBoxFilled: { borderColor: Colors.teal },
+    resendBtn: { marginTop: Spacing.lg, alignItems: "center" },
+    resendText: { ...typography.body, color: Colors.teal },
+  });
+}

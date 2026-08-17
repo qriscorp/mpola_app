@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 
 const MPOLA_WEB_URL = "https://mpola.co";
 import { Button, Input } from "../../src/components";
@@ -28,6 +28,8 @@ import { PASSWORD_REQUIREMENTS_HINT } from "../../src/validation";
 export default function BorrowerRegisterScreen() {
   const router = useRouter();
   const vm = useAuthViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [existingDraft, setExistingDraft] = useState<SignupDraftState | null>(
     null,
   );
@@ -323,89 +325,91 @@ export default function BorrowerRegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  passwordHint: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginTop: -Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  header: {
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.xl,
-  },
-  headerTitle: { ...Typography.h1, color: Colors.white },
-  headerSub: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  form: { flex: 1 },
-  formContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
-  resumeCard: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  resumeTitle: { ...Typography.bodySemibold, color: Colors.textPrimary },
-  resumeText: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  resumeActions: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.lg,
-    marginTop: Spacing.sm,
-  },
-  resumeLink: { ...Typography.smallMedium, color: Colors.teal },
-  resumeReset: { ...Typography.smallMedium, color: Colors.textMuted },
-  toggle: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.full,
-    padding: 4,
-    marginBottom: Spacing.xxl,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-    borderRadius: BorderRadius.full,
-  },
-  toggleActive: { backgroundColor: Colors.teal },
-  toggleText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  toggleTextActive: { color: Colors.white },
-  termsRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    marginBottom: Spacing.xxl,
-    gap: Spacing.sm,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1.5,
-    borderColor: Colors.border,
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 1,
-  },
-  checkboxActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
-  checkmark: { color: Colors.white, fontSize: 12, fontWeight: "700" },
-  termsText: { ...Typography.small, color: Colors.textSecondary, flex: 1 },
-  termsLink: { color: Colors.teal, fontWeight: "600" },
-  signInRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: Spacing.xxl,
-  },
-  signInText: { ...Typography.body, color: Colors.textSecondary },
-  signInLink: { color: Colors.teal, fontWeight: "600" },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    passwordHint: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginTop: -Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    header: {
+      paddingHorizontal: Spacing.xl,
+      paddingVertical: Spacing.xl,
+    },
+    headerTitle: { ...typography.h1, color: Colors.white },
+    headerSub: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      marginTop: Spacing.xs,
+    },
+    form: { flex: 1 },
+    formContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
+    resumeCard: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    resumeTitle: { ...typography.bodySemibold, color: Colors.textPrimary },
+    resumeText: {
+      ...typography.small,
+      color: Colors.textSecondary,
+      marginTop: Spacing.xs,
+    },
+    resumeActions: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.lg,
+      marginTop: Spacing.sm,
+    },
+    resumeLink: { ...typography.smallMedium, color: Colors.teal },
+    resumeReset: { ...typography.smallMedium, color: Colors.textMuted },
+    toggle: {
+      flexDirection: "row",
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.full,
+      padding: 4,
+      marginBottom: Spacing.xxl,
+    },
+    toggleBtn: {
+      flex: 1,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+      borderRadius: BorderRadius.full,
+    },
+    toggleActive: { backgroundColor: Colors.teal },
+    toggleText: { ...typography.bodyMedium, color: Colors.textSecondary },
+    toggleTextActive: { color: Colors.white },
+    termsRow: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      marginBottom: Spacing.xxl,
+      gap: Spacing.sm,
+    },
+    checkbox: {
+      width: 20,
+      height: 20,
+      borderRadius: 4,
+      borderWidth: 1.5,
+      borderColor: Colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+      marginTop: 1,
+    },
+    checkboxActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
+    checkmark: { color: Colors.white, fontSize: 12, fontWeight: "700" },
+    termsText: { ...typography.small, color: Colors.textSecondary, flex: 1 },
+    termsLink: { color: Colors.teal, fontWeight: "600" },
+    signInRow: {
+      flexDirection: "row",
+      justifyContent: "center",
+      marginTop: Spacing.xxl,
+    },
+    signInText: { ...typography.body, color: Colors.textSecondary },
+    signInLink: { color: Colors.teal, fontWeight: "600" },
+  });
+}

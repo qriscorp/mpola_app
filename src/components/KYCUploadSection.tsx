@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { getMyKycDocuments, uploadKycDocument, type KYCDocumentType } from "../services";
 import { SkeletonList } from "./Skeleton";
 
@@ -24,6 +24,8 @@ const SLOTS: { type: KYCDocumentType; label: string; hint: string }[] = [
  * shows (see locked_until on each document, computed server-side). */
 export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: string }) {
   const qc = useQueryClient();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const { data: documents, isLoading } = useQuery({
     queryKey: ["kyc-documents"],
     queryFn: getMyKycDocuments,
@@ -161,43 +163,45 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    justifyContent: "space-between",
-    gap: Spacing.md,
-    paddingVertical: Spacing.md,
-  },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  label: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  hint: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
-  fileName: { ...Typography.caption, color: Colors.textSecondary, marginTop: 4 },
-  rejectionReason: { ...Typography.caption, color: Colors.danger, marginTop: 4 },
-  lockBanner: {
-    backgroundColor: Colors.successBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  lockBannerText: { ...Typography.caption, color: Colors.success },
-  badge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  badgeVerified: { backgroundColor: Colors.successBg },
-  badgePending: { backgroundColor: Colors.warningBg },
-  badgeRejected: { backgroundColor: Colors.dangerBg },
-  badgeText: { ...Typography.caption, fontWeight: "600" },
-  uploadBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 5,
-    borderWidth: 1,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 5,
-  },
-  uploadText: { ...Typography.caption, fontWeight: "600" },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      justifyContent: "space-between",
+      gap: Spacing.md,
+      paddingVertical: Spacing.md,
+    },
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+    label: { ...typography.bodyMedium, color: Colors.textPrimary },
+    hint: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
+    fileName: { ...typography.caption, color: Colors.textSecondary, marginTop: 4 },
+    rejectionReason: { ...typography.caption, color: Colors.danger, marginTop: 4 },
+    lockBanner: {
+      backgroundColor: Colors.successBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    lockBannerText: { ...typography.caption, color: Colors.success },
+    badge: {
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+    },
+    badgeVerified: { backgroundColor: Colors.successBg },
+    badgePending: { backgroundColor: Colors.warningBg },
+    badgeRejected: { backgroundColor: Colors.dangerBg },
+    badgeText: { ...typography.caption, fontWeight: "600" },
+    uploadBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 5,
+      borderWidth: 1,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 5,
+    },
+    uploadText: { ...typography.caption, fontWeight: "600" },
+  });
+}

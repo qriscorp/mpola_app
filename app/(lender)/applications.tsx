@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Input, Button, InfoTip } from "../../src/components";
 import { DOCUMENT_OPTIONS } from "../../src/viewmodels";
 import {
@@ -57,6 +57,8 @@ function OfferModal({
   onClose: () => void;
 }) {
   const queryClient = useQueryClient();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [rate, setRate] = useState("15");
   const [requiredDocs, setRequiredDocs] = useState<string[]>([]);
   const [customDocInput, setCustomDocInput] = useState("");
@@ -232,6 +234,8 @@ function OfferModal({
 export default function ApplicationsInboxScreen() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [tab, setTab] = useState<Tab>("All");
   const [offerModalApp, setOfferModalApp] = useState<MarketplaceApplication | null>(null);
 
@@ -388,150 +392,152 @@ export default function ApplicationsInboxScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: Spacing.md,
-  },
-  title: { ...Typography.h2, color: Colors.white },
-  postOfferBtn: {
-    backgroundColor: Colors.gold,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  postOfferText: { ...Typography.smallMedium, color: Colors.white },
-  bannerRow: {
-    backgroundColor: Colors.warningBg,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    gap: 2,
-  },
-  bannerText: { ...Typography.smallMedium, color: Colors.textPrimary },
-  bannerSubtext: { ...Typography.caption, color: Colors.textMuted },
-  tabsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginBottom: Spacing.lg },
-  tab: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tabActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  tabText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  tabTextActive: { color: Colors.white },
-  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.xxl },
-  emptyText: { ...Typography.body, color: Colors.textMuted },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  cardTop: { flexDirection: "row", alignItems: "center", marginBottom: Spacing.md },
-  avatarWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: Colors.gold + "25",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
-  avatarText: { ...Typography.bodyMedium, color: Colors.gold },
-  cardInfo: { flex: 1 },
-  borrowerName: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  borrowerMeta: { ...Typography.caption, color: Colors.textMuted, marginTop: 2, textTransform: "capitalize" },
-  scoreMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  amountBox: { alignItems: "flex-end" },
-  amount: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  duration: { ...Typography.caption, color: Colors.textMuted },
-  actionsRow: { flexDirection: "row", gap: Spacing.sm },
-  approveBtn: {
-    flex: 1,
-    backgroundColor: Colors.success,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  approveText: { ...Typography.smallMedium, color: Colors.white },
-  cooldownBadge: {
-    flex: 1,
-    backgroundColor: Colors.warningBg,
-    borderWidth: 1,
-    borderColor: Colors.warning,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  cooldownText: { ...Typography.caption, color: Colors.warning, fontWeight: "600" },
-  declineBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  declineText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  viewBtn: {
-    flex: 1,
-    backgroundColor: Colors.gold,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  viewText: { ...Typography.smallMedium, color: Colors.white },
-  overlay: {
-    flex: 1,
-    backgroundColor: Colors.overlay,
-    justifyContent: "center",
-    padding: Spacing.lg,
-  },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-  },
-  sheetTitle: { ...Typography.h3, color: Colors.textPrimary },
-  sheetSubtitle: { ...Typography.small, color: Colors.textMuted, marginTop: 2, marginBottom: Spacing.md },
-  summaryBox: {
-    backgroundColor: Colors.warningBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
-  },
-  summaryRow: { flexDirection: "row", justifyContent: "space-between" },
-  summaryLabel: { ...Typography.small, color: Colors.textMuted },
-  summaryValue: { ...Typography.smallMedium, color: Colors.textPrimary },
-  fieldLabel: { ...Typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.sm, marginBottom: Spacing.sm },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.md },
-  chip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  chipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  chipText: { ...Typography.caption, color: Colors.textSecondary },
-  chipTextSelected: { color: Colors.white, fontWeight: "600" },
-  customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
-  addDocBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  addDocBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  hint: { ...Typography.caption, color: Colors.textMuted, marginBottom: Spacing.md },
-  actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
-  flex: { flex: 1 },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    headerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginBottom: Spacing.md,
+    },
+    title: { ...typography.h2, color: Colors.white },
+    postOfferBtn: {
+      backgroundColor: Colors.gold,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    postOfferText: { ...typography.smallMedium, color: Colors.white },
+    bannerRow: {
+      backgroundColor: Colors.warningBg,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+      gap: 2,
+    },
+    bannerText: { ...typography.smallMedium, color: Colors.textPrimary },
+    bannerSubtext: { ...typography.caption, color: Colors.textMuted },
+    tabsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginBottom: Spacing.lg },
+    tab: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    tabActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    tabText: { ...typography.smallMedium, color: Colors.textSecondary },
+    tabTextActive: { color: Colors.white },
+    emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.xxl },
+    emptyText: { ...typography.body, color: Colors.textMuted },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+    },
+    cardTop: { flexDirection: "row", alignItems: "center", marginBottom: Spacing.md },
+    avatarWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: Colors.gold + "25",
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: Spacing.md,
+    },
+    avatarText: { ...typography.bodyMedium, color: Colors.gold },
+    cardInfo: { flex: 1 },
+    borrowerName: { ...typography.bodyMedium, color: Colors.textPrimary },
+    borrowerMeta: { ...typography.caption, color: Colors.textMuted, marginTop: 2, textTransform: "capitalize" },
+    scoreMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+    amountBox: { alignItems: "flex-end" },
+    amount: { ...typography.bodyMedium, color: Colors.textPrimary },
+    duration: { ...typography.caption, color: Colors.textMuted },
+    actionsRow: { flexDirection: "row", gap: Spacing.sm },
+    approveBtn: {
+      flex: 1,
+      backgroundColor: Colors.success,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    approveText: { ...typography.smallMedium, color: Colors.white },
+    cooldownBadge: {
+      flex: 1,
+      backgroundColor: Colors.warningBg,
+      borderWidth: 1,
+      borderColor: Colors.warning,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    cooldownText: { ...typography.caption, color: Colors.warning, fontWeight: "600" },
+    declineBtn: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    declineText: { ...typography.smallMedium, color: Colors.textSecondary },
+    viewBtn: {
+      flex: 1,
+      backgroundColor: Colors.gold,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    viewText: { ...typography.smallMedium, color: Colors.white },
+    overlay: {
+      flex: 1,
+      backgroundColor: Colors.overlay,
+      justifyContent: "center",
+      padding: Spacing.lg,
+    },
+    sheet: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+    },
+    sheetTitle: { ...typography.h3, color: Colors.textPrimary },
+    sheetSubtitle: { ...typography.small, color: Colors.textMuted, marginTop: 2, marginBottom: Spacing.md },
+    summaryBox: {
+      backgroundColor: Colors.warningBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      gap: Spacing.xs,
+      marginBottom: Spacing.md,
+    },
+    summaryRow: { flexDirection: "row", justifyContent: "space-between" },
+    summaryLabel: { ...typography.small, color: Colors.textMuted },
+    summaryValue: { ...typography.smallMedium, color: Colors.textPrimary },
+    fieldLabel: { ...typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.sm, marginBottom: Spacing.sm },
+    chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.md },
+    chip: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 6,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    chipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    chipText: { ...typography.caption, color: Colors.textSecondary },
+    chipTextSelected: { color: Colors.white, fontWeight: "600" },
+    customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
+    addDocBtn: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    addDocBtnText: { ...typography.smallMedium, color: Colors.textSecondary },
+    hint: { ...typography.caption, color: Colors.textMuted, marginBottom: Spacing.md },
+    actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
+    flex: { flex: 1 },
+  });
+}

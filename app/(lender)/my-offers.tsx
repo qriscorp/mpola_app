@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Badge, SkeletonList } from "../../src/components";
 import {
   useMyOfferTemplatesViewModel,
@@ -60,6 +60,8 @@ const AUTO_MATCH_TABS: Array<"All" | LoanOffer["status"]> = ["All", "pending", "
  * filtered to template-originated rows client-side. */
 function AutoMatchedOverview() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [tab, setTab] = React.useState<"All" | LoanOffer["status"]>("All");
   const { data: offers, isLoading } = useQuery({
     queryKey: ["lender", "offers"],
@@ -134,6 +136,8 @@ function AutoMatchedOverview() {
 
 function MatchedRequestsSection({ template }: { template: OfferTemplate }) {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [expanded, setExpanded] = React.useState(false);
   const { matches, isLoading } = useOfferTemplateMatchesViewModel(template.id, expanded);
 
@@ -198,6 +202,8 @@ function MatchedRequestsSection({ template }: { template: OfferTemplate }) {
 
 export default function MyOffersScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const {
     templates,
     isLoading,
@@ -433,118 +439,120 @@ export default function MyOffersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  empty: { alignItems: "center", paddingVertical: Spacing.xxl, gap: Spacing.md },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center" },
-  emptyBtn: {
-    backgroundColor: Colors.gold,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  emptyBtnText: { ...Typography.smallMedium, color: Colors.white },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.gold,
-  },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between" },
-  amount: { ...Typography.h4, color: Colors.textPrimary },
-  rate: { ...Typography.small, color: Colors.gold, marginTop: 2 },
-  types: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginTop: 4,
-    textTransform: "capitalize",
-  },
-  actionRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  matchedBlock: {
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    gap: Spacing.sm,
-  },
-  matchedHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  matchedHeaderText: { ...Typography.smallMedium, color: Colors.textPrimary, flex: 1 },
-  matchedPendingText: { color: Colors.warning },
-  matchedAcceptedText: { color: Colors.success },
-  matchedEmpty: { ...Typography.small, color: Colors.textMuted },
-  matchedRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
-  },
-  matchedRowTitle: { ...Typography.smallMedium, color: Colors.textPrimary },
-  matchedRowSubtitle: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
-  overviewBlock: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.teal,
-  },
-  overviewTitle: { ...Typography.h4, color: Colors.textPrimary },
-  overviewSubtitle: { ...Typography.small, color: Colors.textMuted, marginTop: 2, marginBottom: Spacing.md },
-  overviewTabsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.md },
-  overviewTab: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 5,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  overviewTabActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
-  overviewTabText: { ...Typography.caption, color: Colors.textSecondary },
-  overviewTabTextActive: { color: Colors.white, fontWeight: "600" },
-  outlineBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  outlineBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  goldBtn: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  goldBtnText: { ...Typography.smallMedium, color: Colors.white },
-  expiryBlock: { marginTop: Spacing.sm, gap: Spacing.xs },
-  expiryLabel: { ...Typography.small, color: Colors.textMuted },
-  expiryRow: { flexDirection: "row", gap: Spacing.xs },
-  pillBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
-  },
-  pillBtnText: { ...Typography.small, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    empty: { alignItems: "center", paddingVertical: Spacing.xxl, gap: Spacing.md },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center" },
+    emptyBtn: {
+      backgroundColor: Colors.gold,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+    },
+    emptyBtnText: { ...typography.smallMedium, color: Colors.white },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: Colors.gold,
+    },
+    cardHeader: { flexDirection: "row", justifyContent: "space-between" },
+    amount: { ...typography.h4, color: Colors.textPrimary },
+    rate: { ...typography.small, color: Colors.gold, marginTop: 2 },
+    types: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginTop: 4,
+      textTransform: "capitalize",
+    },
+    actionRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginTop: Spacing.md,
+      paddingTop: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+    },
+    matchedBlock: {
+      marginTop: Spacing.md,
+      paddingTop: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+      gap: Spacing.sm,
+    },
+    matchedHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    matchedHeaderText: { ...typography.smallMedium, color: Colors.textPrimary, flex: 1 },
+    matchedPendingText: { color: Colors.warning },
+    matchedAcceptedText: { color: Colors.success },
+    matchedEmpty: { ...typography.small, color: Colors.textMuted },
+    matchedRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: Spacing.sm,
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.sm,
+    },
+    matchedRowTitle: { ...typography.smallMedium, color: Colors.textPrimary },
+    matchedRowSubtitle: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
+    overviewBlock: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.lg,
+      borderLeftWidth: 3,
+      borderLeftColor: Colors.teal,
+    },
+    overviewTitle: { ...typography.h4, color: Colors.textPrimary },
+    overviewSubtitle: { ...typography.small, color: Colors.textMuted, marginTop: 2, marginBottom: Spacing.md },
+    overviewTabsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.md },
+    overviewTab: {
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 5,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    overviewTabActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
+    overviewTabText: { ...typography.caption, color: Colors.textSecondary },
+    overviewTabTextActive: { color: Colors.white, fontWeight: "600" },
+    outlineBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    outlineBtnText: { ...typography.smallMedium, color: Colors.textSecondary },
+    goldBtn: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    goldBtnText: { ...typography.smallMedium, color: Colors.white },
+    expiryBlock: { marginTop: Spacing.sm, gap: Spacing.xs },
+    expiryLabel: { ...typography.small, color: Colors.textMuted },
+    expiryRow: { flexDirection: "row", gap: Spacing.xs },
+    pillBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 4,
+    },
+    pillBtnText: { ...typography.small, color: Colors.textSecondary },
+  });
+}

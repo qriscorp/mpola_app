@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { fetchLoginSessions, signOutEverywhere } from "../services";
 import { SkeletonList } from "./Skeleton";
 
@@ -14,6 +14,8 @@ function summarize(ua: string | null): string {
 }
 
 export function SessionsSection({ accentColor = Colors.teal }: { accentColor?: string }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const qc = useQueryClient();
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["sessions"],
@@ -74,20 +76,22 @@ export function SessionsSection({ accentColor = Colors.teal }: { accentColor?: s
   );
 }
 
-const styles = StyleSheet.create({
-  headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
-  title: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  signOutLink: { ...Typography.small, color: Colors.danger, fontWeight: "600" },
-  emptyText: { ...Typography.small, color: Colors.textMuted, paddingVertical: Spacing.md },
-  row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, paddingVertical: Spacing.sm },
-  iconCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: Colors.surfaceLift,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  deviceText: { ...Typography.small, color: Colors.textPrimary },
-  metaText: { ...Typography.caption, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    headerRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
+    title: { ...typography.bodyMedium, color: Colors.textPrimary },
+    signOutLink: { ...typography.small, color: Colors.danger, fontWeight: "600" },
+    emptyText: { ...typography.small, color: Colors.textMuted, paddingVertical: Spacing.md },
+    row: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, paddingVertical: Spacing.sm },
+    iconCircle: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: Colors.surfaceLift,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    deviceText: { ...typography.small, color: Colors.textPrimary },
+    metaText: { ...typography.caption, color: Colors.textMuted },
+  });
+}

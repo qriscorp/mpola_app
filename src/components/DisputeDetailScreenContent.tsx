@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Card } from "./Card";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
@@ -41,6 +41,8 @@ export function DisputeDetailScreenContent({
   accentColor?: string;
 }) {
   const qc = useQueryClient();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const { data: user } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
   const { data: dispute, isLoading } = useQuery({
     queryKey: ["disputes", disputeId],
@@ -300,94 +302,96 @@ export function DisputeDetailScreenContent({
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: { padding: Spacing.lg, paddingBottom: 60 },
-  rowGap: { flexDirection: "row", gap: Spacing.xs, marginBottom: Spacing.sm },
-  desc: { ...Typography.body, color: Colors.textPrimary, marginBottom: Spacing.xs },
-  meta: { ...Typography.small, color: Colors.textMuted },
-  sectionTitle: { ...Typography.bodyMedium, color: Colors.textPrimary, marginBottom: Spacing.xs },
-  noticeBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    backgroundColor: Colors.warningBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  noticeText: { ...Typography.caption, color: Colors.warning, flex: 1 },
-  resolutionBox: {
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  resolutionTitle: { ...Typography.smallMedium, color: Colors.textPrimary },
-  resolutionNote: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
-  settlementText: { ...Typography.smallMedium, color: Colors.textPrimary, marginBottom: Spacing.xs },
-  proposeToggle: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  proposeToggleText: { ...Typography.smallMedium, fontWeight: "600" },
-  input: {
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    color: Colors.textPrimary,
-    ...Typography.body,
-  },
-  payerChip: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.xs,
-    alignItems: "center",
-  },
-  payerChipText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: "600" },
-  declineBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.lg,
-    justifyContent: "center",
-  },
-  declineText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  bubble: { maxWidth: "82%", borderRadius: BorderRadius.lg, padding: Spacing.sm },
-  bubbleSender: { ...Typography.caption, color: Colors.textMuted, fontWeight: "700", marginBottom: 2 },
-  bubbleText: { ...Typography.small, color: Colors.textPrimary },
-  messageInputRow: {
-    flexDirection: "row",
-    gap: Spacing.xs,
-    marginTop: Spacing.md,
-    paddingTop: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    alignItems: "flex-end",
-  },
-  messageInput: {
-    flex: 1,
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    color: Colors.textPrimary,
-    ...Typography.small,
-    maxHeight: 100,
-  },
-  sendBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  escalateBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.xs,
-    marginTop: Spacing.lg,
-    paddingVertical: Spacing.sm,
-  },
-  escalateText: { ...Typography.small, color: Colors.warning, fontWeight: "600" },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    scroll: { padding: Spacing.lg, paddingBottom: 60 },
+    rowGap: { flexDirection: "row", gap: Spacing.xs, marginBottom: Spacing.sm },
+    desc: { ...typography.body, color: Colors.textPrimary, marginBottom: Spacing.xs },
+    meta: { ...typography.small, color: Colors.textMuted },
+    sectionTitle: { ...typography.bodyMedium, color: Colors.textPrimary, marginBottom: Spacing.xs },
+    noticeBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      backgroundColor: Colors.warningBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.sm,
+      marginTop: Spacing.sm,
+    },
+    noticeText: { ...typography.caption, color: Colors.warning, flex: 1 },
+    resolutionBox: {
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.sm,
+      marginTop: Spacing.sm,
+    },
+    resolutionTitle: { ...typography.smallMedium, color: Colors.textPrimary },
+    resolutionNote: { ...typography.small, color: Colors.textSecondary, marginTop: 2 },
+    settlementText: { ...typography.smallMedium, color: Colors.textPrimary, marginBottom: Spacing.xs },
+    proposeToggle: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
+    proposeToggleText: { ...typography.smallMedium, fontWeight: "600" },
+    input: {
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      color: Colors.textPrimary,
+      ...typography.body,
+    },
+    payerChip: {
+      flex: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.xs,
+      alignItems: "center",
+    },
+    payerChipText: { ...typography.caption, color: Colors.textSecondary, fontWeight: "600" },
+    declineBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.lg,
+      justifyContent: "center",
+    },
+    declineText: { ...typography.smallMedium, color: Colors.textSecondary },
+    bubble: { maxWidth: "82%", borderRadius: BorderRadius.lg, padding: Spacing.sm },
+    bubbleSender: { ...typography.caption, color: Colors.textMuted, fontWeight: "700", marginBottom: 2 },
+    bubbleText: { ...typography.small, color: Colors.textPrimary },
+    messageInputRow: {
+      flexDirection: "row",
+      gap: Spacing.xs,
+      marginTop: Spacing.md,
+      paddingTop: Spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+      alignItems: "flex-end",
+    },
+    messageInput: {
+      flex: 1,
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      color: Colors.textPrimary,
+      ...typography.small,
+      maxHeight: 100,
+    },
+    sendBtn: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    escalateBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.xs,
+      marginTop: Spacing.lg,
+      paddingVertical: Spacing.sm,
+    },
+    escalateText: { ...typography.small, color: Colors.warning, fontWeight: "600" },
+  });
+}

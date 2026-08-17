@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, Switch, StyleSheet, Alert } from "react-native";
-import { Colors, Typography, Spacing } from "../theme";
+import { Colors, Spacing, useScaledTypography } from "../theme";
 import {
   isBiometricSupported,
   isBiometricLoginEnabled,
@@ -8,6 +8,8 @@ import {
 } from "../services/biometrics";
 
 export function BiometricToggle({ accentColor = Colors.teal }: { accentColor?: string }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [supported, setSupported] = useState(false);
   const [enabled, setEnabled] = useState(false);
 
@@ -46,12 +48,14 @@ export function BiometricToggle({ accentColor = Colors.teal }: { accentColor?: s
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  title: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  sub: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    title: { ...typography.bodyMedium, color: Colors.textPrimary },
+    sub: { ...typography.small, color: Colors.textSecondary, marginTop: 2 },
+  });
+}

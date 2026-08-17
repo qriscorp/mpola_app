@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, TextInput, StyleSheet, Linking, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import type { RequiredDocumentStatus } from "../models";
 import type { BorrowerDocumentType } from "../services";
 
@@ -39,6 +39,8 @@ export function RequiredDocumentsChecklist({
   readOnly?: boolean;
   onGoToProfile?: () => void;
 }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   if (items.length === 0) return null;
@@ -129,43 +131,45 @@ export function RequiredDocumentsChecklist({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.sm,
-    gap: Spacing.xs,
-  },
-  rowTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
-  },
-  rowSatisfied: { borderColor: Colors.success + "40", backgroundColor: Colors.successBg },
-  rowMissing: { borderColor: Colors.warning + "40", backgroundColor: Colors.warningBg },
-  rowUploading: { borderColor: Colors.teal + "40", backgroundColor: Colors.teal + "15" },
-  rowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
-  labelSatisfied: { ...Typography.small, color: Colors.success },
-  labelMissing: { ...Typography.small, color: Colors.warning },
-  labelUploading: { ...Typography.small, color: Colors.teal },
-  viewLink: { ...Typography.caption, fontWeight: "700", color: Colors.success, textDecorationLine: "underline" },
-  actionLink: { ...Typography.caption, fontWeight: "700", color: Colors.teal, textDecorationLine: "underline" },
-  notProvided: { ...Typography.caption, color: Colors.warning },
-  customTextWrap: { gap: 2 },
-  customTextInput: {
-    ...Typography.small,
-    color: Colors.textPrimary,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.sm,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: Spacing.xs,
-    minHeight: 44,
-    textAlignVertical: "top",
-  },
-  customHint: { ...Typography.caption, color: Colors.textMuted },
-  customReadOnlyText: { ...Typography.caption, color: Colors.textSecondary, fontStyle: "italic" },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    row: {
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.sm,
+      gap: Spacing.xs,
+    },
+    rowTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: Spacing.sm,
+    },
+    rowSatisfied: { borderColor: Colors.success + "40", backgroundColor: Colors.successBg },
+    rowMissing: { borderColor: Colors.warning + "40", backgroundColor: Colors.warningBg },
+    rowUploading: { borderColor: Colors.teal + "40", backgroundColor: Colors.teal + "15" },
+    rowLeft: { flexDirection: "row", alignItems: "center", gap: Spacing.xs, flex: 1 },
+    labelSatisfied: { ...typography.small, color: Colors.success },
+    labelMissing: { ...typography.small, color: Colors.warning },
+    labelUploading: { ...typography.small, color: Colors.teal },
+    viewLink: { ...typography.caption, fontWeight: "700", color: Colors.success, textDecorationLine: "underline" },
+    actionLink: { ...typography.caption, fontWeight: "700", color: Colors.teal, textDecorationLine: "underline" },
+    notProvided: { ...typography.caption, color: Colors.warning },
+    customTextWrap: { gap: 2 },
+    customTextInput: {
+      ...typography.small,
+      color: Colors.textPrimary,
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.sm,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.xs,
+      minHeight: 44,
+      textAlignVertical: "top",
+    },
+    customHint: { ...typography.caption, color: Colors.textMuted },
+    customReadOnlyText: { ...typography.caption, color: Colors.textSecondary, fontStyle: "italic" },
+  });
+}

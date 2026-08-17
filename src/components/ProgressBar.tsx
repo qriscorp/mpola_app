@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 
 interface Props {
   progress: number; // 0..1
@@ -15,6 +15,8 @@ export function ProgressBar({
   height = 6,
   showLabel,
 }: Props) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const pct = Math.min(Math.max(progress, 0), 1);
   return (
     <View>
@@ -31,19 +33,21 @@ export function ProgressBar({
   );
 }
 
-const styles = StyleSheet.create({
-  track: {
-    backgroundColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    overflow: "hidden",
-  },
-  fill: {
-    borderRadius: BorderRadius.full,
-  },
-  label: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 4,
-    textAlign: "right",
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    track: {
+      backgroundColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      overflow: "hidden",
+    },
+    fill: {
+      borderRadius: BorderRadius.full,
+    },
+    label: {
+      ...typography.small,
+      color: Colors.textSecondary,
+      marginTop: 4,
+      textAlign: "right",
+    },
+  });
+}

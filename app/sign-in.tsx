@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
 import { Button, Input } from "../src/components";
 import { useAuthViewModel } from "../src/viewmodels";
 import { isBiometricSupported, isBiometricLoginEnabled, tryBiometricSignIn } from "../src/services/biometrics";
@@ -23,6 +23,8 @@ export default function SignInScreen() {
   const [biometricLoading, setBiometricLoading] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState(["", "", "", "", "", ""]);
   const twoFactorRefs = useRef<(TextInput | null)[]>([]);
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   useEffect(() => {
     (async () => {
@@ -258,92 +260,94 @@ export default function SignInScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { flex: 1 },
-  content: {
-    paddingHorizontal: Spacing.xxl,
-    paddingTop: Spacing.xl,
-    paddingBottom: Spacing.section,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.section,
-  },
-  logoBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 9,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.sm,
-  },
-  logoLetter: { fontSize: 18, fontWeight: "700", color: Colors.white },
-  appName: { ...Typography.h3, color: Colors.white },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  subtitle: { ...Typography.body, color: Colors.textSecondary },
-  errorBox: {
-    backgroundColor: Colors.dangerBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginTop: Spacing.md,
-  },
-  errorText: { ...Typography.small, color: Colors.danger },
-  otpRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  otpBox: {
-    flex: 1,
-    height: 56,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surfaceLift,
-    color: Colors.white,
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  otpBoxFilled: { borderColor: Colors.teal },
-  fieldLabel: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: Spacing.xs,
-  },
-  phoneRow: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.lg },
-  countryCode: {
-    backgroundColor: Colors.surfaceLift,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    justifyContent: "center",
-    minHeight: 50,
-  },
-  countryCodeText: { ...Typography.bodyMedium, color: Colors.teal },
-  phoneInput: {},
-  forgotBtn: { alignItems: "flex-end", marginTop: -Spacing.sm },
-  forgotText: { ...Typography.bodyMedium, color: Colors.teal },
-  registerRow: { flexDirection: "row", justifyContent: "center" },
-  registerText: { ...Typography.body, color: Colors.textSecondary },
-  registerLink: { color: Colors.teal, fontWeight: "600" },
-  otpBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.md,
-    alignItems: "center",
-  },
-  otpText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  biometricBtn: { flexDirection: "row", justifyContent: "center" },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { flex: 1 },
+    content: {
+      paddingHorizontal: Spacing.xxl,
+      paddingTop: Spacing.xl,
+      paddingBottom: Spacing.section,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: Spacing.section,
+    },
+    logoBox: {
+      width: 36,
+      height: 36,
+      borderRadius: 9,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: Spacing.sm,
+    },
+    logoLetter: { fontSize: 18, fontWeight: "700", color: Colors.white },
+    appName: { ...typography.h3, color: Colors.white },
+    title: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: Colors.white,
+      marginBottom: Spacing.xs,
+    },
+    subtitle: { ...typography.body, color: Colors.textSecondary },
+    errorBox: {
+      backgroundColor: Colors.dangerBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginTop: Spacing.md,
+    },
+    errorText: { ...typography.small, color: Colors.danger },
+    otpRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    otpBox: {
+      flex: 1,
+      height: 56,
+      borderRadius: BorderRadius.md,
+      borderWidth: 2,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surfaceLift,
+      color: Colors.white,
+      fontSize: 24,
+      fontWeight: "700",
+    },
+    otpBoxFilled: { borderColor: Colors.teal },
+    fieldLabel: {
+      ...typography.small,
+      color: Colors.textMuted,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      marginBottom: Spacing.xs,
+    },
+    phoneRow: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.lg },
+    countryCode: {
+      backgroundColor: Colors.surfaceLift,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      justifyContent: "center",
+      minHeight: 50,
+    },
+    countryCodeText: { ...typography.bodyMedium, color: Colors.teal },
+    phoneInput: {},
+    forgotBtn: { alignItems: "flex-end", marginTop: -Spacing.sm },
+    forgotText: { ...typography.bodyMedium, color: Colors.teal },
+    registerRow: { flexDirection: "row", justifyContent: "center" },
+    registerText: { ...typography.body, color: Colors.textSecondary },
+    registerLink: { color: Colors.teal, fontWeight: "600" },
+    otpBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.md,
+      alignItems: "center",
+    },
+    otpText: { ...typography.bodyMedium, color: Colors.textSecondary },
+    biometricBtn: { flexDirection: "row", justifyContent: "center" },
+  });
+}

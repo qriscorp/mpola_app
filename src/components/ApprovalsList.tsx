@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { fetchGuarantorRequests, respondToGuarantorRequest } from "../services";
 import { formatDuration } from "../services/duration";
 
@@ -12,6 +12,8 @@ import { formatDuration } from "../services/duration";
  * there anything I need to act on," so future approval types belong here
  * too rather than growing into more one-off banners. */
 export function ApprovalsList() {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const qc = useQueryClient();
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ["guarantor-requests", "pending"],
@@ -89,37 +91,39 @@ export function ApprovalsList() {
   );
 }
 
-const styles = StyleSheet.create({
-  emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.xxl, gap: Spacing.sm },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center" },
-  card: { backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, gap: Spacing.sm },
-  message: { ...Typography.small, color: Colors.textPrimary },
-  detailsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    backgroundColor: Colors.background,
-    borderRadius: BorderRadius.sm,
-    padding: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  detailCell: { width: "45%" },
-  detailLabel: { ...Typography.caption, color: Colors.textMuted },
-  detailValue: { ...Typography.smallMedium, color: Colors.textPrimary, textTransform: "capitalize" },
-  disclaimer: { ...Typography.caption, color: Colors.textMuted },
-  actions: { flexDirection: "row", gap: Spacing.sm },
-  declineBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  declineText: { ...Typography.caption, fontWeight: "600", color: Colors.textSecondary },
-  approveBtn: {
-    backgroundColor: Colors.info,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  approveText: { ...Typography.caption, fontWeight: "600", color: Colors.white },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    emptyState: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.xxl, gap: Spacing.sm },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center" },
+    card: { backgroundColor: Colors.surface, borderRadius: BorderRadius.md, padding: Spacing.md, gap: Spacing.sm },
+    message: { ...typography.small, color: Colors.textPrimary },
+    detailsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      backgroundColor: Colors.background,
+      borderRadius: BorderRadius.sm,
+      padding: Spacing.sm,
+      gap: Spacing.sm,
+    },
+    detailCell: { width: "45%" },
+    detailLabel: { ...typography.caption, color: Colors.textMuted },
+    detailValue: { ...typography.smallMedium, color: Colors.textPrimary, textTransform: "capitalize" },
+    disclaimer: { ...typography.caption, color: Colors.textMuted },
+    actions: { flexDirection: "row", gap: Spacing.sm },
+    declineBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    declineText: { ...typography.caption, fontWeight: "600", color: Colors.textSecondary },
+    approveBtn: {
+      backgroundColor: Colors.info,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    approveText: { ...typography.caption, fontWeight: "600", color: Colors.white },
+  });
+}

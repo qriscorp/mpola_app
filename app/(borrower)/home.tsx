@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { InfoTip, ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
 import { formatCompactUGX } from "../../src/services/currency";
 import {
@@ -22,6 +22,8 @@ export default function BorrowerHomeScreen() {
   const { user, stats, loan, paymentProgress, walletBalance, isLoading } =
     useBorrowerDashboardViewModel();
   const { unreadCount } = useNotificationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   const initials = [user.firstName?.[0], user.lastName?.[0]]
     .filter(Boolean)
@@ -205,114 +207,116 @@ export default function BorrowerHomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: Spacing.lg,
-  },
-  logoBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.sm,
-  },
-  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
-  greeting: { ...Typography.h4, color: Colors.textSecondary, flex: 1 },
-  greetingName: { color: Colors.teal },
-  headerRight: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  bellBtn: { position: "relative" },
-  bellDot: {
-    position: "absolute",
-    top: 0,
-    right: 0,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Colors.danger,
-  },
-  avatarCircle: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { ...Typography.smallMedium, color: Colors.white },
-  loanCard: {
-    backgroundColor: Colors.teal,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  loanCardLabel: {
-    ...Typography.caption,
-    color: "rgba(255,255,255,0.7)",
-    letterSpacing: 1,
-    marginBottom: Spacing.xs,
-  },
-  loanAmount: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  loanNext: {
-    ...Typography.small,
-    color: "rgba(255,255,255,0.8)",
-    marginBottom: Spacing.md,
-  },
-  payNowBtn: {
-    backgroundColor: "rgba(255,255,255,0.2)",
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.md,
-    alignItems: "center",
-  },
-  payNowText: { ...Typography.button, color: Colors.white },
-  statsRow: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    marginBottom: Spacing.xl,
-  },
-  statBox: { flex: 1, alignItems: "center", paddingVertical: Spacing.lg },
-  statBorder: {
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    borderColor: Colors.border,
-  },
-  statValue: { ...Typography.h4, color: Colors.textPrimary },
-  statLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
-  statLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 3,
-    marginTop: 2,
-  },
-  sectionLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    letterSpacing: 1,
-    marginBottom: Spacing.md,
-  },
-  actionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.sm,
-  },
-  actionCell: {
-    width: "47.5%",
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.xl,
-    alignItems: "center",
-    gap: Spacing.xs,
-  },
-  actionLabel: { ...Typography.bodyMedium, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: Spacing.lg,
+    },
+    logoBox: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: Spacing.sm,
+    },
+    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+    greeting: { ...typography.h4, color: Colors.textSecondary, flex: 1 },
+    greetingName: { color: Colors.teal },
+    headerRight: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+    bellBtn: { position: "relative" },
+    bellDot: {
+      position: "absolute",
+      top: 0,
+      right: 0,
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: Colors.danger,
+    },
+    avatarCircle: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { ...typography.smallMedium, color: Colors.white },
+    loanCard: {
+      backgroundColor: Colors.teal,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+      marginBottom: Spacing.xl,
+    },
+    loanCardLabel: {
+      ...typography.caption,
+      color: "rgba(255,255,255,0.7)",
+      letterSpacing: 1,
+      marginBottom: Spacing.xs,
+    },
+    loanAmount: {
+      fontSize: 28,
+      fontWeight: "700",
+      color: Colors.white,
+      marginBottom: Spacing.xs,
+    },
+    loanNext: {
+      ...typography.small,
+      color: "rgba(255,255,255,0.8)",
+      marginBottom: Spacing.md,
+    },
+    payNowBtn: {
+      backgroundColor: "rgba(255,255,255,0.2)",
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.md,
+      alignItems: "center",
+    },
+    payNowText: { ...typography.button, color: Colors.white },
+    statsRow: {
+      flexDirection: "row",
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      marginBottom: Spacing.xl,
+    },
+    statBox: { flex: 1, alignItems: "center", paddingVertical: Spacing.lg },
+    statBorder: {
+      borderLeftWidth: 1,
+      borderRightWidth: 1,
+      borderColor: Colors.border,
+    },
+    statValue: { ...typography.h4, color: Colors.textPrimary },
+    statLabel: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
+    statLabelRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
+      marginTop: 2,
+    },
+    sectionLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      letterSpacing: 1,
+      marginBottom: Spacing.md,
+    },
+    actionsGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.sm,
+    },
+    actionCell: {
+      width: "47.5%",
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      paddingVertical: Spacing.xl,
+      alignItems: "center",
+      gap: Spacing.xs,
+    },
+    actionLabel: { ...typography.bodyMedium, color: Colors.textSecondary },
+  });
+}

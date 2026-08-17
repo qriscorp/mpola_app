@@ -7,7 +7,7 @@ import {
   ViewStyle,
   TextStyle,
 } from "react-native";
-import { Colors, Typography, BorderRadius, Spacing } from "../theme";
+import { Colors, BorderRadius, Spacing, useScaledTypography } from "../theme";
 
 type Variant = "primary" | "secondary" | "outline" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
@@ -39,6 +39,7 @@ export function Button({
   textStyle,
   fullWidth = true,
 }: Props) {
+  const typography = useScaledTypography();
   const bg =
     variant === "primary"
       ? color
@@ -65,8 +66,8 @@ export function Button({
   const height = size === "sm" ? 36 : size === "lg" ? 52 : 44;
   const fontSize =
     size === "sm"
-      ? Typography.buttonSmall.fontSize
-      : Typography.button.fontSize;
+      ? typography.buttonSmall.fontSize
+      : typography.button.fontSize;
 
   return (
     <TouchableOpacity

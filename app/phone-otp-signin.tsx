@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
 import { Button, Input } from "../src/components";
 import {
   apiSendLoginPhoneOtp,
@@ -20,6 +20,8 @@ type Step = "phone" | "otp";
 
 export default function PhoneOtpSigninScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -183,46 +185,48 @@ export default function PhoneOtpSigninScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { flex: 1 },
-  content: {
-    paddingHorizontal: Spacing.xxl,
-    paddingTop: Spacing.lg,
-    paddingBottom: Spacing.section,
-  },
-  back: { marginBottom: Spacing.lg },
-  backText: { ...Typography.body, color: Colors.teal },
-  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.sm },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xl,
-  },
-  errorBox: {
-    backgroundColor: Colors.dangerBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  errorText: { ...Typography.small, color: Colors.danger },
-  otpRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  otpBox: {
-    flex: 1,
-    height: 56,
-    borderRadius: BorderRadius.md,
-    borderWidth: 2,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surfaceLift,
-    color: Colors.white,
-    fontSize: 24,
-    fontWeight: "700",
-  },
-  otpBoxFilled: { borderColor: Colors.teal },
-  resendBtn: { marginTop: Spacing.lg, alignItems: "center" },
-  resendText: { ...Typography.body, color: Colors.teal },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { flex: 1 },
+    content: {
+      paddingHorizontal: Spacing.xxl,
+      paddingTop: Spacing.lg,
+      paddingBottom: Spacing.section,
+    },
+    back: { marginBottom: Spacing.lg },
+    backText: { ...typography.body, color: Colors.teal },
+    title: { ...typography.h2, color: Colors.white, marginBottom: Spacing.sm },
+    subtitle: {
+      ...typography.body,
+      color: Colors.textMuted,
+      marginBottom: Spacing.xl,
+    },
+    errorBox: {
+      backgroundColor: Colors.dangerBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    errorText: { ...typography.small, color: Colors.danger },
+    otpRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      gap: 8,
+    },
+    otpBox: {
+      flex: 1,
+      height: 56,
+      borderRadius: BorderRadius.md,
+      borderWidth: 2,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surfaceLift,
+      color: Colors.white,
+      fontSize: 24,
+      fontWeight: "700",
+    },
+    otpBoxFilled: { borderColor: Colors.teal },
+    resendBtn: { marginTop: Spacing.lg, alignItems: "center" },
+    resendText: { ...typography.body, color: Colors.teal },
+  });
+}

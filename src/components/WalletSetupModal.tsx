@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Modal, View, Text, StyleSheet } from "react-native";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Input } from "./Input";
 import { Button } from "./Button";
 
@@ -21,6 +21,8 @@ export function WalletSetupModal({
   error,
   accentColor = Colors.teal,
 }: Props) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [pin, setPin] = useState("");
   const valid = pin.length >= 4 && pin.length <= 6;
 
@@ -68,28 +70,30 @@ export function WalletSetupModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: Colors.overlay,
-    justifyContent: "center",
-    padding: Spacing.lg,
-  },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-  },
-  title: {
-    ...Typography.h3,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.xs,
-  },
-  subtitle: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.lg,
-  },
-  actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
-  flex: { flex: 1 },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: Colors.overlay,
+      justifyContent: "center",
+      padding: Spacing.lg,
+    },
+    sheet: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+    },
+    title: {
+      ...typography.h3,
+      color: Colors.textPrimary,
+      marginBottom: Spacing.xs,
+    },
+    subtitle: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginBottom: Spacing.lg,
+    },
+    actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
+    flex: { flex: 1 },
+  });
+}

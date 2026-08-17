@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { ProgressBar, SkeletonBox, SkeletonCard } from "../../src/components";
 import { useMyLoansViewModel } from "../../src/viewmodels";
 import { formatDuration } from "../../src/services/duration";
@@ -30,6 +30,8 @@ function matchesTab(status: string, tab: Tab): boolean {
 
 function LoanCard({ loan }: { loan: Loan }) {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   // Amount-based, not instalment-count-based — paidInstalments only
   // advances once a full instalment clears (see make_repayment in
   // routers/loans.py), so a partial payment the borrower already made
@@ -98,6 +100,8 @@ function LoanCard({ loan }: { loan: Loan }) {
 export default function LoansScreen() {
   const router = useRouter();
   const { loans, isLoading } = useMyLoansViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [activeTab, setActiveTab] = useState<Tab>("All");
 
   if (isLoading) {
@@ -170,74 +174,76 @@ export default function LoansScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.lg },
-  noLoanText: { ...Typography.body, color: Colors.textMuted },
-  tabsScroll: { marginBottom: Spacing.lg },
-  tabsRow: { gap: Spacing.sm },
-  tab: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tabActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
-  tabText: { ...Typography.bodyMedium, color: Colors.textSecondary },
-  tabTextActive: { color: Colors.teal },
-  loanCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  loanCardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: Spacing.lg,
-  },
-  loanAmount: { ...Typography.h2, color: Colors.white },
-  loanSub: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
-  activeBadge: {
-    backgroundColor: Colors.teal + "25",
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-  },
-  activeBadgeText: {
-    ...Typography.caption,
-    color: Colors.teal,
-    fontWeight: "600",
-    textTransform: "capitalize",
-  },
-  progressSection: { marginBottom: Spacing.lg },
-  progressLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: Spacing.xs,
-  },
-  progressLabel: { ...Typography.small, color: Colors.textMuted },
-  detailRows: { marginBottom: Spacing.lg },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.xs,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  detailLabel: { ...Typography.body, color: Colors.textSecondary },
-  detailValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  viewOffersBtn: {
-    borderWidth: 1,
-    borderColor: Colors.teal,
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  viewOffersText: { ...Typography.buttonSmall, color: Colors.teal },
-  receiptsLink: { alignItems: "center", marginTop: Spacing.lg },
-  receiptsLinkText: { ...Typography.smallMedium, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    title: { ...typography.h2, color: Colors.white, marginBottom: Spacing.lg },
+    noLoanText: { ...typography.body, color: Colors.textMuted },
+    tabsScroll: { marginBottom: Spacing.lg },
+    tabsRow: { gap: Spacing.sm },
+    tab: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    tabActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
+    tabText: { ...typography.bodyMedium, color: Colors.textSecondary },
+    tabTextActive: { color: Colors.teal },
+    loanCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+    },
+    loanCardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      marginBottom: Spacing.lg,
+    },
+    loanAmount: { ...typography.h2, color: Colors.white },
+    loanSub: { ...typography.small, color: Colors.textMuted, marginTop: 2 },
+    activeBadge: {
+      backgroundColor: Colors.teal + "25",
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+    },
+    activeBadgeText: {
+      ...typography.caption,
+      color: Colors.teal,
+      fontWeight: "600",
+      textTransform: "capitalize",
+    },
+    progressSection: { marginBottom: Spacing.lg },
+    progressLabelRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: Spacing.xs,
+    },
+    progressLabel: { ...typography.small, color: Colors.textMuted },
+    detailRows: { marginBottom: Spacing.lg },
+    detailRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.xs,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    detailLabel: { ...typography.body, color: Colors.textSecondary },
+    detailValue: { ...typography.bodyMedium, color: Colors.textPrimary },
+    viewOffersBtn: {
+      borderWidth: 1,
+      borderColor: Colors.teal,
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    viewOffersText: { ...typography.buttonSmall, color: Colors.teal },
+    receiptsLink: { alignItems: "center", marginTop: Spacing.lg },
+    receiptsLinkText: { ...typography.smallMedium, color: Colors.textSecondary },
+  });
+}

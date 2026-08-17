@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors, Typography, Spacing } from "../../src/theme";
+import { Colors, Spacing, useScaledTypography } from "../../src/theme";
 import { ApprovalsList } from "../../src/components";
 
 export default function LenderApprovalsScreen() {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
@@ -24,9 +26,11 @@ export default function LenderApprovalsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.xs },
-  subtitle: { ...Typography.small, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    title: { ...typography.h2, color: Colors.white, marginBottom: Spacing.xs },
+    subtitle: { ...typography.small, color: Colors.textMuted },
+  });
+}

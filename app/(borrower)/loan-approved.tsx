@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 
 export default function LoanApprovedScreen() {
   const router = useRouter();
@@ -13,6 +13,8 @@ export default function LoanApprovedScreen() {
     interestRate?: string;
     totalRepayable?: string;
   }>();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -81,63 +83,65 @@ export default function LoanApprovedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: Spacing.xxl,
-  },
-  checkCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.teal + "25",
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
-    marginBottom: Spacing.xl,
-  },
-  title: {
-    ...Typography.h1,
-    color: Colors.white,
-    textAlign: "center",
-    marginBottom: Spacing.sm,
-  },
-  sub: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    marginBottom: Spacing.xxl,
-  },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.xxl,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.sm,
-  },
-  rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
-  label: { ...Typography.body, color: Colors.textSecondary },
-  value: { ...Typography.bodyMedium },
-  primaryBtn: {
-    backgroundColor: Colors.teal,
-    borderRadius: BorderRadius.full,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  primaryBtnText: { ...Typography.button, color: Colors.white },
-  outlineBtn: {
-    borderRadius: BorderRadius.full,
-    paddingVertical: 16,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  outlineBtnText: { ...Typography.button, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    content: {
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: Spacing.xxl,
+    },
+    checkCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: Colors.teal + "25",
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "center",
+      marginBottom: Spacing.xl,
+    },
+    title: {
+      ...typography.h1,
+      color: Colors.white,
+      textAlign: "center",
+      marginBottom: Spacing.sm,
+    },
+    sub: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      textAlign: "center",
+      marginBottom: Spacing.xxl,
+    },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.xxl,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.sm,
+    },
+    rowBorder: { borderBottomWidth: 1, borderBottomColor: Colors.border },
+    label: { ...typography.body, color: Colors.textSecondary },
+    value: { ...typography.bodyMedium },
+    primaryBtn: {
+      backgroundColor: Colors.teal,
+      borderRadius: BorderRadius.full,
+      paddingVertical: 16,
+      alignItems: "center",
+      marginBottom: Spacing.md,
+    },
+    primaryBtnText: { ...typography.button, color: Colors.white },
+    outlineBtn: {
+      borderRadius: BorderRadius.full,
+      paddingVertical: 16,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    outlineBtnText: { ...typography.button, color: Colors.textSecondary },
+  });
+}

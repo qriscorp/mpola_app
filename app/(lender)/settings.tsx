@@ -1,13 +1,15 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing } from "../../src/theme";
+import { Colors, Spacing, useScaledTypography } from "../../src/theme";
 import { SettingsScreenContent } from "../../src/components";
 
 export default function SettingsScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,15 +27,17 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+  });
+}

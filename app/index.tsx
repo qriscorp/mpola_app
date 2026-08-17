@@ -1,11 +1,13 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors, Typography, Spacing, BorderRadius } from "../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
 
 export default function WelcomeScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -57,50 +59,52 @@ export default function WelcomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: Spacing.xxl,
-  },
-  logoArea: { alignItems: "center", marginBottom: Spacing.section },
-  logoBox: {
-    width: 72,
-    height: 72,
-    borderRadius: 18,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.lg,
-  },
-  logoLetter: { fontSize: 36, fontWeight: "700", color: Colors.white },
-  appName: {
-    fontSize: 36,
-    fontWeight: "700",
-    color: Colors.white,
-    marginBottom: Spacing.xs,
-  },
-  tagline: { ...Typography.body, color: Colors.textMuted },
-  buttons: { width: "100%" },
-  primaryBtn: {
-    height: 54,
-    borderRadius: BorderRadius.full,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  primaryBtnText: { ...Typography.button, color: Colors.white },
-  signInBtn: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  signInText: { ...Typography.body, color: Colors.textSecondary },
-  signInLink: { color: Colors.teal, fontWeight: "600" },
-  footer: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    textAlign: "center",
-    paddingBottom: Spacing.lg,
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    content: {
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: Spacing.xxl,
+    },
+    logoArea: { alignItems: "center", marginBottom: Spacing.section },
+    logoBox: {
+      width: 72,
+      height: 72,
+      borderRadius: 18,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.lg,
+    },
+    logoLetter: { fontSize: 36, fontWeight: "700", color: Colors.white },
+    appName: {
+      fontSize: 36,
+      fontWeight: "700",
+      color: Colors.white,
+      marginBottom: Spacing.xs,
+    },
+    tagline: { ...typography.body, color: Colors.textMuted },
+    buttons: { width: "100%" },
+    primaryBtn: {
+      height: 54,
+      borderRadius: BorderRadius.full,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    primaryBtnText: { ...typography.button, color: Colors.white },
+    signInBtn: {
+      flexDirection: "row",
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    signInText: { ...typography.body, color: Colors.textSecondary },
+    signInLink: { color: Colors.teal, fontWeight: "600" },
+    footer: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      textAlign: "center",
+      paddingBottom: Spacing.lg,
+    },
+  });
+}

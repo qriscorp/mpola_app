@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Badge, SkeletonHero, SkeletonStatRow, SkeletonList } from "../../src/components";
 import {
   useLenderDashboardViewModel,
@@ -23,6 +23,8 @@ export default function LenderHomeScreen() {
   const { user, stats, recentActivity, newMatches, isLoading } =
     useLenderDashboardViewModel();
   const { unreadCount } = useNotificationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (isLoading) {
     return (
@@ -200,137 +202,139 @@ export default function LenderHomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  topNav: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  logoBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: Colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
-  logoText: { ...Typography.h3, color: Colors.white },
-  bellBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.surface,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "relative",
-  },
-  bellDot: {
-    position: "absolute",
-    top: 7,
-    right: 7,
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: Colors.danger,
-  },
-  avatarBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.gold,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarText: { ...Typography.caption, color: Colors.white, fontWeight: "700" },
-  greeting: { ...Typography.body, color: Colors.textSecondary },
-  name: {
-    fontSize: 24,
-    fontWeight: "800",
-    color: Colors.gold,
-    marginBottom: Spacing.xl,
-  },
-  capitalCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    marginBottom: Spacing.xl,
-  },
-  capitalLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: Spacing.xs,
-  },
-  capitalAmount: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: Colors.white,
-    lineHeight: 40,
-  },
-  capitalGrowth: {
-    ...Typography.small,
-    color: Colors.gold,
-    marginTop: 4,
-    marginBottom: Spacing.lg,
-  },
-  capitalStats: { flexDirection: "row", gap: Spacing.md },
-  capitalStat: {
-    flex: 1,
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.sm,
-    alignItems: "center",
-  },
-  capitalStatLabel: { ...Typography.caption, color: Colors.textMuted },
-  capitalStatValue: { ...Typography.h3, color: Colors.gold, marginTop: 2 },
-  sectionTitle: {
-    ...Typography.h4,
-    color: Colors.white,
-    marginBottom: Spacing.md,
-  },
-  offerCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.gold,
-  },
-  offerCardTop: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  offerAmount: { ...Typography.h3, color: Colors.white },
-  offerSub: { ...Typography.small, color: Colors.textMuted },
-  offerMeta: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
-  actions: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.lg },
-  actionBtnGold: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.gold,
-  },
-  actionBtnOutline: {
-    flex: 1,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.sm,
-    paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  actionText: { ...Typography.buttonSmall, color: Colors.white },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    topNav: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: Spacing.lg,
+      gap: Spacing.sm,
+    },
+    logoBox: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      backgroundColor: Colors.gold,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+    logoText: { ...typography.h3, color: Colors.white },
+    bellBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: Colors.surface,
+      alignItems: "center",
+      justifyContent: "center",
+      position: "relative",
+    },
+    bellDot: {
+      position: "absolute",
+      top: 7,
+      right: 7,
+      width: 7,
+      height: 7,
+      borderRadius: 4,
+      backgroundColor: Colors.danger,
+    },
+    avatarBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: Colors.gold,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    avatarText: { ...typography.caption, color: Colors.white, fontWeight: "700" },
+    greeting: { ...typography.body, color: Colors.textSecondary },
+    name: {
+      fontSize: 24,
+      fontWeight: "800",
+      color: Colors.gold,
+      marginBottom: Spacing.xl,
+    },
+    capitalCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+      marginBottom: Spacing.xl,
+    },
+    capitalLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      marginBottom: Spacing.xs,
+    },
+    capitalAmount: {
+      fontSize: 32,
+      fontWeight: "800",
+      color: Colors.white,
+      lineHeight: 40,
+    },
+    capitalGrowth: {
+      ...typography.small,
+      color: Colors.gold,
+      marginTop: 4,
+      marginBottom: Spacing.lg,
+    },
+    capitalStats: { flexDirection: "row", gap: Spacing.md },
+    capitalStat: {
+      flex: 1,
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.sm,
+      alignItems: "center",
+    },
+    capitalStatLabel: { ...typography.caption, color: Colors.textMuted },
+    capitalStatValue: { ...typography.h3, color: Colors.gold, marginTop: 2 },
+    sectionTitle: {
+      ...typography.h4,
+      color: Colors.white,
+      marginBottom: Spacing.md,
+    },
+    offerCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: Colors.gold,
+    },
+    offerCardTop: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 4,
+    },
+    offerAmount: { ...typography.h3, color: Colors.white },
+    offerSub: { ...typography.small, color: Colors.textMuted },
+    offerMeta: { ...typography.small, color: Colors.textMuted, marginTop: 2 },
+    actions: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.lg },
+    actionBtnGold: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.sm,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.full,
+      backgroundColor: Colors.gold,
+    },
+    actionBtnOutline: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.sm,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    actionText: { ...typography.buttonSmall, color: Colors.white },
+  });
+}

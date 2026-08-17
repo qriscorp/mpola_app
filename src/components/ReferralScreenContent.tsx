@@ -1,14 +1,16 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Card } from "./Card";
 import { SkeletonCard } from "./Skeleton";
 import { fetchReferralInfo } from "../services";
 
 export function ReferralScreenContent({ accentColor = Colors.teal }: { accentColor?: string }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const { data, isLoading } = useQuery({
     queryKey: ["referrals", "me"],
     queryFn: fetchReferralInfo,
@@ -93,67 +95,69 @@ export function ReferralScreenContent({ accentColor = Colors.teal }: { accentCol
   );
 }
 
-const styles = StyleSheet.create({
-  heroCard: { alignItems: "center" },
-  iconCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.md,
-  },
-  title: { ...Typography.h4, color: Colors.textPrimary, textAlign: "center" },
-  sub: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    textAlign: "center",
-    marginTop: Spacing.xs,
-    marginBottom: Spacing.lg,
-  },
-  linkBox: {
-    width: "100%",
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  linkText: { ...Typography.small, color: Colors.textPrimary },
-  copyBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    paddingHorizontal: Spacing.xl,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  copyBtnText: { ...Typography.buttonSmall, color: Colors.white },
-  code: { ...Typography.small, color: Colors.textMuted, marginTop: Spacing.md },
-  statsRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.lg,
-    width: "100%",
-  },
-  statBox: {
-    flex: 1,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.sm,
-    alignItems: "center",
-  },
-  statValue: { ...Typography.h4, color: Colors.textPrimary },
-  statLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
-  sectionTitle: { ...Typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
-  referredRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  referredName: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  referredMeta: { ...Typography.caption, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    heroCard: { alignItems: "center" },
+    iconCircle: {
+      width: 56,
+      height: 56,
+      borderRadius: 28,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.md,
+    },
+    title: { ...typography.h4, color: Colors.textPrimary, textAlign: "center" },
+    sub: {
+      ...typography.small,
+      color: Colors.textSecondary,
+      textAlign: "center",
+      marginTop: Spacing.xs,
+      marginBottom: Spacing.lg,
+    },
+    linkBox: {
+      width: "100%",
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    linkText: { ...typography.small, color: Colors.textPrimary },
+    copyBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      paddingHorizontal: Spacing.xl,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+    },
+    copyBtnText: { ...typography.buttonSmall, color: Colors.white },
+    code: { ...typography.small, color: Colors.textMuted, marginTop: Spacing.md },
+    statsRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginTop: Spacing.lg,
+      width: "100%",
+    },
+    statBox: {
+      flex: 1,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.sm,
+      alignItems: "center",
+    },
+    statValue: { ...typography.h4, color: Colors.textPrimary },
+    statLabel: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
+    sectionTitle: { ...typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
+    referredRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+    },
+    referredName: { ...typography.bodyMedium, color: Colors.textPrimary },
+    referredMeta: { ...typography.caption, color: Colors.textMuted },
+  });
+}

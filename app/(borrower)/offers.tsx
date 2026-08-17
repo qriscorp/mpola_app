@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useOffersViewModel, useAllOffersViewModel } from "../../src/viewmodels";
 import { SkeletonList, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
 import type { LoanOffer } from "../../src/models";
@@ -25,6 +25,8 @@ const REQUIRED_ACCEPTED_GUARANTORS = 2;
  * scoped to that one request for the real accept/decline/document flow. */
 function AllOffersView() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const { offers, isLoading, bestOfferId } = useAllOffersViewModel();
 
   return (
@@ -129,6 +131,8 @@ function AllOffersView() {
  * Loan Agreement screen. */
 function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const {
     application,
     offers,
@@ -351,136 +355,138 @@ export default function OffersScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  logoBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
-  headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
-  liveCount: { ...Typography.bodyMedium, color: Colors.teal },
-  summaryRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: Spacing.sm,
-    marginBottom: Spacing.lg,
-  },
-  appSummary: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    flex: 1,
-  },
-  guarantorWarning: {
-    backgroundColor: Colors.warningBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  guarantorWarningText: { ...Typography.small, color: Colors.warning },
-  emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.xl },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center" },
-  scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
-  offerCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.teal,
-  },
-  offerCardFeatured: { borderLeftWidth: 0 },
-  bestRateBadge: {
-    backgroundColor: Colors.teal + "30",
-    alignSelf: "flex-start",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 3,
-    borderRadius: BorderRadius.full,
-    marginBottom: Spacing.sm,
-  },
-  bestRateText: {
-    ...Typography.caption,
-    color: Colors.teal,
-    fontWeight: "600",
-  },
-  offerTop: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: Spacing.sm,
-  },
-  offerAvatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: Colors.navy,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.sm,
-  },
-  offerAvatarText: { ...Typography.h4, color: Colors.white },
-  offerInfo: { flex: 1 },
-  offerNameRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
-  offerName: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  autoMatchedBadge: {
-    backgroundColor: Colors.teal + "25",
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-  },
-  autoMatchedText: { ...Typography.caption, color: Colors.teal, fontWeight: "600" },
-  verifiedBadge: {
-    backgroundColor: Colors.teal + "25",
-    paddingHorizontal: Spacing.xs,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-  },
-  verifiedBadgeMuted: { backgroundColor: Colors.border },
-  verifiedText: { ...Typography.caption, color: Colors.teal, fontWeight: "600" },
-  verifiedTextMuted: { color: Colors.textMuted },
-  offerSub: { ...Typography.small, color: Colors.textMuted },
-  offerRate: { fontSize: 18, fontWeight: "700", color: Colors.textSecondary },
-  offerDetails: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.md,
-  },
-  docsSection: { marginBottom: Spacing.md },
-  docsHeading: {
-    ...Typography.smallMedium,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.xs,
-  },
-  actionsRow: { flexDirection: "row", gap: Spacing.sm },
-  applyBtn: {
-    flex: 1,
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-    backgroundColor: Colors.teal,
-  },
-  declineBtn: {
-    flex: 1,
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  applyBtnText: { ...Typography.buttonSmall, color: Colors.white },
-  declineBtnText: { ...Typography.buttonSmall, color: Colors.textSecondary },
-  statusText: { ...Typography.smallMedium, color: Colors.textMuted, textTransform: "capitalize" },
-  offerFooterRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  tapHint: { ...Typography.caption, color: Colors.teal },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.lg,
+      gap: Spacing.sm,
+    },
+    logoBox: {
+      width: 34,
+      height: 34,
+      borderRadius: 8,
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
+    headerTitle: { ...typography.h3, color: Colors.white, flex: 1 },
+    liveCount: { ...typography.bodyMedium, color: Colors.teal },
+    summaryRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: Spacing.sm,
+      marginBottom: Spacing.lg,
+    },
+    appSummary: {
+      ...typography.small,
+      color: Colors.textMuted,
+      flex: 1,
+    },
+    guarantorWarning: {
+      backgroundColor: Colors.warningBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    guarantorWarningText: { ...typography.small, color: Colors.warning },
+    emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.xl },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center" },
+    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+    offerCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: Colors.teal,
+    },
+    offerCardFeatured: { borderLeftWidth: 0 },
+    bestRateBadge: {
+      backgroundColor: Colors.teal + "30",
+      alignSelf: "flex-start",
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 3,
+      borderRadius: BorderRadius.full,
+      marginBottom: Spacing.sm,
+    },
+    bestRateText: {
+      ...typography.caption,
+      color: Colors.teal,
+      fontWeight: "600",
+    },
+    offerTop: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginBottom: Spacing.sm,
+    },
+    offerAvatar: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: Colors.navy,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: Spacing.sm,
+    },
+    offerAvatarText: { ...typography.h4, color: Colors.white },
+    offerInfo: { flex: 1 },
+    offerNameRow: { flexDirection: "row", alignItems: "center", gap: Spacing.xs },
+    offerName: { ...typography.bodyMedium, color: Colors.textPrimary },
+    autoMatchedBadge: {
+      backgroundColor: Colors.teal + "25",
+      paddingHorizontal: Spacing.xs,
+      paddingVertical: 2,
+      borderRadius: BorderRadius.full,
+    },
+    autoMatchedText: { ...typography.caption, color: Colors.teal, fontWeight: "600" },
+    verifiedBadge: {
+      backgroundColor: Colors.teal + "25",
+      paddingHorizontal: Spacing.xs,
+      paddingVertical: 2,
+      borderRadius: BorderRadius.full,
+    },
+    verifiedBadgeMuted: { backgroundColor: Colors.border },
+    verifiedText: { ...typography.caption, color: Colors.teal, fontWeight: "600" },
+    verifiedTextMuted: { color: Colors.textMuted },
+    offerSub: { ...typography.small, color: Colors.textMuted },
+    offerRate: { fontSize: 18, fontWeight: "700", color: Colors.textSecondary },
+    offerDetails: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginBottom: Spacing.md,
+    },
+    docsSection: { marginBottom: Spacing.md },
+    docsHeading: {
+      ...typography.smallMedium,
+      color: Colors.textSecondary,
+      marginBottom: Spacing.xs,
+    },
+    actionsRow: { flexDirection: "row", gap: Spacing.sm },
+    applyBtn: {
+      flex: 1,
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+      backgroundColor: Colors.teal,
+    },
+    declineBtn: {
+      flex: 1,
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    applyBtnText: { ...typography.buttonSmall, color: Colors.white },
+    declineBtnText: { ...typography.buttonSmall, color: Colors.textSecondary },
+    statusText: { ...typography.smallMedium, color: Colors.textMuted, textTransform: "capitalize" },
+    offerFooterRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+    tapHint: { ...typography.caption, color: Colors.teal },
+  });
+}

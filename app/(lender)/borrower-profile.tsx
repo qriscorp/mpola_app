@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Badge, InfoTip, SkeletonHero, SkeletonCard } from "../../src/components";
 import { useApplicationDetailViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel } from "../../src/services/applicationStatus";
@@ -31,6 +31,8 @@ export default function BorrowerProfileScreen() {
   const { application, isLoading, error } = useApplicationDetailViewModel(
     applicationId ?? "",
   );
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (!applicationId || error) {
     return (
@@ -190,83 +192,85 @@ export default function BorrowerProfileScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  profileSection: {
-    alignItems: "center",
-    marginBottom: Spacing.xxl,
-  },
-  avatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.gold + "25",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: Spacing.md,
-  },
-  initials: { ...Typography.h2, color: Colors.gold },
-  name: { ...Typography.h2, color: Colors.textPrimary },
-  meta: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginTop: 2,
-  },
-  scoreMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
-  badges: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    marginTop: Spacing.sm,
-  },
-  kycBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
-  kycBadgeUnverified: { opacity: 0.9 },
-  kycText: { ...Typography.smallMedium, color: Colors.teal },
-  kycTextUnverified: { color: Colors.textMuted },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.lg,
-  },
-  cardTitle: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-  },
-  cardRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  cardLabel: { ...Typography.body, color: Colors.textSecondary },
-  cardValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  statusPill: {
-    marginTop: Spacing.md,
-    alignItems: "center",
-    paddingVertical: Spacing.md,
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.full,
-  },
-  statusPillText: {
-    ...Typography.bodyMedium,
-    color: Colors.textSecondary,
-    textTransform: "capitalize",
-  },
-  backLink: {
-    alignItems: "center",
-    marginTop: Spacing.xl,
-  },
-  backLinkText: { ...Typography.body, color: Colors.gold },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    profileSection: {
+      alignItems: "center",
+      marginBottom: Spacing.xxl,
+    },
+    avatar: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: Colors.gold + "25",
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: Spacing.md,
+    },
+    initials: { ...typography.h2, color: Colors.gold },
+    name: { ...typography.h2, color: Colors.textPrimary },
+    meta: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      marginTop: 2,
+    },
+    scoreMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
+    badges: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.sm,
+      marginTop: Spacing.sm,
+    },
+    kycBadge: { flexDirection: "row", alignItems: "center", gap: 4 },
+    kycBadgeUnverified: { opacity: 0.9 },
+    kycText: { ...typography.smallMedium, color: Colors.teal },
+    kycTextUnverified: { color: Colors.textMuted },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.lg,
+    },
+    cardTitle: {
+      ...typography.h4,
+      color: Colors.textPrimary,
+      marginBottom: Spacing.md,
+    },
+    cardRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    cardLabel: { ...typography.body, color: Colors.textSecondary },
+    cardValue: { ...typography.bodyMedium, color: Colors.textPrimary },
+    statusPill: {
+      marginTop: Spacing.md,
+      alignItems: "center",
+      paddingVertical: Spacing.md,
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.full,
+    },
+    statusPillText: {
+      ...typography.bodyMedium,
+      color: Colors.textSecondary,
+      textTransform: "capitalize",
+    },
+    backLink: {
+      alignItems: "center",
+      marginTop: Spacing.xl,
+    },
+    backLinkText: { ...typography.body, color: Colors.gold },
+  });
+}

@@ -1,5 +1,6 @@
+import { useMemo } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, ViewStyle } from "react-native";
-import { Colors, Typography, Spacing } from "../theme";
+import { Colors, Spacing, useScaledTypography } from "../theme";
 
 interface Props {
   id: string;
@@ -19,6 +20,8 @@ export function TransactionItem({
   onPress,
   style,
 }: Props) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const isCredit = type === "credit";
 
   return (
@@ -53,26 +56,28 @@ export function TransactionItem({
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.borderLight,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: Spacing.md,
-  },
-  icon: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
-  info: { flex: 1 },
-  desc: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  date: { ...Typography.small, color: Colors.textMuted, marginTop: 2 },
-  amount: { ...Typography.bodySemibold },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: {
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.borderLight,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingVertical: Spacing.md,
+    },
+    icon: {
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: Spacing.md,
+    },
+    info: { flex: 1 },
+    desc: { ...typography.bodyMedium, color: Colors.textPrimary },
+    date: { ...typography.small, color: Colors.textMuted, marginTop: 2 },
+    amount: { ...typography.bodySemibold },
+  });
+}

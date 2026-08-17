@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import {
   Card,
   TransactionItem,
@@ -25,6 +25,8 @@ import { useLenderWalletViewModel } from "../../src/viewmodels";
 
 export default function LenderWalletScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const {
     wallet,
     isLoading,
@@ -259,100 +261,102 @@ export default function LenderWalletScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.lg,
-  },
-  title: { ...Typography.h2, color: Colors.white },
-  balanceCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    alignItems: "center",
-    marginBottom: Spacing.xxl,
-  },
-  balanceLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    letterSpacing: 1,
-  },
-  balanceAmount: {
-    fontSize: 34,
-    fontWeight: "800",
-    color: Colors.white,
-    marginTop: 4,
-  },
-  setupHint: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginTop: 6,
-    textAlign: "center",
-  },
-  frozenBanner: {
-    backgroundColor: Colors.dangerBg,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginTop: Spacing.md,
-    width: "100%",
-  },
-  frozenTitle: { ...Typography.smallMedium, color: Colors.danger, fontWeight: "700" },
-  frozenText: { ...Typography.small, color: Colors.danger, marginTop: 4 },
-  balanceActions: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
-    gap: Spacing.md,
-    marginTop: Spacing.lg,
-  },
-  depositBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    backgroundColor: Colors.gold,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  depositText: { ...Typography.buttonSmall, color: Colors.white },
-  withdrawBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  withdrawText: { ...Typography.buttonSmall, color: Colors.textSecondary },
-  txHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  txTitle: { ...Typography.h4, color: Colors.textPrimary },
-  seeAll: { ...Typography.smallMedium, color: Colors.gold },
-  paginationRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: Spacing.md,
-  },
-  pageBtn: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-  },
-  pageBtnDisabled: { opacity: 0.4 },
-  pageBtnText: { ...Typography.smallMedium, color: Colors.white },
-  pageIndicator: { ...Typography.small, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    headerRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: Spacing.lg,
+    },
+    title: { ...typography.h2, color: Colors.white },
+    balanceCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+      alignItems: "center",
+      marginBottom: Spacing.xxl,
+    },
+    balanceLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      letterSpacing: 1,
+    },
+    balanceAmount: {
+      fontSize: 34,
+      fontWeight: "800",
+      color: Colors.white,
+      marginTop: 4,
+    },
+    setupHint: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginTop: 6,
+      textAlign: "center",
+    },
+    frozenBanner: {
+      backgroundColor: Colors.dangerBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginTop: Spacing.md,
+      width: "100%",
+    },
+    frozenTitle: { ...typography.smallMedium, color: Colors.danger, fontWeight: "700" },
+    frozenText: { ...typography.small, color: Colors.danger, marginTop: 4 },
+    balanceActions: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      justifyContent: "center",
+      gap: Spacing.md,
+      marginTop: Spacing.lg,
+    },
+    depositBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      backgroundColor: Colors.gold,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+    },
+    depositText: { ...typography.buttonSmall, color: Colors.white },
+    withdrawBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+    },
+    withdrawText: { ...typography.buttonSmall, color: Colors.textSecondary },
+    txHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: Spacing.md,
+    },
+    txTitle: { ...typography.h4, color: Colors.textPrimary },
+    seeAll: { ...typography.smallMedium, color: Colors.gold },
+    paginationRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: Spacing.md,
+    },
+    pageBtn: {
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+    },
+    pageBtnDisabled: { opacity: 0.4 },
+    pageBtnText: { ...typography.smallMedium, color: Colors.white },
+    pageIndicator: { ...typography.small, color: Colors.textSecondary },
+  });
+}

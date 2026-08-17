@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 
 type BadgeVariant =
   | "success"
@@ -26,6 +26,8 @@ const variantColors: Record<BadgeVariant, { bg: string; text: string }> = {
 };
 
 export function Badge({ label, variant = "default", style }: Props) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const c = variantColors[variant];
   return (
     <View style={[styles.badge, { backgroundColor: c.bg }, style]}>
@@ -34,15 +36,17 @@ export function Badge({ label, variant = "default", style }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  badge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 2,
-    borderRadius: BorderRadius.full,
-    alignSelf: "flex-start",
-  },
-  text: {
-    ...Typography.caption,
-    fontWeight: "600",
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    badge: {
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 2,
+      borderRadius: BorderRadius.full,
+      alignSelf: "flex-start",
+    },
+    text: {
+      ...typography.caption,
+      fontWeight: "600",
+    },
+  });
+}

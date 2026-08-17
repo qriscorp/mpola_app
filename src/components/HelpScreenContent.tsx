@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Card } from "./Card";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
@@ -26,6 +26,8 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 function Chip({ label, active, onPress, color }: { label: string; active: boolean; onPress: () => void; color: string }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <TouchableOpacity
       style={[styles.chip, active && { backgroundColor: color, borderColor: color }]}
@@ -45,6 +47,8 @@ const statusVariant: Record<string, "info" | "warning" | "success" | "default"> 
 
 export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?: string }) {
   const qc = useQueryClient();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [faqSearch, setFaqSearch] = useState("");
   const { data: faqs, isLoading: faqsLoading } = useQuery({
     queryKey: ["faqs", faqSearch],
@@ -222,59 +226,61 @@ export function HelpScreenContent({ accentColor = Colors.teal }: { accentColor?:
   );
 }
 
-const styles = StyleSheet.create({
-  sectionTitle: { ...Typography.h4, color: Colors.textPrimary },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
-  faqItem: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
-  faqQ: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  faqA: { ...Typography.small, color: Colors.textSecondary, marginTop: 4 },
-  searchBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  searchInput: { flex: 1, paddingVertical: Spacing.sm, color: Colors.textPrimary, ...Typography.body },
-  fieldLabel: { ...Typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.xs },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.xs },
-  chip: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-  },
-  chipText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: "600" },
-  chipTextActive: { color: Colors.white },
-  formBox: { gap: Spacing.sm, marginBottom: Spacing.md, paddingTop: Spacing.sm },
-  input: {
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    color: Colors.textPrimary,
-    ...Typography.body,
-    marginBottom: Spacing.sm,
-  },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
-  ticketRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.sm,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-  },
-  ticketSubject: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  ticketMeta: { ...Typography.caption, color: Colors.textMuted },
-  threadBox: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
-  messageBubble: { borderRadius: BorderRadius.md, padding: Spacing.sm, marginBottom: Spacing.xs },
-  messageSender: { ...Typography.caption, color: Colors.textMuted, marginBottom: 2 },
-  messageText: { ...Typography.small, color: Colors.textPrimary },
-  replyRow: { flexDirection: "row", gap: Spacing.sm, alignItems: "center" },
-  sendBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    sectionTitle: { ...typography.h4, color: Colors.textPrimary },
+    rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: Spacing.sm },
+    faqItem: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
+    faqQ: { ...typography.bodyMedium, color: Colors.textPrimary },
+    faqA: { ...typography.small, color: Colors.textSecondary, marginTop: 4 },
+    searchBox: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    searchInput: { flex: 1, paddingVertical: Spacing.sm, color: Colors.textPrimary, ...typography.body },
+    fieldLabel: { ...typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.xs },
+    chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.xs },
+    chip: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 6,
+    },
+    chipText: { ...typography.caption, color: Colors.textSecondary, fontWeight: "600" },
+    chipTextActive: { color: Colors.white },
+    formBox: { gap: Spacing.sm, marginBottom: Spacing.md, paddingTop: Spacing.sm },
+    input: {
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      color: Colors.textPrimary,
+      ...typography.body,
+      marginBottom: Spacing.sm,
+    },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
+    ticketRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+    },
+    ticketSubject: { ...typography.bodyMedium, color: Colors.textPrimary },
+    ticketMeta: { ...typography.caption, color: Colors.textMuted },
+    threadBox: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
+    messageBubble: { borderRadius: BorderRadius.md, padding: Spacing.sm, marginBottom: Spacing.xs },
+    messageSender: { ...typography.caption, color: Colors.textMuted, marginBottom: 2 },
+    messageText: { ...typography.small, color: Colors.textPrimary },
+    replyRow: { flexDirection: "row", gap: Spacing.sm, alignItems: "center" },
+    sendBtn: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center" },
+  });
+}

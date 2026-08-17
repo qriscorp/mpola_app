@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ViewStyle } from "react-native";
-import { Colors, Typography, Spacing, BorderRadius, Shadow } from "../theme";
+import { Colors, Spacing, BorderRadius, Shadow, useScaledTypography } from "../theme";
 
 interface Props {
   children: React.ReactNode;
@@ -10,6 +10,8 @@ interface Props {
 }
 
 export function Card({ children, title, style, noPadding }: Props) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <View style={[styles.card, noPadding && { padding: 0 }, style]}>
       {title && <Text style={styles.title}>{title}</Text>}
@@ -18,15 +20,17 @@ export function Card({ children, title, style, noPadding }: Props) {
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-  },
-  title: {
-    ...Typography.h4,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+    },
+    title: {
+      ...typography.h4,
+      color: Colors.textPrimary,
+      marginBottom: Spacing.md,
+    },
+  });
+}

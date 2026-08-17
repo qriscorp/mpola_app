@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import {
   Badge,
   ProgressBar,
@@ -26,6 +26,8 @@ import { formatCompactUGX } from "../../src/services/currency";
 
 export default function PortfolioScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [expandedLoanId, setExpandedLoanId] = useState<string | null>(null);
   const {
     filter,
@@ -279,77 +281,79 @@ export default function PortfolioScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  title: { ...Typography.h2, color: Colors.white, marginBottom: Spacing.lg },
-  statsRow: { flexDirection: "row", marginBottom: Spacing.sm },
-  filterRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginTop: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  filterTab: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  filterTabActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  filterText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  filterTextActive: { color: Colors.white },
-  loanCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.gold,
-  },
-  loanHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  loanInfo: {},
-  loanName: { ...Typography.h4, color: Colors.textPrimary },
-  loanMeta: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
-  pendingNote: {
-    ...Typography.small,
-    color: Colors.warning,
-    marginBottom: Spacing.md,
-  },
-  docsSection: { marginBottom: Spacing.md },
-  docsToggle: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    alignSelf: "flex-start",
-  },
-  docsToggleText: { ...Typography.smallMedium, color: Colors.teal },
-  docsChecklist: { marginTop: Spacing.sm },
-  approveBtn: {
-    backgroundColor: Colors.success,
-    borderRadius: BorderRadius.md,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  approveBtnText: { ...Typography.smallMedium, color: Colors.white },
-  progressSection: { marginBottom: Spacing.md },
-  progressLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: Spacing.xs,
-  },
-  progressLabel: { ...Typography.small, color: Colors.textSecondary },
-  progressPercent: { ...Typography.smallMedium, color: Colors.textPrimary },
-  loanFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  footerLabel: { ...Typography.small, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    title: { ...typography.h2, color: Colors.white, marginBottom: Spacing.lg },
+    statsRow: { flexDirection: "row", marginBottom: Spacing.sm },
+    filterRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginTop: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    filterTab: {
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    filterTabActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    filterText: { ...typography.smallMedium, color: Colors.textSecondary },
+    filterTextActive: { color: Colors.white },
+    loanCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+      borderLeftWidth: 3,
+      borderLeftColor: Colors.gold,
+    },
+    loanHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: Spacing.md,
+    },
+    loanInfo: {},
+    loanName: { ...typography.h4, color: Colors.textPrimary },
+    loanMeta: { ...typography.small, color: Colors.textSecondary, marginTop: 2 },
+    pendingNote: {
+      ...typography.small,
+      color: Colors.warning,
+      marginBottom: Spacing.md,
+    },
+    docsSection: { marginBottom: Spacing.md },
+    docsToggle: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 4,
+      alignSelf: "flex-start",
+    },
+    docsToggleText: { ...typography.smallMedium, color: Colors.teal },
+    docsChecklist: { marginTop: Spacing.sm },
+    approveBtn: {
+      backgroundColor: Colors.success,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    approveBtnText: { ...typography.smallMedium, color: Colors.white },
+    progressSection: { marginBottom: Spacing.md },
+    progressLabelRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: Spacing.xs,
+    },
+    progressLabel: { ...typography.small, color: Colors.textSecondary },
+    progressPercent: { ...typography.smallMedium, color: Colors.textPrimary },
+    loanFooter: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+    },
+    footerLabel: { ...typography.small, color: Colors.textMuted },
+  });
+}

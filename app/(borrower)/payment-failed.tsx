@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card } from "../../src/components";
 
 const METHOD_LABEL: Record<string, string> = {
@@ -21,6 +21,8 @@ export default function PaymentFailedScreen() {
   }>();
 
   const amount = Number(params.amount ?? 0);
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -73,50 +75,52 @@ export default function PaymentFailedScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: Spacing.xxl,
-  },
-  xCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.danger + "25",
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
-    marginBottom: Spacing.lg,
-  },
-  x: { fontSize: 32, color: Colors.danger },
-  title: {
-    ...Typography.h2,
-    color: Colors.white,
-    textAlign: "center",
-    marginBottom: Spacing.xs,
-  },
-  reason: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    textAlign: "center",
-    marginBottom: Spacing.xxl,
-  },
-  details: { marginBottom: Spacing.lg },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  label: { ...Typography.body, color: Colors.textSecondary },
-  value: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  note: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    textAlign: "center",
-    marginBottom: Spacing.xxl,
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    content: {
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: Spacing.xxl,
+    },
+    xCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: Colors.danger + "25",
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "center",
+      marginBottom: Spacing.lg,
+    },
+    x: { fontSize: 32, color: Colors.danger },
+    title: {
+      ...typography.h2,
+      color: Colors.white,
+      textAlign: "center",
+      marginBottom: Spacing.xs,
+    },
+    reason: {
+      ...typography.small,
+      color: Colors.textMuted,
+      textAlign: "center",
+      marginBottom: Spacing.xxl,
+    },
+    details: { marginBottom: Spacing.lg },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    label: { ...typography.body, color: Colors.textSecondary },
+    value: { ...typography.bodyMedium, color: Colors.textPrimary },
+    note: {
+      ...typography.small,
+      color: Colors.textMuted,
+      textAlign: "center",
+      marginBottom: Spacing.xxl,
+    },
+  });
+}

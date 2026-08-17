@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Input, Card } from "../../src/components";
 import { useMakeOfferViewModel, DOCUMENT_OPTIONS } from "../../src/viewmodels";
 
@@ -19,6 +19,8 @@ export default function MakeOfferScreen() {
     applicationId: string;
     borrowerName: string;
   }>();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const vm = useMakeOfferViewModel(applicationId ?? "");
 
   const handleSend = async () => {
@@ -200,105 +202,107 @@ export default function MakeOfferScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-  },
-  cooldownBanner: {
-    backgroundColor: Colors.warningBg,
-    borderWidth: 1,
-    borderColor: Colors.warning,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  cooldownBannerText: { ...Typography.small, color: Colors.warning },
-  error: {
-    ...Typography.small,
-    color: Colors.danger,
-    marginTop: -Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  sectionLabel: {
-    ...Typography.smallMedium,
-    color: Colors.textSecondary,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
-  },
-  unitRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  unitChip: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  unitChipActive: { backgroundColor: Colors.gold + "25", borderColor: Colors.gold },
-  unitChipText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  unitChipTextActive: { color: Colors.gold },
-  docChipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.xs,
-    marginBottom: Spacing.md,
-  },
-  docChip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  docChipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  docChipText: { ...Typography.caption, color: Colors.textSecondary },
-  docChipTextSelected: { color: Colors.white, fontWeight: "600" },
-  customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
-  addDocBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  addDocBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  previewCard: {
-    backgroundColor: Colors.surface,
-    borderWidth: 1,
-    borderColor: Colors.gold + "40",
-    marginTop: Spacing.md,
-    marginBottom: Spacing.md,
-  },
-  previewTitle: {
-    ...Typography.h4,
-    color: Colors.white,
-    marginBottom: Spacing.md,
-  },
-  previewRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  previewLabel: { ...Typography.body, color: Colors.textMuted },
-  previewValue: { ...Typography.bodyMedium, color: Colors.white },
-  cancelLink: { alignItems: "center", marginTop: Spacing.xl },
-  cancelText: { ...Typography.body, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    subtitle: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      marginBottom: Spacing.lg,
+    },
+    cooldownBanner: {
+      backgroundColor: Colors.warningBg,
+      borderWidth: 1,
+      borderColor: Colors.warning,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    cooldownBannerText: { ...typography.small, color: Colors.warning },
+    error: {
+      ...typography.small,
+      color: Colors.danger,
+      marginTop: -Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    sectionLabel: {
+      ...typography.smallMedium,
+      color: Colors.textSecondary,
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.sm,
+    },
+    unitRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    unitChip: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    unitChipActive: { backgroundColor: Colors.gold + "25", borderColor: Colors.gold },
+    unitChipText: { ...typography.smallMedium, color: Colors.textSecondary },
+    unitChipTextActive: { color: Colors.gold },
+    docChipRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.xs,
+      marginBottom: Spacing.md,
+    },
+    docChip: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 6,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    docChipSelected: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    docChipText: { ...typography.caption, color: Colors.textSecondary },
+    docChipTextSelected: { color: Colors.white, fontWeight: "600" },
+    customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.md },
+    addDocBtn: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    addDocBtnText: { ...typography.smallMedium, color: Colors.textSecondary },
+    previewCard: {
+      backgroundColor: Colors.surface,
+      borderWidth: 1,
+      borderColor: Colors.gold + "40",
+      marginTop: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    previewTitle: {
+      ...typography.h4,
+      color: Colors.white,
+      marginBottom: Spacing.md,
+    },
+    previewRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    previewLabel: { ...typography.body, color: Colors.textMuted },
+    previewValue: { ...typography.bodyMedium, color: Colors.white },
+    cancelLink: { alignItems: "center", marginTop: Spacing.xl },
+    cancelText: { ...typography.body, color: Colors.textSecondary },
+  });
+}

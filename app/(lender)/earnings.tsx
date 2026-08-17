@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing } from "../../src/theme";
+import { Colors, Spacing, useScaledTypography } from "../../src/theme";
 import { Card, StatCard, SkeletonStatRow, SkeletonCard } from "../../src/components";
 import { useEarningsViewModel } from "../../src/viewmodels";
 import { formatCompactUGX } from "../../src/services/currency";
@@ -17,6 +17,8 @@ import { formatCompactUGX } from "../../src/services/currency";
 export default function EarningsScreen() {
   const router = useRouter();
   const { earnings, monthly, isLoading } = useEarningsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (isLoading) {
     return (
@@ -120,52 +122,54 @@ export default function EarningsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  statsRow: { flexDirection: "row", marginBottom: Spacing.lg },
-  warningBanner: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: Spacing.sm,
-    backgroundColor: Colors.warningBg,
-    borderRadius: 12,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  warningText: { ...Typography.small, color: Colors.warningLight, flex: 1 },
-  chartCard: { backgroundColor: Colors.surface, marginBottom: Spacing.lg },
-  chartTitle: {
-    ...Typography.h4,
-    color: Colors.white,
-    marginBottom: Spacing.lg,
-  },
-  chartContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-end",
-    height: 150,
-    paddingTop: Spacing.lg,
-  },
-  barCol: { alignItems: "center", flex: 1 },
-  bar: { width: 24, borderRadius: 4, minHeight: 4 },
-  barLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    textAlign: "center",
-    paddingVertical: Spacing.xl,
-  },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    statsRow: { flexDirection: "row", marginBottom: Spacing.lg },
+    warningBanner: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: Spacing.sm,
+      backgroundColor: Colors.warningBg,
+      borderRadius: 12,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    warningText: { ...typography.small, color: Colors.warningLight, flex: 1 },
+    chartCard: { backgroundColor: Colors.surface, marginBottom: Spacing.lg },
+    chartTitle: {
+      ...typography.h4,
+      color: Colors.white,
+      marginBottom: Spacing.lg,
+    },
+    chartContainer: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-end",
+      height: 150,
+      paddingTop: Spacing.lg,
+    },
+    barCol: { alignItems: "center", flex: 1 },
+    bar: { width: 24, borderRadius: 4, minHeight: 4 },
+    barLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      marginTop: Spacing.xs,
+    },
+    emptyText: {
+      ...typography.body,
+      color: Colors.textMuted,
+      textAlign: "center",
+      paddingVertical: Spacing.xl,
+    },
+  });
+}
