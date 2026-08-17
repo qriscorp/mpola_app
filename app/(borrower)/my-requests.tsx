@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Badge, Input, SkeletonList, InfoTip } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
@@ -46,6 +46,8 @@ function ReplaceForm({
   onDone: () => void;
 }) {
   const { replaceGuarantorByContact, isReplacing } = useMyApplicationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
 
@@ -82,6 +84,8 @@ function ReplaceForm({
 
 function GuarantorRow({ applicationId, guarantor }: { applicationId: string; guarantor: Guarantor }) {
   const { remindGuarantor, isReminding } = useMyApplicationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [replacing, setReplacing] = useState(false);
 
   const handleRemind = async () => {
@@ -138,6 +142,8 @@ const EMERGENCY_DAY_PRESETS = [1, 3, 7, 14];
 
 function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: () => void }) {
   const { updateApplication, isUpdating } = useMyApplicationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [amount, setAmount] = useState(String(app.amount));
   const [duration, setDuration] = useState(app.duration ?? 3);
   const [durationDays, setDurationDays] = useState<number | null>(app.durationDays);
@@ -321,6 +327,8 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
 function ApplicationActions({ app }: { app: LoanApplication }) {
   const { deleteApplication, isDeleting, freezeApplication, isFreezing, unfreezeApplication, isUnfreezing } =
     useMyApplicationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [editing, setEditing] = useState(false);
 
   // A guarantor's acceptance covers the exact terms they saw — once one has
@@ -417,6 +425,8 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
 }
 
 function DetailRow({ label, value }: { label: string; value: string }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <View style={styles.detailRow}>
       <Text style={styles.detailLabel}>{label}</Text>
@@ -426,6 +436,8 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 function RequestDetailPanel({ app }: { app: LoanApplication }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <View style={styles.detailPanel}>
       <DetailRow label="Reference" value={app.referenceNumber} />
@@ -465,6 +477,8 @@ function RequestDetailPanel({ app }: { app: LoanApplication }) {
 
 function DiscardDraftLink({ applicationId }: { applicationId: string }) {
   const { deleteApplication, isDeleting } = useMyApplicationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const handleDiscard = () => {
     Alert.alert("Discard this unfinished request?", "This can't be undone.", [
       { text: "Cancel", style: "cancel" },
@@ -490,6 +504,8 @@ function DiscardDraftLink({ applicationId }: { applicationId: string }) {
 
 function ApplicationCard({ app }: { app: LoanApplication }) {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [showDetails, setShowDetails] = useState(false);
 
   // The apply wizard now creates the real application at step 1 and only
@@ -598,6 +614,8 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
 export default function MyRequestsScreen() {
   const router = useRouter();
   const { applications, isLoading } = useMyApplicationsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [activeTab, setActiveTab] = useState<Tab>("All");
 
   const filtered = useMemo(() => {
@@ -654,138 +672,140 @@ export default function MyRequestsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  flowNoteRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.xs,
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.sm,
-  },
-  flowNoteText: { ...Typography.small, color: Colors.textMuted },
-  tabsRow: { flexDirection: "row", gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
-  tab: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  tabActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
-  tabText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  tabTextActive: { color: Colors.teal },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  empty: { alignItems: "center", paddingVertical: Spacing.xxl, gap: Spacing.md },
-  emptyText: { ...Typography.body, color: Colors.textMuted },
-  emptyBtn: { backgroundColor: Colors.teal, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full },
-  emptyBtnText: { ...Typography.smallMedium, color: Colors.white },
-  card: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.md,
-  },
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  amount: { ...Typography.h4, color: Colors.textPrimary },
-  subInfo: { ...Typography.small, color: Colors.textMuted, marginTop: 2, textTransform: "capitalize" },
-  awaitingNote: { ...Typography.caption, color: Colors.warning, marginTop: Spacing.sm },
-  draftCard: { borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed" },
-  draftNote: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
-  discardDraftText: { ...Typography.caption, color: Colors.textMuted, textAlign: "center" },
-  guarantorSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
-  guarantorRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  guarantorName: { ...Typography.small, color: Colors.textPrimary },
-  actionLink: { ...Typography.caption, fontWeight: "600", color: Colors.teal },
-  replaceBox: { marginTop: Spacing.sm, gap: Spacing.sm },
-  replaceActions: { flexDirection: "row", gap: Spacing.sm },
-  cancelBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  cancelText: { ...Typography.caption, color: Colors.textSecondary },
-  replaceBtn: {
-    backgroundColor: Colors.teal,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  replaceText: { ...Typography.caption, fontWeight: "600", color: Colors.white },
-  viewOffersBtn: {
-    marginTop: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.teal,
-    borderRadius: BorderRadius.full,
-    paddingVertical: Spacing.sm,
-    alignItems: "center",
-  },
-  viewOffersText: { ...Typography.buttonSmall, color: Colors.teal },
-  cardBtnRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.md },
-  cardBtnFlex: { flex: 1, marginTop: 0 },
-  detailsBtn: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.sm },
-  detailPanel: {
-    marginTop: Spacing.md,
-    paddingTop: Spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    gap: 2,
-  },
-  detailRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.xs,
-  },
-  detailLabel: { ...Typography.small, color: Colors.textMuted },
-  detailValue: { ...Typography.smallMedium, color: Colors.textPrimary, flexShrink: 1, textAlign: "right" },
-  actionsSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
-  actionsRow: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
-  outlineBtn: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  outlineBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  outlineBtnDanger: {
-    borderWidth: 1,
-    borderColor: Colors.danger,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  outlineBtnDangerText: { ...Typography.smallMedium, color: Colors.danger },
-  primaryBtn: {
-    backgroundColor: Colors.teal,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-  },
-  primaryBtnText: { ...Typography.smallMedium, color: Colors.white },
-  frozenNote: { ...Typography.caption, color: Colors.textMuted },
-  editBox: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
-  editLabel: { ...Typography.caption, color: Colors.textMuted, marginTop: Spacing.xs },
-  pillRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs },
-  pill: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  pillActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
-  pillText: { ...Typography.caption, color: Colors.textSecondary },
-  pillTextActive: { color: Colors.teal, fontWeight: "600" },
-  editHint: { ...Typography.caption, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    flowNoteRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      paddingHorizontal: Spacing.lg,
+      paddingBottom: Spacing.sm,
+    },
+    flowNoteText: { ...typography.small, color: Colors.textMuted },
+    tabsRow: { flexDirection: "row", gap: Spacing.sm, paddingHorizontal: Spacing.lg, paddingBottom: Spacing.md },
+    tab: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    tabActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
+    tabText: { ...typography.smallMedium, color: Colors.textSecondary },
+    tabTextActive: { color: Colors.teal },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    empty: { alignItems: "center", paddingVertical: Spacing.xxl, gap: Spacing.md },
+    emptyText: { ...typography.body, color: Colors.textMuted },
+    emptyBtn: { backgroundColor: Colors.teal, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full },
+    emptyBtnText: { ...typography.smallMedium, color: Colors.white },
+    card: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.md,
+    },
+    cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+    amount: { ...typography.h4, color: Colors.textPrimary },
+    subInfo: { ...typography.small, color: Colors.textMuted, marginTop: 2, textTransform: "capitalize" },
+    awaitingNote: { ...typography.caption, color: Colors.warning, marginTop: Spacing.sm },
+    draftCard: { borderWidth: 1, borderColor: Colors.border, borderStyle: "dashed" },
+    draftNote: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
+    discardDraftText: { ...typography.caption, color: Colors.textMuted, textAlign: "center" },
+    guarantorSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border },
+    guarantorRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    guarantorName: { ...typography.small, color: Colors.textPrimary },
+    actionLink: { ...typography.caption, fontWeight: "600", color: Colors.teal },
+    replaceBox: { marginTop: Spacing.sm, gap: Spacing.sm },
+    replaceActions: { flexDirection: "row", gap: Spacing.sm },
+    cancelBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    cancelText: { ...typography.caption, color: Colors.textSecondary },
+    replaceBtn: {
+      backgroundColor: Colors.teal,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    replaceText: { ...typography.caption, fontWeight: "600", color: Colors.white },
+    viewOffersBtn: {
+      marginTop: Spacing.md,
+      borderWidth: 1,
+      borderColor: Colors.teal,
+      borderRadius: BorderRadius.full,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+    },
+    viewOffersText: { ...typography.buttonSmall, color: Colors.teal },
+    cardBtnRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.md },
+    cardBtnFlex: { flex: 1, marginTop: 0 },
+    detailsBtn: { alignItems: "center", justifyContent: "center", paddingVertical: Spacing.sm },
+    detailPanel: {
+      marginTop: Spacing.md,
+      paddingTop: Spacing.md,
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+      gap: 2,
+    },
+    detailRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.xs,
+    },
+    detailLabel: { ...typography.small, color: Colors.textMuted },
+    detailValue: { ...typography.smallMedium, color: Colors.textPrimary, flexShrink: 1, textAlign: "right" },
+    actionsSection: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
+    actionsRow: { flexDirection: "row", gap: Spacing.sm, flexWrap: "wrap" },
+    outlineBtn: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    outlineBtnText: { ...typography.smallMedium, color: Colors.textSecondary },
+    outlineBtnDanger: {
+      borderWidth: 1,
+      borderColor: Colors.danger,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    outlineBtnDangerText: { ...typography.smallMedium, color: Colors.danger },
+    primaryBtn: {
+      backgroundColor: Colors.teal,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+    },
+    primaryBtnText: { ...typography.smallMedium, color: Colors.white },
+    frozenNote: { ...typography.caption, color: Colors.textMuted },
+    editBox: { marginTop: Spacing.md, paddingTop: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: Spacing.sm },
+    editLabel: { ...typography.caption, color: Colors.textMuted, marginTop: Spacing.xs },
+    pillRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs },
+    pill: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    pillActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
+    pillText: { ...typography.caption, color: Colors.textSecondary },
+    pillTextActive: { color: Colors.teal, fontWeight: "600" },
+    editHint: { ...typography.caption, color: Colors.textMuted },
+  });
+}
