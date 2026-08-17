@@ -27,7 +27,7 @@ export default function BorrowerTabLayout() {
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: "500",
         },
       }}
@@ -78,16 +78,12 @@ export default function BorrowerTabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-outline" size={size} color={color} />
-          ),
-        }}
-      />
       {/* Hidden screens accessible via navigation */}
+      {/* Profile — reached via the avatar in Home's header, not a bottom
+          tab, to keep the tab bar to 5 items. Settings was merged into
+          Profile (see app/(borrower)/profile.tsx), so there's no separate
+          settings route anymore. */}
+      <Tabs.Screen name="profile" options={{ href: null }} />
       <Tabs.Screen name="register" options={{ href: null }} />
       <Tabs.Screen name="offers" options={{ href: null }} />
       <Tabs.Screen name="payment" options={{ href: null }} />

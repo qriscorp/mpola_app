@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
-import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
+import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection, SettingsScreenContent } from "../../src/components";
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   return (
@@ -71,11 +71,17 @@ export default function ProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
-        {/* Header */}
+        {/* Header — Profile is reached by pushing from Home's avatar, not
+            a tab root, so it needs a real way back rather than the logo
+            mark tab roots show. */}
         <View style={styles.header}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
           <Text style={styles.headerTitle}>Account</Text>
           <View style={styles.avatarSmall}>
             <Text style={styles.avatarSmallText}>{initials}</Text>
@@ -145,13 +151,10 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Support & Settings */}
-        <Text style={styles.sectionLabel}>SUPPORT & SETTINGS</Text>
+        {/* Support */}
+        <Text style={styles.sectionLabel}>SUPPORT</Text>
         <View style={[styles.card, { paddingVertical: 0 }]}>
-          <MenuRow icon="settings-outline" label="Settings" onPress={() => router.push("/(borrower)/settings")} />
-          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
-            <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(borrower)/referrals")} />
-          </View>
+          <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(borrower)/referrals")} />
           <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
             <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => router.push("/(borrower)/help")} />
           </View>
@@ -163,22 +166,13 @@ export default function ProfileScreen() {
         {/* Security */}
         <Text style={styles.sectionLabel}>SECURITY</Text>
         <View style={styles.card}>
-          <View style={styles.toggleRow}>
-            <View>
-              <Text style={styles.toggleTitle}>Two-Factor Authentication</Text>
-              <Text style={styles.toggleSub}>SMS code on login</Text>
-            </View>
-            <Switch
-              value={!!profile.twoFactorEnabled}
-              onValueChange={(v) => updateProfile({ twoFactorEnabled: v })}
-              trackColor={{ true: Colors.teal }}
-            />
-          </View>
-          <View style={{ height: Spacing.md }} />
           <BiometricToggle accentColor={Colors.teal} />
           <View style={{ height: Spacing.md }} />
           <SessionsSection accentColor={Colors.teal} />
         </View>
+
+        {/* Settings — 2FA, login alerts, password, about, danger zone */}
+        <SettingsScreenContent accentColor={Colors.teal} />
 
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
@@ -199,15 +193,6 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xl,
     gap: Spacing.sm,
   },
-  logoBox: {
-    width: 34,
-    height: 34,
-    borderRadius: 8,
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
   headerTitle: { ...Typography.h3, color: Colors.white, flex: 1 },
   avatarSmall: {
     width: 36,

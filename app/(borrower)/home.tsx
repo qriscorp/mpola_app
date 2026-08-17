@@ -78,9 +78,14 @@ export default function BorrowerHomeScreen() {
               />
               {unreadCount > 0 && <View style={styles.bellDot} />}
             </TouchableOpacity>
-            <View style={styles.avatarCircle}>
+            <TouchableOpacity
+              style={styles.avatarCircle}
+              onPress={() => router.push("/(borrower)/profile")}
+              accessibilityLabel="Open your profile"
+              accessibilityRole="button"
+            >
               <Text style={styles.avatarText}>{initials}</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 

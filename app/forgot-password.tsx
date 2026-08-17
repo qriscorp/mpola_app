@@ -364,7 +364,6 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.textMuted,
     marginTop: 4,
-    fontSize: 10,
   },
   stepLabelActive: { color: Colors.teal },
   stepLine: {

@@ -151,7 +151,7 @@ export function TransactionDetailModal({
 
           {isLoading || !tx ? (
             <View style={styles.loading}>
-              <ActivityIndicator color={Colors.teal} />
+              <ActivityIndicator size="large" color={Colors.teal} />
             </View>
           ) : (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>

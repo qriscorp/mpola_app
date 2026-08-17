@@ -42,7 +42,7 @@ export default function LenderTabLayout() {
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 10,
+          fontSize: 12,
           fontWeight: "500",
         },
       }}

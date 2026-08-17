@@ -106,7 +106,7 @@ export default function ApplyScreen() {
           <View style={{ width: 24 }} />
         </View>
         <View style={styles.resumingBox}>
-          <ActivityIndicator color={Colors.teal} />
+          <ActivityIndicator size="large" color={Colors.teal} />
         </View>
       </SafeAreaView>
     );
