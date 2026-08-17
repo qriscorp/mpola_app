@@ -114,33 +114,43 @@ export function useAuthViewModel() {
     }
   };
 
-  const login = async () => {
+  // Returns the freshly-logged-in user directly, rather than relying on the
+  // caller reading `authUser` state right after this resolves — setAuthUser()
+  // below only takes effect on the *next* render, so a caller reading
+  // `vm.authUser` synchronously after `await login()` would still see
+  // whatever authUser was BEFORE this call (null on a first login, or the
+  // previous session's user after a role switch — this was exactly why
+  // logging in as a lender right after a borrower session landed back on
+  // the borrower side: the stale closure value happened to fall through to
+  // the "not lender" default).
+  const login = async (): Promise<AuthUser | null> => {
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
       setErrors(extractErrors(result.error));
-      return false;
+      return null;
     }
     setErrors({});
     try {
       const loginResult = await loginMutation.mutateAsync({ email, password });
-      // requires2FA: false result → real sign-in, caller should navigate.
-      // requires2FA: true → caller should show the code-entry step instead.
-      return !loginResult.requires2FA;
+      // requires2FA: true → caller should show the code-entry step instead
+      // of navigating; requires2FA: false → real sign-in, return the user
+      // straight from the response so routing never depends on state timing.
+      return loginResult.requires2FA ? null : loginResult.user;
     } catch (e: any) {
       setErrors({ email: e?.message || "Invalid credentials" });
-      return false;
+      return null;
     }
   };
 
-  const verifyTwoFactor = async (code: string) => {
-    if (!twoFactorUsername) return false;
+  const verifyTwoFactor = async (code: string): Promise<AuthUser | null> => {
+    if (!twoFactorUsername) return null;
     setErrors({});
     try {
-      await verifyTwoFactorMutation.mutateAsync({ username: twoFactorUsername, code });
-      return true;
+      const user = await verifyTwoFactorMutation.mutateAsync({ username: twoFactorUsername, code });
+      return user;
     } catch (e: any) {
       setErrors({ code: e?.message || "Invalid code" });
-      return false;
+      return null;
     }
   };
 

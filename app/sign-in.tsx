@@ -45,11 +45,11 @@ export default function SignInScreen() {
   };
 
   const handleSignIn = async () => {
-    const success = await vm.login();
+    const user = await vm.login();
     // If this account has 2FA enabled, vm.twoFactorUsername is now set and
     // the code-entry step below renders instead of navigating away.
-    if (success) {
-      routeForRole(vm.authUser?.role);
+    if (user) {
+      routeForRole(user.role);
     }
   };
 
@@ -70,9 +70,9 @@ export default function SignInScreen() {
   };
 
   const handleVerifyTwoFactor = async () => {
-    const success = await vm.verifyTwoFactor(twoFactorCode.join(""));
-    if (success) {
-      routeForRole(vm.authUser?.role);
+    const user = await vm.verifyTwoFactor(twoFactorCode.join(""));
+    if (user) {
+      routeForRole(user.role);
     }
   };
 
