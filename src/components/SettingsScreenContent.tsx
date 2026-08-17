@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Switch, Modal, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useFontScale, useScaledTypography } from "../theme";
 import { Card } from "./Card";
 import { Button } from "./Button";
 import { Input } from "./Input";
@@ -17,6 +17,9 @@ const MPOLA_WEB_URL = "https://mpola.co";
 
 export function SettingsScreenContent({ accentColor = Colors.teal }: { accentColor?: string }) {
   const { profile, updateProfile, signOut } = useProfileViewModel();
+  const typography = useScaledTypography();
+  const fontScale = useFontScale();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -69,6 +72,55 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
 
   return (
     <View style={{ gap: Spacing.lg }}>
+      <Card>
+        <View style={styles.textSizeHeader}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.sectionTitle}>Text Size</Text>
+            <Text style={styles.toggleSub}>Adjust text size for the entire app</Text>
+          </View>
+          <Text style={[styles.textSizePercent, { color: accentColor }]}>
+            {fontScale.percentage}%
+          </Text>
+        </View>
+        <View style={styles.textSizeControls}>
+          <TouchableOpacity
+            onPress={fontScale.decrease}
+            disabled={!fontScale.canDecrease}
+            style={[styles.textSizeBtn, !fontScale.canDecrease && styles.textSizeBtnDisabled]}
+            accessibilityLabel="Decrease text size"
+          >
+            <Ionicons name="remove" size={20} color={fontScale.canDecrease ? accentColor : Colors.textMuted} />
+          </TouchableOpacity>
+          <View style={styles.textSizeTrack}>
+            <View
+              style={[
+                styles.textSizeFill,
+                {
+                  width: `${((fontScale.scale - 0.8) / (1.6 - 0.8)) * 100}%`,
+                  backgroundColor: accentColor,
+                },
+              ]}
+            />
+          </View>
+          <TouchableOpacity
+            onPress={fontScale.increase}
+            disabled={!fontScale.canIncrease}
+            style={[styles.textSizeBtn, !fontScale.canIncrease && styles.textSizeBtnDisabled]}
+            accessibilityLabel="Increase text size"
+          >
+            <Ionicons name="add" size={20} color={fontScale.canIncrease ? accentColor : Colors.textMuted} />
+          </TouchableOpacity>
+          {!fontScale.isDefault && (
+            <TouchableOpacity onPress={fontScale.reset} style={styles.textSizeReset}>
+              <Text style={[styles.textSizeResetText, { color: accentColor }]}>Reset</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+        <Text style={styles.textSizePreview}>
+          The quick brown fox jumps over the lazy dog
+        </Text>
+      </Card>
+
       <Card>
         <Text style={styles.sectionTitle}>Security</Text>
         <View style={styles.toggleRow}>
@@ -192,18 +244,48 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
   );
 }
 
-const styles = StyleSheet.create({
-  sectionTitle: { ...Typography.h4, color: Colors.textPrimary, marginBottom: Spacing.sm },
-  toggleRow: { flexDirection: "row", alignItems: "center", paddingVertical: Spacing.sm },
-  toggleLabel: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  toggleSub: { ...Typography.small, color: Colors.textSecondary, marginTop: 2 },
-  passwordHint: { ...Typography.small, color: Colors.textMuted, marginTop: -Spacing.sm, marginBottom: Spacing.sm },
-  divider: { height: 1, backgroundColor: Colors.border, marginVertical: Spacing.sm },
-  fieldLabel: { ...Typography.smallMedium, color: Colors.textSecondary, marginBottom: Spacing.sm },
-  menuRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.sm },
-  infoLabel: { ...Typography.body, color: Colors.textSecondary },
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: Spacing.lg },
-  modalCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.lg },
-  modalTitle: { ...Typography.h4, color: Colors.textPrimary, textAlign: "center", marginBottom: Spacing.xs },
-  modalDesc: { ...Typography.small, color: Colors.textSecondary, textAlign: "center", marginBottom: Spacing.md },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    sectionTitle: { ...typography.h4, color: Colors.textPrimary, marginBottom: Spacing.sm },
+    toggleRow: { flexDirection: "row", alignItems: "center", paddingVertical: Spacing.sm },
+    toggleLabel: { ...typography.bodyMedium, color: Colors.textPrimary },
+    toggleSub: { ...typography.small, color: Colors.textSecondary, marginTop: 2 },
+    passwordHint: { ...typography.small, color: Colors.textMuted, marginTop: -Spacing.sm, marginBottom: Spacing.sm },
+    divider: { height: 1, backgroundColor: Colors.border, marginVertical: Spacing.sm },
+    fieldLabel: { ...typography.smallMedium, color: Colors.textSecondary, marginBottom: Spacing.sm },
+    menuRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.sm },
+    infoLabel: { ...typography.body, color: Colors.textSecondary },
+    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: Spacing.lg },
+    modalCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.lg },
+    modalTitle: { ...typography.h4, color: Colors.textPrimary, textAlign: "center", marginBottom: Spacing.xs },
+    modalDesc: { ...typography.small, color: Colors.textSecondary, textAlign: "center", marginBottom: Spacing.md },
+    textSizeHeader: { flexDirection: "row", alignItems: "center", marginBottom: Spacing.md },
+    textSizePercent: { ...typography.h4 },
+    textSizeControls: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+    textSizeBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    textSizeBtnDisabled: { opacity: 0.4 },
+    textSizeTrack: {
+      flex: 1,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: Colors.border,
+      overflow: "hidden",
+    },
+    textSizeFill: { height: "100%", borderRadius: 2 },
+    textSizeReset: { paddingHorizontal: Spacing.sm },
+    textSizeResetText: { ...typography.smallMedium, fontWeight: "700" },
+    textSizePreview: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginTop: Spacing.md,
+    },
+  });
+}

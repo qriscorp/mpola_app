@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { SkeletonList } from "../../src/components";
 import { useReceiptsViewModel } from "../../src/viewmodels";
 
@@ -40,6 +40,8 @@ function formatDateTime(iso: string): string {
 export default function ReceiptsScreen() {
   const router = useRouter();
   const vm = useReceiptsViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   const handleDownload = async (repaymentId: string) => {
     try {
@@ -144,58 +146,60 @@ export default function ReceiptsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.xl },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center" },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.sm,
-    gap: Spacing.sm,
-  },
-  rowLeft: { flex: 1 },
-  amountRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  amount: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  status: { ...Typography.caption, textTransform: "capitalize", fontWeight: "600" },
-  meta: { ...Typography.caption, color: Colors.textMuted, marginTop: 2 },
-  downloadBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.teal,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  downloadText: { color: Colors.teal, fontWeight: "700" },
-  pager: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginTop: Spacing.md,
-  },
-  pagerBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  pagerBtnDisabled: { opacity: 0.4 },
-  pagerText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  pagerLabel: { ...Typography.small, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.xl },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center" },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+      marginBottom: Spacing.sm,
+      gap: Spacing.sm,
+    },
+    rowLeft: { flex: 1 },
+    amountRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+    amount: { ...typography.bodyMedium, color: Colors.textPrimary },
+    status: { ...typography.caption, textTransform: "capitalize", fontWeight: "600" },
+    meta: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
+    downloadBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.teal,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    downloadText: { color: Colors.teal, fontWeight: "700" },
+    pager: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: Spacing.md,
+    },
+    pagerBtn: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    pagerBtnDisabled: { opacity: 0.4 },
+    pagerText: { ...typography.smallMedium, color: Colors.textSecondary },
+    pagerLabel: { ...typography.small, color: Colors.textMuted },
+  });
+}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card, Input, InfoTip } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
@@ -39,6 +39,8 @@ function presetToIso(days: number): string {
 export default function ApplyScreen() {
   const router = useRouter();
   const vm = useApplyViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   const [guarantorEmail, setGuarantorEmail] = useState("");
   const [guarantorPhone, setGuarantorPhone] = useState("");

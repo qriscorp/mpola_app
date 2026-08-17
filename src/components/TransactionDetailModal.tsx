@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { fetchTransactionDetail, downloadRepaymentReceipt, downloadDisbursementReceipt } from "../services";
 import { formatDuration } from "../services/duration";
 import type { TransactionDetail, TransactionType } from "../models";
@@ -101,6 +101,8 @@ async function shareReceipt(tx: TransactionDetail) {
 }
 
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <View style={styles.row}>
       <Text style={styles.rowLabel}>{label}</Text>
@@ -112,6 +114,8 @@ function Row({ label, value, mono }: { label: string; value: string; mono?: bool
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -132,6 +136,8 @@ export function TransactionDetailModal({
     queryFn: () => fetchTransactionDetail(transactionId as string),
     enabled: !!transactionId,
   });
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   return (
     <Modal
@@ -258,77 +264,79 @@ export function TransactionDetailModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: Colors.overlay,
-    justifyContent: "flex-end",
-  },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderTopLeftRadius: BorderRadius.xl,
-    borderTopRightRadius: BorderRadius.xl,
-    maxHeight: "85%",
-    paddingTop: Spacing.lg,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingBottom: Spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  headerTitle: { ...Typography.h4, color: Colors.textPrimary },
-  loading: { paddingVertical: Spacing.xxxl, alignItems: "center" },
-  body: { padding: Spacing.lg, paddingBottom: 40, gap: Spacing.md },
-  hero: { alignItems: "center", paddingVertical: Spacing.md },
-  heroAmount: { fontSize: 30, fontWeight: "800" },
-  heroDesc: { ...Typography.body, color: Colors.textSecondary, marginTop: 4, textAlign: "center" },
-  badgeRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.sm },
-  badge: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 4,
-    borderRadius: BorderRadius.full,
-    backgroundColor: Colors.surfaceLift,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  badgeText: { ...Typography.caption, fontWeight: "600", color: Colors.textSecondary },
-  section: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-  },
-  sectionTitle: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    marginBottom: Spacing.xs,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    paddingVertical: Spacing.xs,
-    gap: Spacing.md,
-  },
-  rowLabel: { ...Typography.small, color: Colors.textMuted, flexShrink: 0 },
-  rowValue: { ...Typography.smallMedium, color: Colors.textPrimary, flexShrink: 1, textAlign: "right" },
-  rowValueMono: { fontFamily: "monospace", fontSize: 11 },
-  shareBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: Spacing.xs,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.lg,
-    paddingVertical: Spacing.md,
-  },
-  shareBtnText: { ...Typography.smallMedium, color: Colors.textPrimary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: Colors.overlay,
+      justifyContent: "flex-end",
+    },
+    sheet: {
+      backgroundColor: Colors.surface,
+      borderTopLeftRadius: BorderRadius.xl,
+      borderTopRightRadius: BorderRadius.xl,
+      maxHeight: "85%",
+      paddingTop: Spacing.lg,
+    },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingBottom: Spacing.md,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    headerTitle: { ...typography.h4, color: Colors.textPrimary },
+    loading: { paddingVertical: Spacing.xxxl, alignItems: "center" },
+    body: { padding: Spacing.lg, paddingBottom: 40, gap: Spacing.md },
+    hero: { alignItems: "center", paddingVertical: Spacing.md },
+    heroAmount: { fontSize: 30, fontWeight: "800" },
+    heroDesc: { ...typography.body, color: Colors.textSecondary, marginTop: 4, textAlign: "center" },
+    badgeRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.sm },
+    badge: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 4,
+      borderRadius: BorderRadius.full,
+      backgroundColor: Colors.surfaceLift,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    badgeText: { ...typography.caption, fontWeight: "600", color: Colors.textSecondary },
+    section: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+    },
+    sectionTitle: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      fontWeight: "700",
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+      marginBottom: Spacing.xs,
+    },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "flex-start",
+      paddingVertical: Spacing.xs,
+      gap: Spacing.md,
+    },
+    rowLabel: { ...typography.small, color: Colors.textMuted, flexShrink: 0 },
+    rowValue: { ...typography.smallMedium, color: Colors.textPrimary, flexShrink: 1, textAlign: "right" },
+    rowValueMono: { fontFamily: "monospace", fontSize: 11 },
+    shareBtn: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.xs,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.lg,
+      paddingVertical: Spacing.md,
+    },
+    shareBtnText: { ...typography.smallMedium, color: Colors.textPrimary },
+  });
+}

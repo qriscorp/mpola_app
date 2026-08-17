@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Input } from "../../src/components";
 import {
   usePostOfferViewModel,
@@ -29,6 +29,8 @@ function Chip({
   active: boolean;
   onPress: () => void;
 }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <TouchableOpacity
       style={[styles.chip, active && styles.chipActive]}
@@ -45,6 +47,8 @@ export default function PostOfferScreen() {
   const router = useRouter();
   const { editId } = useLocalSearchParams<{ editId?: string }>();
   const vm = usePostOfferViewModel(editId);
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   const handleSaveDraft = async () => {
     try {
@@ -300,81 +304,83 @@ export default function PostOfferScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  subtitle: {
-    ...Typography.body,
-    color: Colors.textSecondary,
-    marginBottom: Spacing.lg,
-  },
-  unitRow: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  unitChip: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  unitChipActive: { backgroundColor: Colors.gold + "25", borderColor: Colors.gold },
-  unitChipText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  unitChipTextActive: { color: Colors.gold },
-  fieldLabel: {
-    ...Typography.smallMedium,
-    color: Colors.textSecondary,
-    marginTop: Spacing.sm,
-    marginBottom: Spacing.sm,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-  },
-  chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  chip: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.xs,
-    borderRadius: BorderRadius.full,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    backgroundColor: Colors.surface,
-  },
-  chipActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
-  chipText: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    textTransform: "capitalize",
-  },
-  chipTextActive: { color: Colors.white },
-  customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  addDocBtn: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-  },
-  addDocBtnText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  footnote: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginTop: Spacing.sm,
-  },
-  draftLink: { alignItems: "center", marginTop: Spacing.lg },
-  draftText: { ...Typography.body, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    subtitle: {
+      ...typography.body,
+      color: Colors.textSecondary,
+      marginBottom: Spacing.lg,
+    },
+    unitRow: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    unitChip: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    unitChipActive: { backgroundColor: Colors.gold + "25", borderColor: Colors.gold },
+    unitChipText: { ...typography.smallMedium, color: Colors.textSecondary },
+    unitChipTextActive: { color: Colors.gold },
+    fieldLabel: {
+      ...typography.smallMedium,
+      color: Colors.textSecondary,
+      marginTop: Spacing.sm,
+      marginBottom: Spacing.sm,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+    },
+    chipRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    chip: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.xs,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      backgroundColor: Colors.surface,
+    },
+    chipActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
+    chipText: {
+      ...typography.small,
+      color: Colors.textSecondary,
+      textTransform: "capitalize",
+    },
+    chipTextActive: { color: Colors.white },
+    customDocRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+    addDocBtn: {
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
+    addDocBtnText: { ...typography.smallMedium, color: Colors.textSecondary },
+    footnote: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginTop: Spacing.sm,
+    },
+    draftLink: { alignItems: "center", marginTop: Spacing.lg },
+    draftText: { ...typography.body, color: Colors.textSecondary },
+  });
+}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useNotificationsFeedViewModel } from "../../src/viewmodels";
 import { SkeletonList } from "../../src/components";
 import { notificationHref } from "../../src/services/notifications";
@@ -91,6 +91,8 @@ const iconMap: Record<string, { name: string; color: string; bg: string }> = {
 
 export default function NotificationsScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const {
     notifications,
     unreadCount,
@@ -200,85 +202,87 @@ export default function NotificationsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerCenter: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  unreadBadge: {
-    backgroundColor: Colors.danger,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  unreadText: { ...Typography.caption, color: Colors.white, fontWeight: "700" },
-  markAllText: { ...Typography.smallMedium, color: Colors.gold },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  notifCard: {
-    flexDirection: "row",
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  notifCardUnread: {
-    borderLeftWidth: 3,
-    borderLeftColor: Colors.gold,
-  },
-  notifIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: Spacing.md,
-  },
-  notifContent: { flex: 1 },
-  notifTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  notifTitle: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  dot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: Colors.gold,
-  },
-  notifMessage: {
-    ...Typography.small,
-    color: Colors.textSecondary,
-    marginTop: 4,
-  },
-  notifTime: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  empty: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingTop: Spacing.section,
-  },
-  emptyText: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    marginTop: Spacing.md,
-  },
-  loadMoreBtn: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.md,
-    marginTop: Spacing.xs,
-  },
-  loadMoreText: { ...Typography.smallMedium, color: Colors.gold },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerCenter: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    unreadBadge: {
+      backgroundColor: Colors.danger,
+      width: 20,
+      height: 20,
+      borderRadius: 10,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    unreadText: { ...typography.caption, color: Colors.white, fontWeight: "700" },
+    markAllText: { ...typography.smallMedium, color: Colors.gold },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    notifCard: {
+      flexDirection: "row",
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    notifCardUnread: {
+      borderLeftWidth: 3,
+      borderLeftColor: Colors.gold,
+    },
+    notifIcon: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      alignItems: "center",
+      justifyContent: "center",
+      marginRight: Spacing.md,
+    },
+    notifContent: { flex: 1 },
+    notifTitleRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+    },
+    notifTitle: { ...typography.bodyMedium, color: Colors.textPrimary },
+    dot: {
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      backgroundColor: Colors.gold,
+    },
+    notifMessage: {
+      ...typography.small,
+      color: Colors.textSecondary,
+      marginTop: 4,
+    },
+    notifTime: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      marginTop: Spacing.xs,
+    },
+    empty: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingTop: Spacing.section,
+    },
+    emptyText: {
+      ...typography.body,
+      color: Colors.textMuted,
+      marginTop: Spacing.md,
+    },
+    loadMoreBtn: {
+      alignItems: "center",
+      justifyContent: "center",
+      paddingVertical: Spacing.md,
+      marginTop: Spacing.xs,
+    },
+    loadMoreText: { ...typography.smallMedium, color: Colors.gold },
+  });
+}

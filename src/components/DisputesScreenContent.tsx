@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Card } from "./Card";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
@@ -28,6 +28,8 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 function Chip({ label, active, onPress, color }: { label: string; active: boolean; onPress: () => void; color: string }) {
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
     <TouchableOpacity
       style={[styles.chip, active && { backgroundColor: color, borderColor: color }]}
@@ -48,6 +50,8 @@ export function DisputesScreenContent({
   role: "borrower" | "lender";
 }) {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const qc = useQueryClient();
   const { data: disputes, isLoading } = useQuery({
     queryKey: ["disputes", "mine"],
@@ -158,33 +162,35 @@ export function DisputesScreenContent({
   );
 }
 
-const styles = StyleSheet.create({
-  sectionTitle: { ...Typography.h4, color: Colors.textPrimary },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  helperText: { ...Typography.small, color: Colors.textSecondary, marginTop: 4, marginBottom: Spacing.sm },
-  formBox: { gap: Spacing.xs, marginBottom: Spacing.md },
-  fieldLabel: { ...Typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.sm },
-  chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.sm },
-  chip: {
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.full,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 6,
-  },
-  chipText: { ...Typography.caption, color: Colors.textSecondary, fontWeight: "600" },
-  chipTextActive: { color: Colors.white },
-  input: {
-    backgroundColor: Colors.surfaceLift,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    color: Colors.textPrimary,
-    ...Typography.body,
-    marginBottom: Spacing.sm,
-  },
-  emptyText: { ...Typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
-  disputeRow: { paddingVertical: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: 4 },
-  disputeDesc: { ...Typography.body, color: Colors.textPrimary },
-  disputeDate: { ...Typography.caption, color: Colors.textMuted },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    sectionTitle: { ...typography.h4, color: Colors.textPrimary },
+    rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+    helperText: { ...typography.small, color: Colors.textSecondary, marginTop: 4, marginBottom: Spacing.sm },
+    formBox: { gap: Spacing.xs, marginBottom: Spacing.md },
+    fieldLabel: { ...typography.smallMedium, color: Colors.textSecondary, marginTop: Spacing.sm },
+    chipRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.xs, marginBottom: Spacing.sm },
+    chip: {
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: 6,
+    },
+    chipText: { ...typography.caption, color: Colors.textSecondary, fontWeight: "600" },
+    chipTextActive: { color: Colors.white },
+    input: {
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+      color: Colors.textPrimary,
+      ...typography.body,
+      marginBottom: Spacing.sm,
+    },
+    emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center", paddingVertical: Spacing.lg },
+    disputeRow: { paddingVertical: Spacing.md, borderTopWidth: 1, borderTopColor: Colors.border, gap: 4 },
+    disputeDesc: { ...typography.body, color: Colors.textPrimary },
+    disputeDate: { ...typography.caption, color: Colors.textMuted },
+  });
+}

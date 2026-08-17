@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Modal,
   View,
@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { Colors, Typography, Spacing, BorderRadius } from "../theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Input } from "./Input";
 import { Button } from "./Button";
 import type { BankOption } from "../models";
@@ -60,6 +60,8 @@ export function WalletWithdrawModal({
   accentColor = Colors.teal,
 }: Props) {
   const { data: profile } = useQuery({ queryKey: ["profile"], queryFn: fetchProfile });
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const [method, setMethod] = useState<Method>("mobile_money");
   const [amount, setAmount] = useState("");
   const [phone, setPhone] = useState("");
@@ -315,89 +317,91 @@ export function WalletWithdrawModal({
   );
 }
 
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: Colors.overlay,
-    justifyContent: "center",
-    padding: Spacing.lg,
-  },
-  sheet: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-    maxHeight: "85%",
-  },
-  title: {
-    ...Typography.h3,
-    color: Colors.textPrimary,
-    marginBottom: Spacing.md,
-  },
-  tabs: {
-    flexDirection: "row",
-    gap: Spacing.sm,
-    marginBottom: Spacing.md,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    alignItems: "center",
-  },
-  tabText: { ...Typography.smallMedium, color: Colors.textSecondary },
-  label: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.xs,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-  },
-  bankList: {
-    maxHeight: 140,
-    marginBottom: Spacing.lg,
-  },
-  bankRow: {
-    paddingVertical: Spacing.sm,
-    paddingHorizontal: Spacing.md,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    marginBottom: Spacing.xs,
-  },
-  bankRowText: { ...Typography.body, color: Colors.textPrimary },
-  hint: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginBottom: Spacing.lg,
-  },
-  waiting: {
-    ...Typography.small,
-    color: Colors.warning,
-    marginBottom: Spacing.sm,
-  },
-  feeBox: {
-    backgroundColor: Colors.navyLight,
-    borderRadius: BorderRadius.md,
-    padding: Spacing.md,
-    marginBottom: Spacing.md,
-    gap: Spacing.xs,
-  },
-  feeRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  feeLabel: { ...Typography.small, color: Colors.textSecondary },
-  feeValue: { ...Typography.small, color: Colors.textSecondary },
-  feeTotalRow: {
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    paddingTop: Spacing.xs,
-    marginTop: Spacing.xs,
-  },
-  feeTotalLabel: { ...Typography.smallMedium, color: Colors.textPrimary },
-  feeTotalValue: { ...Typography.smallMedium, color: Colors.textPrimary },
-  actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
-  flex: { flex: 1 },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    overlay: {
+      flex: 1,
+      backgroundColor: Colors.overlay,
+      justifyContent: "center",
+      padding: Spacing.lg,
+    },
+    sheet: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+      maxHeight: "85%",
+    },
+    title: {
+      ...typography.h3,
+      color: Colors.textPrimary,
+      marginBottom: Spacing.md,
+    },
+    tabs: {
+      flexDirection: "row",
+      gap: Spacing.sm,
+      marginBottom: Spacing.md,
+    },
+    tab: {
+      flex: 1,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.md,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      alignItems: "center",
+    },
+    tabText: { ...typography.smallMedium, color: Colors.textSecondary },
+    label: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginBottom: Spacing.xs,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+    },
+    bankList: {
+      maxHeight: 140,
+      marginBottom: Spacing.lg,
+    },
+    bankRow: {
+      paddingVertical: Spacing.sm,
+      paddingHorizontal: Spacing.md,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      marginBottom: Spacing.xs,
+    },
+    bankRowText: { ...typography.body, color: Colors.textPrimary },
+    hint: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginBottom: Spacing.lg,
+    },
+    waiting: {
+      ...typography.small,
+      color: Colors.warning,
+      marginBottom: Spacing.sm,
+    },
+    feeBox: {
+      backgroundColor: Colors.navyLight,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+      gap: Spacing.xs,
+    },
+    feeRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+    },
+    feeLabel: { ...typography.small, color: Colors.textSecondary },
+    feeValue: { ...typography.small, color: Colors.textSecondary },
+    feeTotalRow: {
+      borderTopWidth: 1,
+      borderTopColor: Colors.border,
+      paddingTop: Spacing.xs,
+      marginTop: Spacing.xs,
+    },
+    feeTotalLabel: { ...typography.smallMedium, color: Colors.textPrimary },
+    feeTotalValue: { ...typography.smallMedium, color: Colors.textPrimary },
+    actions: { flexDirection: "row", gap: Spacing.md, marginTop: Spacing.sm },
+    flex: { flex: 1 },
+  });
+}

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card, Input, SkeletonCard, WalletDepositModal } from "../../src/components";
 import { usePaymentViewModel } from "../../src/viewmodels";
 import { formatDuration } from "../../src/services/duration";
@@ -35,6 +35,8 @@ function formatDueDate(iso: string): string {
 export default function PaymentScreen() {
   const router = useRouter();
   const vm = usePaymentViewModel();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (vm.loanLoading) {
     return (
@@ -313,150 +315,152 @@ export default function PaymentScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.md,
-  },
-  headerTitle: { ...Typography.h3, color: Colors.white },
-  noLoanText: {
-    ...Typography.body,
-    color: Colors.textMuted,
-    textAlign: "center",
-    marginTop: Spacing.xxl,
-  },
-  scroll: { padding: Spacing.lg, paddingBottom: 40 },
-  summaryTitle: { ...Typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
-  summaryGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.lg,
-  },
-  summaryItem: { width: "45%" },
-  summaryLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-  },
-  summaryValue: { ...Typography.bodySemibold, color: Colors.textPrimary, marginTop: 2 },
-  progressWrap: { marginTop: Spacing.lg },
-  progressLabelRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: Spacing.xs,
-  },
-  progressLabel: { ...Typography.small, color: Colors.textMuted, flexShrink: 1 },
-  progressValue: { ...Typography.smallMedium, color: Colors.textPrimary },
-  progressTrack: {
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: Colors.surfaceLift,
-    overflow: "hidden",
-  },
-  progressFill: { height: "100%", borderRadius: 3, backgroundColor: Colors.teal },
-  amountCard: {
-    backgroundColor: Colors.teal,
-    alignItems: "center",
-    marginBottom: Spacing.xxl,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.xl,
-  },
-  payModeRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
-  payModeCard: {
-    flexBasis: "45%",
-    flexGrow: 1,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.lg,
-    backgroundColor: Colors.surface,
-    padding: Spacing.md,
-  },
-  payModeCardActive: {
-    borderColor: Colors.teal,
-    backgroundColor: Colors.tealLight,
-  },
-  payModeLabel: { ...Typography.small, color: Colors.textSecondary },
-  payModeValue: { ...Typography.bodySemibold, color: Colors.textPrimary, marginTop: 4 },
-  amountLabel: {
-    ...Typography.caption,
-    color: Colors.white,
-    opacity: 0.8,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-  },
-  amountValue: {
-    fontSize: 32,
-    fontWeight: "800",
-    color: Colors.white,
-    marginTop: 4,
-  },
-  amountSub: {
-    ...Typography.small,
-    color: Colors.white,
-    opacity: 0.7,
-    marginTop: 4,
-  },
-  amountHint: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    marginTop: Spacing.xs,
-  },
-  amountError: {
-    ...Typography.small,
-    color: Colors.danger,
-    fontWeight: "600",
-    marginTop: Spacing.xs,
-  },
-  sectionLabel: {
-    ...Typography.caption,
-    color: Colors.textMuted,
-    letterSpacing: 0.8,
-    textTransform: "uppercase",
-    marginBottom: Spacing.md,
-  },
-  balanceCard: { marginBottom: Spacing.md },
-  balanceRow: { flexDirection: "row", justifyContent: "space-between" },
-  balanceLabel: { ...Typography.body, color: Colors.textSecondary },
-  balanceValue: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  sufficientText: { ...Typography.smallMedium, marginTop: 4 },
-  insufficientBanner: {
-    backgroundColor: Colors.warningBg,
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.md,
-    marginBottom: Spacing.lg,
-    gap: Spacing.sm,
-  },
-  insufficientText: { ...Typography.small, color: Colors.warning },
-  depositBtn: {
-    alignSelf: "flex-start",
-    backgroundColor: Colors.warning,
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  depositBtnText: { ...Typography.buttonSmall, color: Colors.navyDark },
-  breakdownRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  breakdownLabel: { ...Typography.body, color: Colors.textSecondary },
-  breakdownValue: { ...Typography.body, color: Colors.textPrimary },
-  breakdownTotal: { borderBottomWidth: 0, paddingTop: Spacing.md },
-  breakdownTotalLabel: { ...Typography.bodyMedium, color: Colors.textPrimary },
-  breakdownTotalValue: { ...Typography.h4, color: Colors.textPrimary },
-  cancelBtn: { alignItems: "center", marginTop: Spacing.lg },
-  cancelText: { ...Typography.body, color: Colors.textSecondary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.md,
+    },
+    headerTitle: { ...typography.h3, color: Colors.white },
+    noLoanText: {
+      ...typography.body,
+      color: Colors.textMuted,
+      textAlign: "center",
+      marginTop: Spacing.xxl,
+    },
+    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    summaryTitle: { ...typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
+    summaryGrid: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.lg,
+    },
+    summaryItem: { width: "45%" },
+    summaryLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      textTransform: "uppercase",
+      letterSpacing: 0.6,
+    },
+    summaryValue: { ...typography.bodySemibold, color: Colors.textPrimary, marginTop: 2 },
+    progressWrap: { marginTop: Spacing.lg },
+    progressLabelRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      marginBottom: Spacing.xs,
+    },
+    progressLabel: { ...typography.small, color: Colors.textMuted, flexShrink: 1 },
+    progressValue: { ...typography.smallMedium, color: Colors.textPrimary },
+    progressTrack: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: Colors.surfaceLift,
+      overflow: "hidden",
+    },
+    progressFill: { height: "100%", borderRadius: 3, backgroundColor: Colors.teal },
+    amountCard: {
+      backgroundColor: Colors.teal,
+      alignItems: "center",
+      marginBottom: Spacing.xxl,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.xl,
+    },
+    payModeRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.md,
+      marginBottom: Spacing.lg,
+    },
+    payModeCard: {
+      flexBasis: "45%",
+      flexGrow: 1,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.lg,
+      backgroundColor: Colors.surface,
+      padding: Spacing.md,
+    },
+    payModeCardActive: {
+      borderColor: Colors.teal,
+      backgroundColor: Colors.tealLight,
+    },
+    payModeLabel: { ...typography.small, color: Colors.textSecondary },
+    payModeValue: { ...typography.bodySemibold, color: Colors.textPrimary, marginTop: 4 },
+    amountLabel: {
+      ...typography.caption,
+      color: Colors.white,
+      opacity: 0.8,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+    },
+    amountValue: {
+      fontSize: 32,
+      fontWeight: "800",
+      color: Colors.white,
+      marginTop: 4,
+    },
+    amountSub: {
+      ...typography.small,
+      color: Colors.white,
+      opacity: 0.7,
+      marginTop: 4,
+    },
+    amountHint: {
+      ...typography.small,
+      color: Colors.textMuted,
+      marginTop: Spacing.xs,
+    },
+    amountError: {
+      ...typography.small,
+      color: Colors.danger,
+      fontWeight: "600",
+      marginTop: Spacing.xs,
+    },
+    sectionLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      letterSpacing: 0.8,
+      textTransform: "uppercase",
+      marginBottom: Spacing.md,
+    },
+    balanceCard: { marginBottom: Spacing.md },
+    balanceRow: { flexDirection: "row", justifyContent: "space-between" },
+    balanceLabel: { ...typography.body, color: Colors.textSecondary },
+    balanceValue: { ...typography.bodyMedium, color: Colors.textPrimary },
+    sufficientText: { ...typography.smallMedium, marginTop: 4 },
+    insufficientBanner: {
+      backgroundColor: Colors.warningBg,
+      borderRadius: BorderRadius.lg,
+      padding: Spacing.md,
+      marginBottom: Spacing.lg,
+      gap: Spacing.sm,
+    },
+    insufficientText: { ...typography.small, color: Colors.warning },
+    depositBtn: {
+      alignSelf: "flex-start",
+      backgroundColor: Colors.warning,
+      paddingHorizontal: Spacing.lg,
+      paddingVertical: Spacing.sm,
+      borderRadius: BorderRadius.full,
+    },
+    depositBtnText: { ...typography.buttonSmall, color: Colors.navyDark },
+    breakdownRow: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    breakdownLabel: { ...typography.body, color: Colors.textSecondary },
+    breakdownValue: { ...typography.body, color: Colors.textPrimary },
+    breakdownTotal: { borderBottomWidth: 0, paddingTop: Spacing.md },
+    breakdownTotalLabel: { ...typography.bodyMedium, color: Colors.textPrimary },
+    breakdownTotalValue: { ...typography.h4, color: Colors.textPrimary },
+    cancelBtn: { alignItems: "center", marginTop: Spacing.lg },
+    cancelText: { ...typography.body, color: Colors.textSecondary },
+  });
+}

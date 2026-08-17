@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card } from "../../src/components";
 import { downloadRepaymentReceipt } from "../../src/services";
 
@@ -25,6 +25,8 @@ function formatDateTime(iso: string | undefined): string {
 
 export default function PaymentSuccessScreen() {
   const router = useRouter();
+  const typography = useScaledTypography();
+  const styles = useMemo(() => makeStyles(typography), [typography]);
   const params = useLocalSearchParams<{
     repaymentId?: string;
     transactionId?: string;
@@ -107,44 +109,46 @@ export default function PaymentSuccessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  content: {
-    flex: 1,
-    justifyContent: "center",
-    paddingHorizontal: Spacing.xxl,
-  },
-  checkCircle: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: Colors.teal + "25",
-    alignItems: "center",
-    justifyContent: "center",
-    alignSelf: "center",
-    marginBottom: Spacing.lg,
-  },
-  check: { fontSize: 36, color: Colors.teal },
-  title: {
-    ...Typography.h2,
-    color: Colors.white,
-    textAlign: "center",
-    marginBottom: Spacing.xs,
-  },
-  txId: {
-    ...Typography.small,
-    color: Colors.textMuted,
-    textAlign: "center",
-    marginBottom: Spacing.xxl,
-  },
-  receipt: { marginBottom: Spacing.xxl },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: Spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.border,
-  },
-  label: { ...Typography.body, color: Colors.textSecondary },
-  value: { ...Typography.bodyMedium, color: Colors.textPrimary },
-});
+function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
+  return StyleSheet.create({
+    container: { flex: 1, backgroundColor: Colors.background },
+    content: {
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: Spacing.xxl,
+    },
+    checkCircle: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: Colors.teal + "25",
+      alignItems: "center",
+      justifyContent: "center",
+      alignSelf: "center",
+      marginBottom: Spacing.lg,
+    },
+    check: { fontSize: 36, color: Colors.teal },
+    title: {
+      ...typography.h2,
+      color: Colors.white,
+      textAlign: "center",
+      marginBottom: Spacing.xs,
+    },
+    txId: {
+      ...typography.small,
+      color: Colors.textMuted,
+      textAlign: "center",
+      marginBottom: Spacing.xxl,
+    },
+    receipt: { marginBottom: Spacing.xxl },
+    row: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      paddingVertical: Spacing.sm,
+      borderBottomWidth: 1,
+      borderBottomColor: Colors.border,
+    },
+    label: { ...typography.body, color: Colors.textSecondary },
+    value: { ...typography.bodyMedium, color: Colors.textPrimary },
+  });
+}
