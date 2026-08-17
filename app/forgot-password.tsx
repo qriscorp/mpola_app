@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
-import { Button, Input } from "../src/components";
+import { Button, Input, PhoneInput } from "../src/components";
 import {
   apiForgotPasswordSend,
   apiForgotPasswordVerify,
@@ -217,13 +217,10 @@ export default function ForgotPasswordScreen() {
               autoCapitalize="none"
             />
             <View style={{ height: Spacing.md }} />
-            <Input
+            <PhoneInput
               label="Phone Number"
               value={phone}
               onChangeText={setPhone}
-              placeholder="7XX XXX XXX"
-              keyboardType="phone-pad"
-              prefix="+256"
             />
             <View style={{ height: Spacing.lg }} />
             <Button

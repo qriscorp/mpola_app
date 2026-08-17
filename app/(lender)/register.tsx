@@ -10,7 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Button, Input } from "../../src/components";
+import { Button, Input, PhoneInput } from "../../src/components";
 import { useAuthViewModel } from "../../src/viewmodels";
 
 const MPOLA_WEB_URL = "https://mpola.co";
@@ -235,13 +235,10 @@ export default function LenderRegisterScreen() {
           placeholder="CM940XXXXXXX"
           error={vm.errors.nin}
         />
-        <Input
+        <PhoneInput
           label="Phone Number"
           value={vm.phone}
           onChangeText={vm.setPhone}
-          placeholder="7XX XXX XXX"
-          prefix="+256"
-          keyboardType="phone-pad"
           error={vm.errors.phone}
         />
         <Input

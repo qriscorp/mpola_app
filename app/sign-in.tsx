@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
-import { Button, Input } from "../src/components";
+import { Button, Input, PhoneInput } from "../src/components";
 import { useAuthViewModel } from "../src/viewmodels";
 import { isBiometricSupported, isBiometricLoginEnabled, tryBiometricSignIn } from "../src/services/biometrics";
 
@@ -164,22 +164,12 @@ export default function SignInScreen() {
         <View style={{ height: Spacing.xxxl }} />
 
         {/* Phone Number */}
-        <Text style={styles.fieldLabel}>PHONE NUMBER</Text>
-        <View style={styles.phoneRow}>
-          <View style={styles.countryCode}>
-            <Text style={styles.countryCodeText}>+256</Text>
-          </View>
-          <View style={[styles.phoneInput, { flex: 1 }]}>
-            <Input
-              value={vm.email}
-              onChangeText={vm.setEmail}
-              placeholder="700 000 000"
-              keyboardType="phone-pad"
-              error={vm.errors.email}
-              style={{ marginBottom: 0 }}
-            />
-          </View>
-        </View>
+        <PhoneInput
+          label="PHONE NUMBER"
+          value={vm.email}
+          onChangeText={vm.setEmail}
+          error={vm.errors.email}
+        />
 
         <View style={{ height: Spacing.lg }} />
 
@@ -212,10 +202,12 @@ export default function SignInScreen() {
 
         <View style={{ height: Spacing.xxl }} />
 
-        {/* Register link */}
+        {/* Register link — goes to the Welcome screen's borrower/lender
+            choice, not straight to one role's form, since sign-in has no
+            way to know which the person actually wants. */}
         <TouchableOpacity
           style={styles.registerRow}
-          onPress={() => router.push("/(borrower)/register")}
+          onPress={() => router.push("/")}
         >
           <Text style={styles.registerText}>No account? </Text>
           <Text style={[styles.registerText, styles.registerLink]}>
@@ -224,14 +216,6 @@ export default function SignInScreen() {
         </TouchableOpacity>
 
         <View style={{ height: Spacing.xl }} />
-
-        {/* OTP sign in */}
-        <TouchableOpacity
-          style={styles.otpBtn}
-          onPress={() => router.push("/phone-otp-signin")}
-        >
-          <Text style={styles.otpText}>Sign in with Phone OTP</Text>
-        </TouchableOpacity>
 
         {biometricReady && (
           <>
@@ -316,25 +300,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       fontWeight: "700",
     },
     otpBoxFilled: { borderColor: Colors.teal },
-    fieldLabel: {
-      ...typography.small,
-      color: Colors.textMuted,
-      letterSpacing: 0.8,
-      textTransform: "uppercase",
-      marginBottom: Spacing.xs,
-    },
-    phoneRow: { flexDirection: "row", gap: Spacing.sm, marginBottom: Spacing.lg },
-    countryCode: {
-      backgroundColor: Colors.surfaceLift,
-      borderWidth: 1,
-      borderColor: Colors.border,
-      borderRadius: BorderRadius.md,
-      paddingHorizontal: Spacing.md,
-      justifyContent: "center",
-      minHeight: 50,
-    },
-    countryCodeText: { ...typography.bodyMedium, color: Colors.teal },
-    phoneInput: {},
     forgotBtn: { alignItems: "flex-end", marginTop: -Spacing.sm },
     forgotText: { ...typography.bodyMedium, color: Colors.teal },
     registerRow: { flexDirection: "row", justifyContent: "center" },

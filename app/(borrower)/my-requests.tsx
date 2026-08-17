@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Badge, Input, SkeletonList, InfoTip } from "../../src/components";
+import { Badge, Input, PhoneInput, SkeletonList, InfoTip } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
 import { formatDuration } from "../../src/services/duration";
@@ -65,7 +65,7 @@ function ReplaceForm({
   return (
     <View style={styles.replaceBox}>
       <Input label="New guarantor's email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-      <Input label="New guarantor's phone" value={phone} onChangeText={setPhone} prefix="+256" keyboardType="phone-pad" />
+      <PhoneInput label="New guarantor's phone" value={phone} onChangeText={setPhone} />
       <View style={styles.replaceActions}>
         <TouchableOpacity style={styles.cancelBtn} onPress={onDone}>
           <Text style={styles.cancelText}>Cancel</Text>

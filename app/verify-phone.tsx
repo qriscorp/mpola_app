@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { BorderRadius, Colors, Spacing, useScaledTypography } from "../src/theme";
-import { Button, Input } from "../src/components";
+import { Button, PhoneInput } from "../src/components";
 import {
   apiRefreshSignupDraft,
   apiSendSignupPhoneOtp,
@@ -203,13 +203,10 @@ export default function VerifyPhoneScreen() {
           </View>
         ) : null}
 
-        <Input
+        <PhoneInput
           label="Phone Number"
           value={phone}
           onChangeText={setPhone}
-          placeholder="7XX XXX XXX"
-          keyboardType="phone-pad"
-          prefix="+256"
           editable={!otpSent}
         />
 

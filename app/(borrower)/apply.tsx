@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Button, Card, Input, InfoTip } from "../../src/components";
+import { Button, Card, Input, InfoTip, PhoneInput } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
 
@@ -442,13 +442,10 @@ export default function ApplyScreen() {
                   keyboardType="email-address"
                   autoCapitalize="none"
                 />
-                <Input
+                <PhoneInput
                   label="Guarantor's Phone"
                   value={guarantorPhone}
                   onChangeText={setGuarantorPhone}
-                  prefix="+256"
-                  placeholder="700 000 000"
-                  keyboardType="phone-pad"
                 />
                 {vm.guarantorError && (
                   <Text style={styles.guarantorErrorText}>{vm.guarantorError}</Text>

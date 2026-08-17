@@ -11,6 +11,7 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Input } from "./Input";
+import { PhoneInput } from "./PhoneInput";
 import { Button } from "./Button";
 import type { BankOption } from "../models";
 import {
@@ -178,16 +179,13 @@ export function WalletWithdrawModal({
 
           {method === "mobile_money" ? (
             <>
-              <Input
+              <PhoneInput
                 label="Phone Number"
-                prefix="+256"
                 value={phone}
                 onChangeText={(t) => {
                   setPhoneTouched(true);
                   setPhone(t.replace(/\D/g, "").slice(0, 9));
                 }}
-                placeholder="7XX XXX XXX"
-                keyboardType="phone-pad"
                 error={phoneError ?? undefined}
               />
               <Text style={styles.label}>Network</Text>

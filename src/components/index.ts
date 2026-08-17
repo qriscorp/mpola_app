@@ -3,6 +3,7 @@ export { Card } from "./Card";
 export { StatCard } from "./StatCard";
 export { Badge } from "./Badge";
 export { Input } from "./Input";
+export { PhoneInput } from "./PhoneInput";
 export { TransactionItem } from "./TransactionItem";
 export { TransactionDetailModal } from "./TransactionDetailModal";
 export { ProgressBar } from "./ProgressBar";
