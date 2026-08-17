@@ -45,7 +45,8 @@
         {
           "faceIDPermission": "Allow Mpola to use Face ID to sign you in quickly and securely."
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
       "typedRoutes": true
