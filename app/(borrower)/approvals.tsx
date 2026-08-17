@@ -1,10 +1,13 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, useScaledTypography } from "../../src/theme";
 import { ApprovalsList } from "../../src/components";
 
 export default function BorrowerApprovalsScreen() {
+  const router = useRouter();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
   return (
@@ -13,6 +16,16 @@ export default function BorrowerApprovalsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
       >
+        {/* Reached by pushing from Home's Approvals action, not a tab
+            root, so it needs a real way back. */}
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+          style={{ marginBottom: Spacing.md }}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        </TouchableOpacity>
         <Text style={styles.title}>Approvals</Text>
         <Text style={styles.subtitle}>
           Anything that needs your action shows up here — like a guarantor request from someone

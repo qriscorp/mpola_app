@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { InfoTip, ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
@@ -16,12 +17,20 @@ import {
   useBorrowerDashboardViewModel,
   useNotificationsViewModel,
 } from "../../src/viewmodels";
+import { fetchGuarantorRequests } from "../../src/services";
 
 export default function BorrowerHomeScreen() {
   const router = useRouter();
   const { user, stats, loan, paymentProgress, walletBalance, isLoading } =
     useBorrowerDashboardViewModel();
   const { unreadCount } = useNotificationsViewModel();
+  // Same query the old Approvals tab badge used — now that Approvals lives
+  // on Home instead of the tab bar, this preserves that at-a-glance count.
+  const { data: pendingApprovals = [] } = useQuery({
+    queryKey: ["guarantor-requests", "pending"],
+    queryFn: () => fetchGuarantorRequests("pending"),
+  });
+  const pendingApprovalsCount = pendingApprovals.length;
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
@@ -115,15 +124,16 @@ export default function BorrowerHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Stats row */}
-        <View style={styles.statsRow}>
+        {/* Stats — 2x2 grid, not a 4-across row, so "UGX <amount>" has
+            enough room without wrapping or crowding the other values. */}
+        <View style={styles.statsGrid}>
           <View style={styles.statBox}>
-            <Text style={styles.statValue}>
+            <Text style={styles.statValue} numberOfLines={1} adjustsFontSizeToFit>
               UGX {formatCompactUGX(walletBalance)}
             </Text>
             <Text style={styles.statLabel}>Balance</Text>
           </View>
-          <View style={[styles.statBox, styles.statBorder]}>
+          <View style={styles.statBox}>
             <Text style={styles.statValue}>
               {stats.paymentsRepaid
                 ? `${Math.round((stats.paymentsRepaid / stats.totalPayments) * 100)}%`
@@ -131,7 +141,7 @@ export default function BorrowerHomeScreen() {
             </Text>
             <Text style={styles.statLabel}>Repaid</Text>
           </View>
-          <View style={[styles.statBox, styles.statBorder]}>
+          <View style={styles.statBox}>
             <Text style={styles.statValue}>{stats.creditScore || "—"}</Text>
             <View style={styles.statLabelRow}>
               <Text style={styles.statLabel}>Credit Score</Text>
@@ -200,6 +210,35 @@ export default function BorrowerHomeScreen() {
               color={Colors.textSecondary}
             />
             <Text style={styles.actionLabel}>My Requests</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCell}
+            onPress={() => router.push("/(borrower)/disputes")}
+          >
+            <Ionicons
+              name="alert-circle-outline"
+              size={22}
+              color={Colors.textSecondary}
+            />
+            <Text style={styles.actionLabel}>Disputes</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCell}
+            onPress={() => router.push("/(borrower)/approvals")}
+          >
+            <View>
+              <Ionicons
+                name="checkmark-done-outline"
+                size={22}
+                color={Colors.textSecondary}
+              />
+              {pendingApprovalsCount > 0 && (
+                <View style={styles.actionCellBadge}>
+                  <Text style={styles.actionCellBadgeText}>{pendingApprovalsCount}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.actionLabel}>Approvals</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -278,17 +317,19 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       alignItems: "center",
     },
     payNowText: { ...typography.button, color: Colors.white },
-    statsRow: {
+    statsGrid: {
       flexDirection: "row",
-      backgroundColor: Colors.surface,
-      borderRadius: BorderRadius.lg,
+      flexWrap: "wrap",
+      gap: Spacing.sm,
       marginBottom: Spacing.xl,
     },
-    statBox: { flex: 1, alignItems: "center", paddingVertical: Spacing.lg },
-    statBorder: {
-      borderLeftWidth: 1,
-      borderRightWidth: 1,
-      borderColor: Colors.border,
+    statBox: {
+      width: "47.5%",
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.lg,
+      alignItems: "center",
+      paddingVertical: Spacing.lg,
+      paddingHorizontal: Spacing.xs,
     },
     statValue: { ...typography.h4, color: Colors.textPrimary },
     statLabel: { ...typography.caption, color: Colors.textMuted, marginTop: 2 },
@@ -318,5 +359,18 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       gap: Spacing.xs,
     },
     actionLabel: { ...typography.bodyMedium, color: Colors.textSecondary },
+    actionCellBadge: {
+      position: "absolute",
+      top: -6,
+      right: -10,
+      backgroundColor: Colors.danger,
+      borderRadius: BorderRadius.full,
+      minWidth: 16,
+      height: 16,
+      paddingHorizontal: 3,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionCellBadgeText: { ...typography.caption, color: Colors.white, fontWeight: "700" },
   });
 }

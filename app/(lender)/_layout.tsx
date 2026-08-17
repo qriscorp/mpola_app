@@ -1,11 +1,10 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Colors } from "../../src/theme";
+import { Colors, BorderRadius } from "../../src/theme";
 import {
   useRealtimeNotifications,
   usePushRegistration,
-  fetchGuarantorRequests,
   fetchMarketplace,
   fetchPortfolio,
 } from "../../src/services";
@@ -13,10 +12,6 @@ import {
 export default function LenderTabLayout() {
   useRealtimeNotifications();
   usePushRegistration();
-  const { data: pendingApprovals = [] } = useQuery({
-    queryKey: ["guarantor-requests", "pending"],
-    queryFn: () => fetchGuarantorRequests("pending"),
-  });
   const { data: marketplace } = useQuery({
     queryKey: ["lender", "marketplace", "inbox"],
     queryFn: () => fetchMarketplace(1, 50),
@@ -31,12 +26,18 @@ export default function LenderTabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Without this, the area behind the tab bar defaults to white —
+        // invisible with square corners, but exposed as a white triangle
+        // in each corner now that the tab bar itself is rounded there.
+        sceneStyle: { backgroundColor: Colors.background },
         tabBarActiveTintColor: Colors.gold,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopWidth: 1,
           borderTopColor: Colors.border,
+          borderTopLeftRadius: BorderRadius.xl,
+          borderTopRightRadius: BorderRadius.xl,
           height: 64,
           paddingBottom: 10,
           paddingTop: 6,
@@ -85,22 +86,15 @@ export default function LenderTabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="approvals"
-        options={{
-          title: "Approvals",
-          tabBarBadge: pendingApprovals.length || undefined,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkmark-done-outline" size={size} color={color} />
-          ),
-        }}
-      />
       {/* Hidden screens */}
       {/* Account — reached via the avatar in Home's header, not a bottom
-          tab, same pattern as the borrower side. Browse is reachable from
+          tab, same pattern as the borrower side. Approvals and Disputes
+          are reached via their own buttons on Home's Quick Actions grid.
+          Browse is reachable from
           the "Browse Borrowers" action on Home, so it doesn't need its own
           tab either. */}
       <Tabs.Screen name="account" options={{ href: null }} />
+      <Tabs.Screen name="approvals" options={{ href: null }} />
       <Tabs.Screen name="browse" options={{ href: null }} />
       <Tabs.Screen name="register" options={{ href: null }} />
       <Tabs.Screen name="borrower-profile" options={{ href: null }} />

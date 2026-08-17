@@ -1,27 +1,28 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
-import { Colors } from "../../src/theme";
-import { useRealtimeNotifications, usePushRegistration, fetchGuarantorRequests } from "../../src/services";
+import { Colors, BorderRadius } from "../../src/theme";
+import { useRealtimeNotifications, usePushRegistration } from "../../src/services";
 
 export default function BorrowerTabLayout() {
   useRealtimeNotifications();
   usePushRegistration();
-  const { data: pendingApprovals = [] } = useQuery({
-    queryKey: ["guarantor-requests", "pending"],
-    queryFn: () => fetchGuarantorRequests("pending"),
-  });
 
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
+        // Without this, the area behind the tab bar defaults to white —
+        // invisible with square corners, but exposed as a white triangle
+        // in each corner now that the tab bar itself is rounded there.
+        sceneStyle: { backgroundColor: Colors.background },
         tabBarActiveTintColor: Colors.teal,
         tabBarInactiveTintColor: Colors.textMuted,
         tabBarStyle: {
           backgroundColor: Colors.surface,
           borderTopWidth: 1,
           borderTopColor: Colors.border,
+          borderTopLeftRadius: BorderRadius.xl,
+          borderTopRightRadius: BorderRadius.xl,
           height: 64,
           paddingBottom: 10,
           paddingTop: 6,
@@ -68,22 +69,14 @@ export default function BorrowerTabLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="approvals"
-        options={{
-          title: "Approvals",
-          tabBarBadge: pendingApprovals.length || undefined,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="checkmark-done-outline" size={size} color={color} />
-          ),
-        }}
-      />
       {/* Hidden screens accessible via navigation */}
       {/* Profile — reached via the avatar in Home's header, not a bottom
-          tab, to keep the tab bar to 5 items. Settings was merged into
-          Profile (see app/(borrower)/profile.tsx), so there's no separate
-          settings route anymore. */}
+          tab. Approvals and Disputes are reached via their own buttons on
+          Home's Quick Actions grid. Settings was merged into Profile (see
+          app/(borrower)/profile.tsx), so there's no separate settings
+          route anymore. */}
       <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="approvals" options={{ href: null }} />
       <Tabs.Screen name="register" options={{ href: null }} />
       <Tabs.Screen name="offers" options={{ href: null }} />
       <Tabs.Screen name="payment" options={{ href: null }} />

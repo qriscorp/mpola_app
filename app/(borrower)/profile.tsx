@@ -164,9 +164,6 @@ export default function ProfileScreen() {
           <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
             <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => router.push("/(borrower)/help")} />
           </View>
-          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
-            <MenuRow icon="alert-circle-outline" label="Disputes" onPress={() => router.push("/(borrower)/disputes")} />
-          </View>
         </View>
 
         {/* Security */}

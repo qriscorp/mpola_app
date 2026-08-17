@@ -383,9 +383,6 @@ export default function LenderAccountScreen() {
           <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
             <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => router.push("/(lender)/help")} />
           </View>
-          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
-            <MenuRow icon="alert-circle-outline" label="Disputes" onPress={() => router.push("/(lender)/disputes")} />
-          </View>
         </View>
 
         {/* Security */}

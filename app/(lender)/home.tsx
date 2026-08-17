@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Badge, SkeletonHero, SkeletonStatRow, SkeletonList } from "../../src/components";
@@ -17,12 +18,20 @@ import {
 } from "../../src/viewmodels";
 import { formatDuration } from "../../src/services/duration";
 import { formatCompactUGX } from "../../src/services/currency";
+import { fetchGuarantorRequests } from "../../src/services";
 
 export default function LenderHomeScreen() {
   const router = useRouter();
   const { user, stats, recentActivity, newMatches, isLoading } =
     useLenderDashboardViewModel();
   const { unreadCount } = useNotificationsViewModel();
+  // Same query the old Approvals tab badge used — now that Approvals lives
+  // on Home instead of the tab bar, this preserves that at-a-glance count.
+  const { data: pendingApprovals = [] } = useQuery({
+    queryKey: ["guarantor-requests", "pending"],
+    queryFn: () => fetchGuarantorRequests("pending"),
+  });
+  const pendingApprovalsCount = pendingApprovals.length;
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
@@ -202,6 +211,40 @@ export default function LenderHomeScreen() {
             </Text>
           </TouchableOpacity>
         </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/approvals")}
+          >
+            <Ionicons
+              name="checkmark-done-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              Approvals
+            </Text>
+            {pendingApprovalsCount > 0 && (
+              <View style={styles.actionBadge}>
+                <Text style={styles.actionBadgeText}>{pendingApprovalsCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/disputes")}
+          >
+            <Ionicons
+              name="alert-circle-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              Disputes
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -341,5 +384,15 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       borderColor: Colors.border,
     },
     actionText: { ...typography.buttonSmall, color: Colors.white },
+    actionBadge: {
+      backgroundColor: Colors.danger,
+      borderRadius: BorderRadius.full,
+      minWidth: 18,
+      height: 18,
+      paddingHorizontal: 4,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    actionBadgeText: { ...typography.caption, color: Colors.white, fontWeight: "700" },
   });
 }

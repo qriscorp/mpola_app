@@ -382,26 +382,25 @@ export async function deactivateMyAccount(password: string, reason?: string): Pr
 // ─── Borrower Dashboard ──────────────────────────────────
 
 export async function fetchBorrowerDashboard() {
-  const [profile, applications, loan, wallet] = await Promise.all([
+  const [profile, loans, loan, wallet] = await Promise.all([
     apiAuthGet<{ full_name: string | null; credit_score: number }>(
       "/users/me",
     ),
-    fetchApplications(),
+    fetchMyLoans(),
     fetchActiveLoan(),
     fetchBorrowerWallet(),
   ]);
 
   const [firstName, ...rest] = (profile.full_name ?? "").split(" ");
-  const pendingApps = applications.filter((a) => a.status === "pending");
-  const offersLive = pendingApps.reduce(
-    (sum, a) => sum + (a.pendingOffersCount ?? 0),
-    0,
-  );
 
   return {
     user: { firstName: firstName || "", lastName: rest.join(" ") },
     stats: {
-      loansTaken: offersLive,
+      // Every loan ever disbursed to this borrower, any status — not
+      // pending-offer activity, which used to be miswired in here and
+      // showed 0 for anyone whose loan had already moved past "pending"
+      // (i.e. every borrower actually mid-repayment).
+      loansTaken: loans.length,
       paymentsRepaid: loan?.totalPaid ?? 0,
       totalPayments: loan?.totalRepayable ?? 0,
       creditScore: profile.credit_score ?? 0,
