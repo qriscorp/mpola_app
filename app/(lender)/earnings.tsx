@@ -12,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing } from "../../src/theme";
 import { Card, StatCard, SkeletonStatRow, SkeletonCard } from "../../src/components";
 import { useEarningsViewModel } from "../../src/viewmodels";
+import { formatCompactUGX } from "../../src/services/currency";
 
 export default function EarningsScreen() {
   const router = useRouter();
@@ -61,13 +62,13 @@ export default function EarningsScreen() {
         <View style={styles.statsRow}>
           <StatCard
             label="Total Earned"
-            value={`UGX ${((earnings?.totalEarned ?? 0) / 1000000).toFixed(1)}M`}
+            value={`UGX ${formatCompactUGX(earnings?.totalEarned)}`}
             color={Colors.gold}
           />
           <View style={{ width: Spacing.sm }} />
           <StatCard
             label="This Month"
-            value={`UGX ${((earnings?.thisMonthEarned ?? 0) / 1000).toFixed(0)}K`}
+            value={`UGX ${formatCompactUGX(earnings?.thisMonthEarned)}`}
             color={Colors.teal}
           />
         </View>

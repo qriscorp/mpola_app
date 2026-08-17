@@ -5,6 +5,7 @@ export { useMyApplicationsViewModel } from "./useMyApplicationsViewModel";
 export {
   useBorrowerWalletViewModel,
   useActiveLoanViewModel,
+  useMyLoansViewModel,
   usePaymentViewModel,
 } from "./useBorrowerWalletViewModel";
 export { useOffersViewModel, useAllOffersViewModel } from "./useOffersViewModel";

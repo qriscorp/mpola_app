@@ -22,6 +22,7 @@ import {
 import { usePortfolioViewModel } from "../../src/viewmodels";
 import { calcPlatformFee } from "../../src/services/fees";
 import { formatDuration } from "../../src/services/duration";
+import { formatCompactUGX } from "../../src/services/currency";
 
 export default function PortfolioScreen() {
   const router = useRouter();
@@ -106,13 +107,13 @@ export default function PortfolioScreen() {
         <View style={styles.statsRow}>
           <StatCard
             label="Total Lent"
-            value={`${(totalLent / 1000000).toFixed(1)}M`}
+            value={formatCompactUGX(totalLent)}
             color={Colors.gold}
           />
           <View style={{ width: Spacing.sm }} />
           <StatCard
             label="Total Earned"
-            value={`${(totalEarned / 1000000).toFixed(1)}M`}
+            value={formatCompactUGX(totalEarned)}
             color={Colors.teal}
           />
         </View>

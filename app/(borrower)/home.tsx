@@ -11,6 +11,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { InfoTip, ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
+import { formatCompactUGX } from "../../src/services/currency";
 import {
   useBorrowerDashboardViewModel,
   useNotificationsViewModel,
@@ -111,7 +112,7 @@ export default function BorrowerHomeScreen() {
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
             <Text style={styles.statValue}>
-              UGX {((walletBalance ?? 0) / 1000000).toFixed(1)}M
+              UGX {formatCompactUGX(walletBalance)}
             </Text>
             <Text style={styles.statLabel}>Balance</Text>
           </View>

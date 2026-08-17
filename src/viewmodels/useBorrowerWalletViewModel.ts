@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchBorrowerWallet,
   fetchActiveLoan,
+  fetchMyLoans,
   fetchWalletTransactionsPage,
   makeRepayment,
   setupWallet,
@@ -64,6 +65,15 @@ export function useActiveLoanViewModel() {
   });
 
   return { loan, isLoading, error, refetch };
+}
+
+export function useMyLoansViewModel() {
+  const { data: loans, isLoading, error, refetch } = useQuery({
+    queryKey: ["borrower", "myLoans"],
+    queryFn: fetchMyLoans,
+  });
+
+  return { loans: loans ?? [], isLoading, error, refetch };
 }
 
 export function usePaymentViewModel() {

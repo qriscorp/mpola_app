@@ -10,15 +10,95 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Colors, Typography, Spacing, BorderRadius } from "../../src/theme";
 import { ProgressBar, SkeletonBox, SkeletonCard } from "../../src/components";
-import { useActiveLoanViewModel } from "../../src/viewmodels";
+import { useMyLoansViewModel } from "../../src/viewmodels";
 import { formatDuration } from "../../src/services/duration";
+import type { Loan } from "../../src/models";
 
-const TABS = ["All", "Active", "Pending", "Closed"];
+const TABS = ["All", "Active", "Pending", "Closed"] as const;
+type Tab = (typeof TABS)[number];
+
+// "Overdue" isn't its own tab — it's still an unresolved, ongoing loan, so
+// it's bucketed under Active rather than Closed. "defaulted" is a real
+// backend status (scheduler._flag_defaulted) even though it's missing from
+// the app's LoanStatus type, so it's matched here defensively by string.
+function matchesTab(status: string, tab: Tab): boolean {
+  if (tab === "All") return true;
+  if (tab === "Active") return status === "active" || status === "overdue";
+  if (tab === "Pending") return status === "pending_disbursement" || status === "pending";
+  return status === "completed" || status === "defaulted" || status === "rejected";
+}
+
+function LoanCard({ loan }: { loan: Loan }) {
+  const router = useRouter();
+  // Amount-based, not instalment-count-based — paidInstalments only
+  // advances once a full instalment clears (see make_repayment in
+  // routers/loans.py), so a partial payment the borrower already made
+  // would otherwise show as 0% progress here even though totalPaid
+  // reflects it.
+  const progress = loan.totalRepayable
+    ? Math.min(1, (loan.totalPaid ?? 0) / loan.totalRepayable)
+    : 0;
+
+  return (
+    <View style={styles.loanCard}>
+      <View style={styles.loanCardTop}>
+        <View>
+          <Text style={styles.loanAmount}>
+            UGX {loan.amount.toLocaleString()}
+          </Text>
+          <Text style={styles.loanSub}>
+            {loan.interestRate}%/month · {formatDuration(loan.duration, loan.durationDays)}
+          </Text>
+        </View>
+        <View style={styles.activeBadge}>
+          <Text style={styles.activeBadgeText}>{loan.status}</Text>
+        </View>
+      </View>
+
+      <View style={styles.progressSection}>
+        <View style={styles.progressLabelRow}>
+          <Text style={styles.progressLabel}>Payment Progress</Text>
+          <Text style={styles.progressLabel}>
+            UGX {(loan.totalPaid ?? 0).toLocaleString()} / UGX {loan.totalRepayable.toLocaleString()}
+          </Text>
+        </View>
+        <ProgressBar progress={progress} color={Colors.teal} height={6} />
+      </View>
+
+      <View style={styles.detailRows}>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Monthly Payment</Text>
+          <Text style={styles.detailValue}>
+            UGX {loan.monthlyPayment.toLocaleString()}
+          </Text>
+        </View>
+        <View style={styles.detailRow}>
+          <Text style={styles.detailLabel}>Next Payment</Text>
+          <Text style={styles.detailValue}>
+            {loan.nextPaymentDate
+              ? new Date(loan.nextPaymentDate).toLocaleDateString(
+                  "en-UG",
+                  { day: "numeric", month: "short", year: "numeric" },
+                )
+              : "—"}
+          </Text>
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={styles.viewOffersBtn}
+        onPress={() => router.push("/(borrower)/offers")}
+      >
+        <Text style={styles.viewOffersText}>View Offers</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
 
 export default function LoansScreen() {
   const router = useRouter();
-  const { loan, isLoading } = useActiveLoanViewModel();
-  const [activeTab, setActiveTab] = useState("All");
+  const { loans, isLoading } = useMyLoansViewModel();
+  const [activeTab, setActiveTab] = useState<Tab>("All");
 
   if (isLoading) {
     return (
@@ -36,27 +116,7 @@ export default function LoansScreen() {
     );
   }
 
-  if (!loan) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <Text style={styles.title}>My Loans</Text>
-          <Text style={styles.noLoanText}>
-            You don't have any loans yet.
-          </Text>
-        </ScrollView>
-      </SafeAreaView>
-    );
-  }
-
-  // Amount-based, not instalment-count-based — paidInstalments only
-  // advances once a full instalment clears (see make_repayment in
-  // routers/loans.py), so a partial payment the borrower already made
-  // would otherwise show as 0% progress here even though totalPaid
-  // reflects it.
-  const progress = loan.totalRepayable
-    ? Math.min(1, (loan.totalPaid ?? 0) / loan.totalRepayable)
-    : 0;
+  const filtered = loans.filter((l) => matchesTab(l.status, activeTab));
 
   return (
     <SafeAreaView style={styles.container}>
@@ -91,59 +151,13 @@ export default function LoansScreen() {
           ))}
         </ScrollView>
 
-        {/* Loan Card */}
-        <View style={styles.loanCard}>
-          <View style={styles.loanCardTop}>
-            <View>
-              <Text style={styles.loanAmount}>
-                UGX {loan.amount.toLocaleString()}
-              </Text>
-              <Text style={styles.loanSub}>
-                {loan.interestRate}%/month · {formatDuration(loan.duration, loan.durationDays)}
-              </Text>
-            </View>
-            <View style={styles.activeBadge}>
-              <Text style={styles.activeBadgeText}>{loan.status}</Text>
-            </View>
-          </View>
-
-          <View style={styles.progressSection}>
-            <View style={styles.progressLabelRow}>
-              <Text style={styles.progressLabel}>Payment Progress</Text>
-              <Text style={styles.progressLabel}>
-                UGX {(loan.totalPaid ?? 0).toLocaleString()} / UGX {loan.totalRepayable.toLocaleString()}
-              </Text>
-            </View>
-            <ProgressBar progress={progress} color={Colors.teal} height={6} />
-          </View>
-
-          <View style={styles.detailRows}>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Monthly Payment</Text>
-              <Text style={styles.detailValue}>
-                UGX {loan.monthlyPayment.toLocaleString()}
-              </Text>
-            </View>
-            <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Next Payment</Text>
-              <Text style={styles.detailValue}>
-                {loan.nextPaymentDate
-                  ? new Date(loan.nextPaymentDate).toLocaleDateString(
-                      "en-UG",
-                      { day: "numeric", month: "short", year: "numeric" },
-                    )
-                  : "—"}
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            style={styles.viewOffersBtn}
-            onPress={() => router.push("/(borrower)/offers")}
-          >
-            <Text style={styles.viewOffersText}>View Offers</Text>
-          </TouchableOpacity>
-        </View>
+        {loans.length === 0 ? (
+          <Text style={styles.noLoanText}>You don't have any loans yet.</Text>
+        ) : filtered.length === 0 ? (
+          <Text style={styles.noLoanText}>No loans in this category.</Text>
+        ) : (
+          filtered.map((loan) => <LoanCard key={loan.id} loan={loan} />)
+        )}
 
         <TouchableOpacity
           style={styles.receiptsLink}

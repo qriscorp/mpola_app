@@ -16,6 +16,7 @@ import {
   useNotificationsViewModel,
 } from "../../src/viewmodels";
 import { formatDuration } from "../../src/services/duration";
+import { formatCompactUGX } from "../../src/services/currency";
 
 export default function LenderHomeScreen() {
   const router = useRouter();
@@ -98,7 +99,7 @@ export default function LenderHomeScreen() {
             <View style={styles.capitalStat}>
               <Text style={styles.capitalStatLabel}>Earned</Text>
               <Text style={[styles.capitalStatValue, { color: Colors.teal }]}>
-                {(stats.totalEarned / 1000000).toFixed(1)}M
+                {formatCompactUGX(stats.totalEarned)}
               </Text>
             </View>
           </View>

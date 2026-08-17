@@ -526,6 +526,16 @@ export async function fetchActiveLoan(): Promise<Loan | null> {
   return raw ? mapLoan(raw) : null;
 }
 
+// Every loan the borrower has ever taken, any status — same endpoint as
+// fetchActiveLoan, just without discarding everything but the one current
+// loan. Powers the My Loans screen's All/Active/Pending/Closed filter.
+export async function fetchMyLoans(): Promise<Loan[]> {
+  const res = await apiAuthGet<{ total: number; loans: RawLoan[] }>(
+    "/loans/active",
+  );
+  return res.loans.map(mapLoan);
+}
+
 export async function fetchLoanDetail(
   loanId: string,
 ): Promise<Loan & { repayments: ReturnType<typeof mapRepayment>[] }> {
