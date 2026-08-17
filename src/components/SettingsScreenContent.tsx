@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Switch, Modal, Alert } from "
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Colors, Typography, Spacing, BorderRadius } from "../theme";
 import { Card } from "./Card";

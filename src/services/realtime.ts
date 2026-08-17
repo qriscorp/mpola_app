@@ -19,7 +19,12 @@ export function useRealtimeNotifications() {
   const retryRef = useRef(0);
 
   useEffect(() => {
-    let socket: WebSocket | null = null;
+    // InstanceType<typeof WebSocket>, not the bare `WebSocket` type name —
+    // the SDK 54 upgrade pulled in @types/node transitively, which shadows
+    // the global WebSocket type with Node's (undici) version and breaks
+    // this annotation; deriving from the actual runtime constructor avoids
+    // the collision.
+    let socket: InstanceType<typeof WebSocket> | null = null;
     let retryTimer: ReturnType<typeof setTimeout> | null = null;
     let closedByUs = false;
     let cancelled = false;
@@ -28,13 +33,14 @@ export function useRealtimeNotifications() {
       const token = await getAccessToken();
       if (!token || cancelled) return;
 
-      socket = new WebSocket(wsUrl(token));
+      const ws = new WebSocket(wsUrl(token));
+      socket = ws;
 
-      socket.onopen = () => {
+      ws.onopen = () => {
         retryRef.current = 0;
       };
 
-      socket.onmessage = (event) => {
+      ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
           if (msg.event !== "notification") return;
@@ -92,7 +98,7 @@ export function useRealtimeNotifications() {
             // Approvals tab without needing to detect the active role.
             Alert.alert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              { text: "Respond", onPress: () => router.push("approvals") },
+              { text: "Respond", onPress: () => router.push("approvals" as never) },
             ]);
           } else if (msg.type === "guarantor_response" && msg.title) {
             Alert.alert(msg.title, msg.message);
@@ -113,7 +119,7 @@ export function useRealtimeNotifications() {
             // resolves to whichever role's "help" tab this hook is mounted under.
             Alert.alert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              { text: "View", onPress: () => router.push("help") },
+              { text: "View", onPress: () => router.push("help" as never) },
             ]);
           }
         } catch {
@@ -121,15 +127,15 @@ export function useRealtimeNotifications() {
         }
       };
 
-      socket.onclose = () => {
+      ws.onclose = () => {
         if (closedByUs || cancelled) return;
         const delay = Math.min(30000, 1000 * 2 ** retryRef.current);
         retryRef.current += 1;
         retryTimer = setTimeout(connect, delay);
       };
 
-      socket.onerror = () => {
-        socket?.close();
+      ws.onerror = () => {
+        ws.close();
       };
     };
 

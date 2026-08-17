@@ -205,10 +205,10 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (!res.ok) {
-    const err = await res.json().catch(() => ({ detail: "Request failed" }));
+    const err = (await res.json().catch(() => ({ detail: "Request failed" }))) as { detail?: string };
     throw new Error(err.detail || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 async function apiGet<T>(path: string): Promise<T> {
@@ -217,12 +217,12 @@ async function apiGet<T>(path: string): Promise<T> {
     headers: { "Content-Type": "application/json" },
   });
   if (!res.ok) {
-    const err = await res
+    const err = (await res
       .json()
-      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }))) as { detail?: string; message?: string };
     throw new Error(err.detail || err.message || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 async function handleUnauthorized() {
@@ -245,12 +245,12 @@ export async function apiAuthGet<T>(path: string): Promise<T> {
     throw new Error("Session expired");
   }
   if (!res.ok) {
-    const err = await res
+    const err = (await res
       .json()
-      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }))) as { detail?: string; message?: string };
     throw new Error(err.detail || err.message || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 /** POST with the stored access token attached — for endpoints that require auth. */
@@ -269,12 +269,12 @@ export async function apiAuthPost<T>(path: string, body: unknown): Promise<T> {
     throw new Error("Session expired");
   }
   if (!res.ok) {
-    const err = await res
+    const err = (await res
       .json()
-      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }))) as { detail?: string; message?: string };
     throw new Error(err.detail || err.message || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 /** PATCH with the stored access token attached — for endpoints that require auth. */
@@ -289,19 +289,23 @@ export async function apiAuthUpload<T>(
     headers: {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: formData,
+    // React Native's fetch accepts FormData at runtime — the SDK 54 upgrade
+    // pulled in a stricter global fetch type (from @types/node) that
+    // doesn't recognize it as a valid BodyInit, purely a type-level
+    // conflict, not a real behavior change.
+    body: formData as never,
   });
   if (res.status === 401) {
     await handleUnauthorized();
     throw new Error("Session expired");
   }
   if (!res.ok) {
-    const err = await res
+    const err = (await res
       .json()
-      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }))) as { detail?: string; message?: string };
     throw new Error(err.detail || err.message || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 export async function apiAuthPut<T>(path: string, body: unknown): Promise<T> {
@@ -319,12 +323,12 @@ export async function apiAuthPut<T>(path: string, body: unknown): Promise<T> {
     throw new Error("Session expired");
   }
   if (!res.ok) {
-    const err = await res
+    const err = (await res
       .json()
-      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }))) as { detail?: string; message?: string };
     throw new Error(err.detail || err.message || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 export async function apiAuthDelete<T>(path: string): Promise<T> {
@@ -340,12 +344,12 @@ export async function apiAuthDelete<T>(path: string): Promise<T> {
     throw new Error("Session expired");
   }
   if (!res.ok) {
-    const err = await res
+    const err = (await res
       .json()
-      .catch(() => ({ detail: "Request failed", message: "Request failed" }));
+      .catch(() => ({ detail: "Request failed", message: "Request failed" }))) as { detail?: string; message?: string };
     throw new Error(err.detail || err.message || `HTTP ${res.status}`);
   }
-  return res.json();
+  return res.json() as Promise<T>;
 }
 
 function mapSignupDraft(payload: SignupDraftPayload): SignupDraftState {

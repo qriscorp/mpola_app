@@ -577,7 +577,7 @@ export async function fetchMyRepayments(
  * folder" to drop it into directly on either platform.
  */
 export async function downloadRepaymentReceipt(repaymentId: string): Promise<void> {
-  const FileSystem = await import("expo-file-system");
+  const FileSystem = await import("expo-file-system/legacy");
   const Sharing = await import("expo-sharing");
   const { getAccessToken, API_BASE_URL } = await import("./auth");
 
@@ -601,7 +601,7 @@ export async function downloadRepaymentReceipt(repaymentId: string): Promise<voi
 /** Downloads the real PDF receipt for a loan's disbursement, then opens the
  * native share sheet — same pattern as downloadRepaymentReceipt. */
 export async function downloadDisbursementReceipt(loanId: string): Promise<void> {
-  const FileSystem = await import("expo-file-system");
+  const FileSystem = await import("expo-file-system/legacy");
   const Sharing = await import("expo-sharing");
   const { getAccessToken, API_BASE_URL } = await import("./auth");
 
