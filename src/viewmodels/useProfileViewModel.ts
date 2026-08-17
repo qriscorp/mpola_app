@@ -22,6 +22,13 @@ export function useProfileViewModel() {
 
   async function signOut() {
     await apiSignOut();
+    // Every query (profile, wallet, dashboard stats, active loan, etc.) is
+    // still sitting in the cache at this point — React Query's 5-minute
+    // staleTime (see app/_layout.tsx) means it'd be shown as-is to whoever
+    // logs in next, borrower or lender, real account or not, until it
+    // happened to refetch. Clearing it here guarantees the next session
+    // starts from nothing cached, not the previous user's data.
+    queryClient.clear();
     router.replace("/sign-in");
   }
 
