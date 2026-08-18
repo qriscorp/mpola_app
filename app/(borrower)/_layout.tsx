@@ -77,7 +77,6 @@ export default function BorrowerTabLayout() {
           route anymore. */}
       <Tabs.Screen name="profile" options={{ href: null }} />
       <Tabs.Screen name="approvals" options={{ href: null }} />
-      <Tabs.Screen name="register" options={{ href: null }} />
       <Tabs.Screen name="offers" options={{ href: null }} />
       <Tabs.Screen name="payment" options={{ href: null }} />
       <Tabs.Screen name="payment-success" options={{ href: null }} />

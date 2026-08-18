@@ -194,6 +194,12 @@ interface ApiMessageResponse {
   message: string;
   account_created?: boolean;
   draft?: SignupDraftPayload;
+  // Present only when this call is the one that completes the signup —
+  // lets the frontend log the new user straight in instead of sending
+  // them to sign-in to re-enter the password they just typed.
+  access_token?: string;
+  refresh_token?: string;
+  user?: AuthUser;
 }
 
 // ─── API Helpers ─────────────────────────────────────────
@@ -241,8 +247,17 @@ export async function apiAuthGet<T>(path: string): Promise<T> {
     },
   });
   if (res.status === 401) {
-    await handleUnauthorized();
-    throw new Error("Session expired");
+    // Only a real session expiry (a token was attached and the server
+    // rejected it) should clear auth and bounce to sign-in. A 401 with no
+    // token just means this call fired before the user ever logged in
+    // (e.g. background hooks in the tab layout running on a pre-auth
+    // screen like register) — nothing to expire, and redirecting would
+    // yank them off whatever screen they're actually on.
+    if (token) {
+      await handleUnauthorized();
+      throw new Error("Session expired");
+    }
+    throw new Error("Not authenticated");
   }
   if (!res.ok) {
     const err = (await res
@@ -265,8 +280,17 @@ export async function apiAuthPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (res.status === 401) {
-    await handleUnauthorized();
-    throw new Error("Session expired");
+    // Only a real session expiry (a token was attached and the server
+    // rejected it) should clear auth and bounce to sign-in. A 401 with no
+    // token just means this call fired before the user ever logged in
+    // (e.g. background hooks in the tab layout running on a pre-auth
+    // screen like register) — nothing to expire, and redirecting would
+    // yank them off whatever screen they're actually on.
+    if (token) {
+      await handleUnauthorized();
+      throw new Error("Session expired");
+    }
+    throw new Error("Not authenticated");
   }
   if (!res.ok) {
     const err = (await res
@@ -296,8 +320,17 @@ export async function apiAuthUpload<T>(
     body: formData as never,
   });
   if (res.status === 401) {
-    await handleUnauthorized();
-    throw new Error("Session expired");
+    // Only a real session expiry (a token was attached and the server
+    // rejected it) should clear auth and bounce to sign-in. A 401 with no
+    // token just means this call fired before the user ever logged in
+    // (e.g. background hooks in the tab layout running on a pre-auth
+    // screen like register) — nothing to expire, and redirecting would
+    // yank them off whatever screen they're actually on.
+    if (token) {
+      await handleUnauthorized();
+      throw new Error("Session expired");
+    }
+    throw new Error("Not authenticated");
   }
   if (!res.ok) {
     const err = (await res
@@ -319,8 +352,17 @@ export async function apiAuthPut<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
   if (res.status === 401) {
-    await handleUnauthorized();
-    throw new Error("Session expired");
+    // Only a real session expiry (a token was attached and the server
+    // rejected it) should clear auth and bounce to sign-in. A 401 with no
+    // token just means this call fired before the user ever logged in
+    // (e.g. background hooks in the tab layout running on a pre-auth
+    // screen like register) — nothing to expire, and redirecting would
+    // yank them off whatever screen they're actually on.
+    if (token) {
+      await handleUnauthorized();
+      throw new Error("Session expired");
+    }
+    throw new Error("Not authenticated");
   }
   if (!res.ok) {
     const err = (await res
@@ -340,8 +382,17 @@ export async function apiAuthDelete<T>(path: string): Promise<T> {
     },
   });
   if (res.status === 401) {
-    await handleUnauthorized();
-    throw new Error("Session expired");
+    // Only a real session expiry (a token was attached and the server
+    // rejected it) should clear auth and bounce to sign-in. A 401 with no
+    // token just means this call fired before the user ever logged in
+    // (e.g. background hooks in the tab layout running on a pre-auth
+    // screen like register) — nothing to expire, and redirecting would
+    // yank them off whatever screen they're actually on.
+    if (token) {
+      await handleUnauthorized();
+      throw new Error("Session expired");
+    }
+    throw new Error("Not authenticated");
   }
   if (!res.ok) {
     const err = (await res
@@ -542,6 +593,10 @@ export async function apiVerifySignupEmailOtp(
   if (res.account_created || res.draft?.is_completed) {
     await clearSignupDraft();
     await clearSignupFormDraft();
+    if (res.access_token && res.refresh_token && res.user) {
+      await storeTokens(res.access_token, res.refresh_token);
+      await storeUser(res.user);
+    }
   } else if (res.draft) {
     await storeSignupDraft(mapSignupDraft(res.draft));
   } else {
@@ -595,6 +650,10 @@ export async function apiVerifySignupPhoneOtp(
   if (res.account_created || res.draft?.is_completed) {
     await clearSignupDraft();
     await clearSignupFormDraft();
+    if (res.access_token && res.refresh_token && res.user) {
+      await storeTokens(res.access_token, res.refresh_token);
+      await storeUser(res.user);
+    }
   } else if (res.draft) {
     await storeSignupDraft(mapSignupDraft(res.draft));
   } else {

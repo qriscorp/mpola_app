@@ -103,7 +103,15 @@ export default function VerifyEmailScreen() {
       const response = await apiVerifySignupEmailOtp(draft.draftId, otp);
       if (response.account_created) {
         await clearSignupDraft();
-        router.replace("/sign-in");
+        if (response.user) {
+          router.replace(
+            response.user.role === "lender" ? "/(lender)/home" : "/(borrower)/home",
+          );
+        } else {
+          // Tokens weren't issued for some reason — fall back to asking
+          // the user to sign in manually rather than leaving them stuck.
+          router.replace("/sign-in");
+        }
         return;
       }
 
@@ -129,7 +137,7 @@ export default function VerifyEmailScreen() {
   };
 
   const startOverRoute =
-    portal === "lender" ? "/(lender)/register" : "/(borrower)/register";
+    portal === "lender" ? "/register-lender" : "/register-borrower";
 
   if (!draft) {
     return (

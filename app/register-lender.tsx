@@ -9,11 +9,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
+import { Button, Input, PhoneInput } from "../src/components";
+import { useAuthViewModel } from "../src/viewmodels";
 
 const MPOLA_WEB_URL = "https://mpola.co";
-import { Button, Input, PhoneInput } from "../../src/components";
-import { useAuthViewModel } from "../../src/viewmodels";
 import {
   apiRefreshSignupDraft,
   clearSignupDraft,
@@ -22,10 +23,10 @@ import {
   getSignupDraftNextStep,
   saveSignupFormDraft,
   type SignupDraftState,
-} from "../../src/services/auth";
-import { PASSWORD_REQUIREMENTS_HINT } from "../../src/validation";
+} from "../src/services/auth";
+import { PASSWORD_REQUIREMENTS_HINT } from "../src/validation";
 
-export default function BorrowerRegisterScreen() {
+export default function LenderRegisterScreen() {
   const router = useRouter();
   const vm = useAuthViewModel();
   const typography = useScaledTypography();
@@ -53,24 +54,21 @@ export default function BorrowerRegisterScreen() {
 
   const getResumeRoute = (draft: SignupDraftState) =>
     getSignupDraftNextStep(draft) === "verify-phone"
-      ? "/verify-phone?portal=borrower"
+      ? "/verify-phone?portal=lender"
       : getSignupDraftNextStep(draft) === "completed"
         ? "/sign-in"
-        : "/verify-email?portal=borrower";
+        : "/verify-email?portal=lender";
 
   useEffect(() => {
     const loadDraft = async () => {
       const draft = await apiRefreshSignupDraft();
-      if (draft?.role === "borrower") {
+      if (draft?.role === "lender") {
         setExistingDraft(draft);
       } else {
         setExistingDraft(null);
 
         const formDraft = await getSignupFormDraft();
-        if (
-          formDraft?.role === "borrower" &&
-          hasMeaningfulFormDraft(formDraft)
-        ) {
+        if (formDraft?.role === "lender" && hasMeaningfulFormDraft(formDraft)) {
           vm.setFullName(formDraft.fullName || "");
           vm.setNin(formDraft.nin || "");
           vm.setPhone(formDraft.phone || "");
@@ -99,7 +97,7 @@ export default function BorrowerRegisterScreen() {
       }
 
       await saveSignupFormDraft({
-        role: "borrower",
+        role: "lender",
         fullName: vm.fullName,
         nin: vm.nin,
         phone: vm.phone,
@@ -123,14 +121,14 @@ export default function BorrowerRegisterScreen() {
   ]);
 
   const handleRegister = async () => {
-    const success = await vm.register("borrower");
+    const success = await vm.register("lender");
     if (success) {
       const latestDraft = await apiRefreshSignupDraft();
-      if (latestDraft?.role === "borrower") {
+      if (latestDraft?.role === "lender") {
         router.replace(getResumeRoute(latestDraft));
         return;
       }
-      router.replace("/verify-email?portal=borrower");
+      router.replace("/verify-email?portal=lender");
     }
   };
 
@@ -138,8 +136,18 @@ export default function BorrowerRegisterScreen() {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Get a Loan</Text>
-        <Text style={styles.headerSub}>Create your borrower account</Text>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+          style={styles.backBtn}
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Become a Lender</Text>
+        <Text style={styles.headerSub}>
+          Start earning by lending to verified borrowers
+        </Text>
       </View>
 
       <ScrollView
@@ -157,7 +165,7 @@ export default function BorrowerRegisterScreen() {
               <TouchableOpacity
                 onPress={async () => {
                   const latestDraft = await apiRefreshSignupDraft();
-                  if (latestDraft?.role === "borrower") {
+                  if (latestDraft?.role === "lender") {
                     router.replace(getResumeRoute(latestDraft));
                     return;
                   }
@@ -295,9 +303,9 @@ export default function BorrowerRegisterScreen() {
             , and{" "}
             <Text
               style={styles.termsLink}
-              onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/borrower-code-of-conduct`)}
+              onPress={() => WebBrowser.openBrowserAsync(`${MPOLA_WEB_URL}/lender-code-of-conduct`)}
             >
-              Borrower Code of Conduct
+              Lender Code of Conduct
             </Text>
           </Text>
         </View>
@@ -305,7 +313,7 @@ export default function BorrowerRegisterScreen() {
         <Button
           title="Continue to Verification →"
           onPress={handleRegister}
-          color={Colors.teal}
+          color={Colors.gold}
           loading={vm.loading}
           disabled={!vm.canSubmit}
         />
@@ -331,9 +339,11 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       marginTop: -Spacing.sm,
       marginBottom: Spacing.md,
     },
+    backBtn: { marginBottom: Spacing.md },
     header: {
-      paddingHorizontal: Spacing.xl,
-      paddingVertical: Spacing.xl,
+      paddingHorizontal: Spacing.xxl,
+      paddingVertical: Spacing.xxl,
+      paddingTop: Spacing.lg,
     },
     headerTitle: { ...typography.h1, color: Colors.white },
     headerSub: {
@@ -342,7 +352,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       marginTop: Spacing.xs,
     },
     form: { flex: 1 },
-    formContent: { paddingHorizontal: Spacing.xl, paddingBottom: 40 },
+    formContent: { padding: Spacing.xxl, paddingBottom: 40 },
     resumeCard: {
       borderWidth: 1,
       borderColor: Colors.border,
@@ -363,24 +373,24 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       gap: Spacing.lg,
       marginTop: Spacing.sm,
     },
-    resumeLink: { ...typography.smallMedium, color: Colors.teal },
+    resumeLink: { ...typography.smallMedium, color: Colors.gold },
     resumeReset: { ...typography.smallMedium, color: Colors.textMuted },
     toggle: {
       flexDirection: "row",
       backgroundColor: Colors.surface,
-      borderRadius: BorderRadius.full,
-      padding: 4,
+      borderRadius: BorderRadius.md,
+      padding: 3,
       marginBottom: Spacing.xxl,
     },
     toggleBtn: {
       flex: 1,
       paddingVertical: Spacing.sm,
       alignItems: "center",
-      borderRadius: BorderRadius.full,
+      borderRadius: BorderRadius.sm,
     },
-    toggleActive: { backgroundColor: Colors.teal },
+    toggleActive: { backgroundColor: Colors.surfaceLift },
     toggleText: { ...typography.bodyMedium, color: Colors.textSecondary },
-    toggleTextActive: { color: Colors.white },
+    toggleTextActive: { color: Colors.gold },
     termsRow: {
       flexDirection: "row",
       alignItems: "flex-start",
@@ -397,16 +407,16 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       justifyContent: "center",
       marginTop: 1,
     },
-    checkboxActive: { backgroundColor: Colors.teal, borderColor: Colors.teal },
+    checkboxActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
     checkmark: { color: Colors.white, fontSize: 12, fontWeight: "700" },
     termsText: { ...typography.small, color: Colors.textSecondary, flex: 1 },
-    termsLink: { color: Colors.teal, fontWeight: "600" },
+    termsLink: { color: Colors.gold, fontWeight: "600" },
     signInRow: {
       flexDirection: "row",
       justifyContent: "center",
       marginTop: Spacing.xxl,
     },
     signInText: { ...typography.body, color: Colors.textSecondary },
-    signInLink: { color: Colors.teal, fontWeight: "600" },
+    signInLink: { color: Colors.gold, fontWeight: "600" },
   });
 }

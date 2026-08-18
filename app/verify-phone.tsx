@@ -128,12 +128,20 @@ export default function VerifyPhoneScreen() {
         otp,
       );
       if (response.account_created) {
-        Alert.alert("Account ready", "Signup complete. Please sign in.", [
-          {
-            text: "Sign In",
-            onPress: () => router.replace("/sign-in"),
-          },
-        ]);
+        if (response.user) {
+          router.replace(
+            response.user.role === "lender" ? "/(lender)/home" : "/(borrower)/home",
+          );
+        } else {
+          // Tokens weren't issued for some reason — fall back to asking
+          // the user to sign in manually rather than leaving them stuck.
+          Alert.alert("Account ready", "Signup complete. Please sign in.", [
+            {
+              text: "Sign In",
+              onPress: () => router.replace("/sign-in"),
+            },
+          ]);
+        }
         return;
       }
 
@@ -159,7 +167,7 @@ export default function VerifyPhoneScreen() {
   };
 
   const startOverRoute =
-    portal === "lender" ? "/(lender)/register" : "/(borrower)/register";
+    portal === "lender" ? "/register-lender" : "/register-borrower";
 
   if (!draft) {
     return (

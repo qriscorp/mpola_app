@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card } from "../../src/components";
 
@@ -26,6 +27,14 @@ export default function PaymentFailedScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => router.back()}
+        accessibilityLabel="Go back"
+        accessibilityRole="button"
+      >
+        <Ionicons name="arrow-back" size={24} color={Colors.white} />
+      </TouchableOpacity>
       <View style={styles.content}>
         <View style={styles.xCircle}>
           <Text style={styles.x}>✕</Text>
@@ -78,6 +87,7 @@ export default function PaymentFailedScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
+    backBtn: { paddingHorizontal: Spacing.xxl, paddingTop: Spacing.md },
     content: {
       flex: 1,
       justifyContent: "center",

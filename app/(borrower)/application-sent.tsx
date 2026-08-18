@@ -35,6 +35,14 @@ export default function ApplicationSentScreen() {
       >
         {/* Header */}
         <View style={styles.logoRow}>
+          <TouchableOpacity
+            onPress={() => router.replace("/(borrower)/home")}
+            accessibilityLabel="Go back"
+            accessibilityRole="button"
+            style={styles.backBtn}
+          >
+            <Ionicons name="arrow-back" size={24} color={Colors.white} />
+          </TouchableOpacity>
           <View style={styles.logoBox}>
             <Text style={styles.logoLetter}>M</Text>
           </View>
@@ -126,6 +134,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       gap: Spacing.sm,
       marginBottom: Spacing.xxl,
     },
+    backBtn: { marginRight: Spacing.xs },
     logoBox: {
       width: 34,
       height: 34,

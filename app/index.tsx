@@ -25,7 +25,7 @@ export default function WelcomeScreen() {
         <View style={styles.buttons}>
           <TouchableOpacity
             style={[styles.primaryBtn, { backgroundColor: Colors.teal }]}
-            onPress={() => router.push("/(borrower)/register")}
+            onPress={() => router.push("/register-borrower")}
             activeOpacity={0.85}
           >
             <Text style={styles.primaryBtnText}>I'm a Borrower</Text>
@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
 
           <TouchableOpacity
             style={[styles.primaryBtn, { backgroundColor: Colors.gold }]}
-            onPress={() => router.push("/(lender)/register")}
+            onPress={() => router.push("/register-lender")}
             activeOpacity={0.85}
           >
             <Text style={styles.primaryBtnText}>I'm a Lender</Text>

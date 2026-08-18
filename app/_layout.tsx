@@ -22,9 +22,24 @@ export default function RootLayout() {
             the bottom tab bar's rounded corners (see (borrower)/_layout.tsx
             and (lender)/_layout.tsx), since the tab bar no longer fills
             this container's full rectangular bounds. */}
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Colors.background } }}>
+        {/* router.replace() is used throughout the auth flow (sign-in →
+            home, register → verify-email → verify-phone → home) so the
+            back button can't step into an already-completed step — but
+            native-stack's default replace animation is "pop" (a backward
+            transition), which looks like an instant snap when the flow is
+            actually moving forward. "push" makes replace() slide forward
+            like a normal transition instead. */}
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: Colors.background },
+            animationTypeForReplace: "push",
+          }}
+        >
           <Stack.Screen name="index" />
           <Stack.Screen name="sign-in" />
+          <Stack.Screen name="register-borrower" />
+          <Stack.Screen name="register-lender" />
           <Stack.Screen name="forgot-password" />
           <Stack.Screen name="phone-otp-signin" />
           <Stack.Screen name="verify-email" />

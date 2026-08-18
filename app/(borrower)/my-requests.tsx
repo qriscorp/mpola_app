@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import { useQuery } from "@tanstack/react-query";
 import {
   View,
@@ -613,10 +614,20 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
 
 export default function MyRequestsScreen() {
   const router = useRouter();
-  const { applications, isLoading } = useMyApplicationsViewModel();
+  const { applications, isLoading, refetch } = useMyApplicationsViewModel();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
   const [activeTab, setActiveTab] = useState<Tab>("All");
+
+  // react-query's 5-minute staleTime means a plain mount can silently serve
+  // a cached list — stale the moment a request is created/updated on
+  // another device (or the website). Refetching on focus keeps this in
+  // sync with reality every time the borrower actually looks at it.
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [refetch]),
+  );
 
   const filtered = useMemo(() => {
     if (activeTab === "All") return applications;

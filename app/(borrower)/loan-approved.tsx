@@ -18,6 +18,14 @@ export default function LoanApprovedScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <TouchableOpacity
+        style={styles.backBtn}
+        onPress={() => router.replace("/(borrower)/home")}
+        accessibilityLabel="Go back"
+        accessibilityRole="button"
+      >
+        <Ionicons name="arrow-back" size={24} color={Colors.white} />
+      </TouchableOpacity>
       <View style={styles.content}>
         {/* Checkmark */}
         <View style={styles.checkCircle}>
@@ -86,6 +94,7 @@ export default function LoanApprovedScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
+    backBtn: { paddingHorizontal: Spacing.xxl, paddingTop: Spacing.md },
     content: {
       flex: 1,
       justifyContent: "center",

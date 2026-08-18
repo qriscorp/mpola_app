@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useOffersViewModel, useAllOffersViewModel } from "../../src/viewmodels";
 import { SkeletonList, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
@@ -32,9 +33,13 @@ function AllOffersView() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoLetter}>M</Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Offers Received</Text>
         <Text style={styles.liveCount}>{offers.length} offer{offers.length === 1 ? "" : "s"}</Text>
       </View>
@@ -193,9 +198,13 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <View style={styles.logoBox}>
-          <Text style={styles.logoLetter}>M</Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+          accessibilityRole="button"
+        >
+          <Ionicons name="arrow-back" size={24} color={Colors.white} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Offers Received</Text>
         <Text style={styles.liveCount}>{offers.length} offer{offers.length === 1 ? "" : "s"}</Text>
       </View>
@@ -365,15 +374,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingVertical: Spacing.lg,
       gap: Spacing.sm,
     },
-    logoBox: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.teal,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
     headerTitle: { ...typography.h3, color: Colors.white, flex: 1 },
     liveCount: { ...typography.bodyMedium, color: Colors.teal },
     summaryRow: {
