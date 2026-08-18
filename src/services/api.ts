@@ -104,10 +104,15 @@ export async function depositMobileMoney(data: {
   return apiAuthPost("/wallet/deposit", data);
 }
 
+export async function sendWithdrawOtp(): Promise<{ status: number; message: string }> {
+  return apiAuthPost("/wallet/withdraw/send-otp", {});
+}
+
 export async function withdrawMobileMoney(data: {
   amount: number;
   phone: string;
   carrier?: string;
+  otpCode: string;
 }): Promise<{
   status: number;
   message: string;
@@ -115,7 +120,12 @@ export async function withdrawMobileMoney(data: {
   fee: number;
   total_debited: number;
 }> {
-  return apiAuthPost("/wallet/withdraw", data);
+  return apiAuthPost("/wallet/withdraw", {
+    amount: data.amount,
+    phone_number: data.phone,
+    carrier: data.carrier,
+    otp_code: data.otpCode,
+  });
 }
 
 // Card — Flutterwave hosted checkout, async: initiate then poll status.
@@ -152,6 +162,7 @@ export async function initiateBankWithdraw(data: {
   accountNumber: string;
   beneficiaryName: string;
   narration?: string;
+  otpCode: string;
 }): Promise<{ reference: string; status: string }> {
   return apiAuthPost("/wallet/withdraw/bank/initiate", {
     amount: data.amount,
@@ -159,6 +170,7 @@ export async function initiateBankWithdraw(data: {
     account_number: data.accountNumber,
     beneficiary_name: data.beneficiaryName,
     narration: data.narration,
+    otp_code: data.otpCode,
   });
 }
 

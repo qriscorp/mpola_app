@@ -8,6 +8,7 @@ import {
   getBanks,
   initiateBankWithdraw,
   getBankWithdrawStatus,
+  sendWithdrawOtp,
 } from "../services";
 import { pollUntilResolved } from "../services/poll";
 
@@ -30,6 +31,10 @@ export function useWalletTransactions() {
   const withdrawMobileMoneyMutation = useMutation({
     mutationFn: withdrawMobileMoney,
     onSuccess: invalidateWallets,
+  });
+
+  const sendWithdrawOtpMutation = useMutation({
+    mutationFn: sendWithdrawOtp,
   });
 
   const cardDepositMutation = useMutation({
@@ -56,6 +61,7 @@ export function useWalletTransactions() {
       accountNumber: string;
       beneficiaryName: string;
       narration?: string;
+      otpCode: string;
     }) => {
       const { reference } = await initiateBankWithdraw(data);
       return pollUntilResolved(() => getBankWithdrawStatus(reference));
@@ -68,6 +74,8 @@ export function useWalletTransactions() {
     isDepositingMobileMoney: depositMobileMoneyMutation.isPending,
     withdrawMobileMoney: withdrawMobileMoneyMutation.mutateAsync,
     isWithdrawingMobileMoney: withdrawMobileMoneyMutation.isPending,
+    sendWithdrawOtp: sendWithdrawOtpMutation.mutateAsync,
+    isSendingWithdrawOtp: sendWithdrawOtpMutation.isPending,
     depositWithCard: cardDepositMutation.mutateAsync,
     isDepositingWithCard: cardDepositMutation.isPending,
     banks: banksQuery.data ?? [],

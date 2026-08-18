@@ -38,6 +38,8 @@ export default function WalletScreen() {
     isWithdrawingMobileMoney,
     withdrawWithBank,
     isWithdrawingWithBank,
+    sendWithdrawOtp,
+    isSendingWithdrawOtp,
     banks,
     banksLoading,
     txPage,
@@ -166,6 +168,8 @@ export default function WalletScreen() {
           onClose={() => setWithdrawVisible(false)}
           onWithdrawMobileMoney={withdrawMobileMoney}
           onWithdrawBank={withdrawWithBank}
+          onSendOtp={sendWithdrawOtp}
+          isSendingOtp={isSendingWithdrawOtp}
           banks={banks}
           banksLoading={banksLoading}
           isSubmittingMobileMoney={isWithdrawingMobileMoney}

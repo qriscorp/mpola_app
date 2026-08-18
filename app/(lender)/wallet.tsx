@@ -41,6 +41,8 @@ export default function LenderWalletScreen() {
     isWithdrawingMobileMoney,
     withdrawWithBank,
     isWithdrawingWithBank,
+    sendWithdrawOtp,
+    isSendingWithdrawOtp,
     banks,
     banksLoading,
     txPage,
@@ -199,6 +201,8 @@ export default function LenderWalletScreen() {
           onClose={() => setWithdrawVisible(false)}
           onWithdrawMobileMoney={withdrawMobileMoney}
           onWithdrawBank={withdrawWithBank}
+          onSendOtp={sendWithdrawOtp}
+          isSendingOtp={isSendingWithdrawOtp}
           banks={banks}
           banksLoading={banksLoading}
           isSubmittingMobileMoney={isWithdrawingMobileMoney}

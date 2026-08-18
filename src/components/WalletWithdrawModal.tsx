@@ -14,6 +14,7 @@ import { Input } from "./Input";
 import { PhoneInput } from "./PhoneInput";
 import { Button } from "./Button";
 import { ConfirmModal, ConfirmDetailRow } from "./ConfirmModal";
+import { OtpConfirmModal } from "./OtpConfirmModal";
 import type { BankOption } from "../models";
 import {
   calcMobileMoneyWithdrawalCharges,
@@ -34,13 +35,17 @@ interface Props {
     amount: number;
     phone: string;
     carrier: "MTN" | "AIRTEL";
+    otpCode: string;
   }) => Promise<unknown>;
   onWithdrawBank: (data: {
     amount: number;
     accountBank: string;
     accountNumber: string;
     beneficiaryName: string;
+    otpCode: string;
   }) => Promise<unknown>;
+  onSendOtp: () => Promise<unknown>;
+  isSendingOtp?: boolean;
   banks: BankOption[];
   banksLoading?: boolean;
   isSubmittingMobileMoney?: boolean;
@@ -55,6 +60,8 @@ export function WalletWithdrawModal({
   onClose,
   onWithdrawMobileMoney,
   onWithdrawBank,
+  onSendOtp,
+  isSendingOtp,
   banks,
   banksLoading,
   isSubmittingMobileMoney,
@@ -73,6 +80,9 @@ export function WalletWithdrawModal({
   const [accountNumber, setAccountNumber] = useState("");
   const [beneficiaryName, setBeneficiaryName] = useState("");
   const [showFinalConfirm, setShowFinalConfirm] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false);
+  const [otpError, setOtpError] = useState<string | null>(null);
+  const [resendingOtp, setResendingOtp] = useState(false);
 
   // Auto-fill from the account's saved phone number and auto-select the
   // matching network — same as kumpi. Only runs before the user has typed
@@ -107,7 +117,37 @@ export function WalletWithdrawModal({
         : calcBankWithdrawalCharges(numericAmount)
       : null;
 
-  const handleSubmit = async () => {
+  // "Confirm" on the fee-breakdown step just requests the SMS code — actual
+  // submission (and thus the real charge/payout) only happens once that
+  // code comes back verified from handleVerifyOtp below.
+  const handleRequestOtp = async () => {
+    setOtpError(null);
+    try {
+      await onSendOtp();
+      setShowFinalConfirm(false);
+      setShowOtpModal(true);
+    } catch (e) {
+      Alert.alert(
+        "Couldn't send code",
+        e instanceof Error ? e.message : "Please try again.",
+      );
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setResendingOtp(true);
+    setOtpError(null);
+    try {
+      await onSendOtp();
+    } catch (e) {
+      setOtpError(e instanceof Error ? e.message : "Couldn't resend the code.");
+    } finally {
+      setResendingOtp(false);
+    }
+  };
+
+  const handleVerifyOtp = async (otpCode: string) => {
+    setOtpError(null);
     try {
       let fee: number | null | undefined;
       if (method === "mobile_money") {
@@ -115,6 +155,7 @@ export function WalletWithdrawModal({
           amount: numericAmount,
           phone: `+256${phone}`,
           carrier,
+          otpCode,
         })) as { fee?: number } | undefined;
         fee = result?.fee;
       } else if (selectedBank) {
@@ -123,20 +164,20 @@ export function WalletWithdrawModal({
           accountBank: selectedBank.code,
           accountNumber,
           beneficiaryName,
+          otpCode,
         })) as { fee?: number | null } | undefined;
         fee = result?.fee;
       }
-      setShowFinalConfirm(false);
+      setShowOtpModal(false);
       onClose();
       if (fee != null) {
         Alert.alert("Withdrawal successful", `${formatUgx(fee)} fee charged.`);
       }
     } catch (e) {
-      setShowFinalConfirm(false);
-      Alert.alert(
-        "Withdrawal failed",
-        e instanceof Error ? e.message : "Please try again.",
-      );
+      // Stays open so a wrong/expired code can be retried without redoing
+      // the whole form — a fresh Alert on top of an open modal reads as a
+      // glitch, an inline message in the modal that's already up doesn't.
+      setOtpError(e instanceof Error ? e.message : "Please try again.");
     }
   };
 
@@ -325,11 +366,11 @@ export function WalletWithdrawModal({
             ? `This sends money to +256${phone} and can't be undone.`
             : `This sends money to ${selectedBank?.name ?? "your bank"} and can't be undone.`
         }
-        confirmLabel="Withdraw"
+        confirmLabel="Send Code"
         accentColor={accentColor}
-        loading={isSubmitting}
+        loading={isSendingOtp}
         onCancel={() => setShowFinalConfirm(false)}
-        onConfirm={handleSubmit}
+        onConfirm={handleRequestOtp}
       >
         {charges && (
           <>
@@ -348,6 +389,19 @@ export function WalletWithdrawModal({
           </>
         )}
       </ConfirmModal>
+
+      <OtpConfirmModal
+        visible={showOtpModal}
+        title="Enter verification code"
+        message="We sent a 6-digit code to your registered phone number to confirm this withdrawal."
+        accentColor={accentColor}
+        loading={isSubmitting}
+        resending={resendingOtp}
+        error={otpError}
+        onCancel={() => setShowOtpModal(false)}
+        onConfirm={handleVerifyOtp}
+        onResend={handleResendOtp}
+      />
     </Modal>
   );
 }
