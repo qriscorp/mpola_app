@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -40,6 +41,12 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile, isLoading, error, signOut, updateProfile } = useProfileViewModel();
   const typography = useScaledTypography();
+  const confirmSignOut = () => {
+    Alert.alert("Sign out?", "You'll need to sign in again to use Mpola.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: signOut },
+    ]);
+  };
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (error) {
@@ -178,7 +185,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={confirmSignOut}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>

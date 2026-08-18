@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Input, Button, InfoTip } from "../../src/components";
+import { Input, Button, InfoTip, SkeletonList } from "../../src/components";
 import { DOCUMENT_OPTIONS } from "../../src/viewmodels";
 import {
   fetchMarketplace,
@@ -304,7 +304,9 @@ export default function ApplicationsInboxScreen() {
           })}
         </View>
 
-        {isLoading ? null : filtered.length === 0 ? (
+        {isLoading ? (
+          <SkeletonList count={4} cardHeight={130} />
+        ) : filtered.length === 0 ? (
           <View style={styles.emptyState}>
             <Text style={styles.emptyText}>No applications in this category.</Text>
           </View>

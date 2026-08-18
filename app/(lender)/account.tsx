@@ -225,6 +225,12 @@ export default function LenderAccountScreen() {
   const router = useRouter();
   const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement, updateProfile } = useProfileViewModel();
   const typography = useScaledTypography();
+  const confirmSignOut = () => {
+    Alert.alert("Sign out?", "You'll need to sign in again to use Mpola.", [
+      { text: "Cancel", style: "cancel" },
+      { text: "Sign Out", style: "destructive", onPress: signOut },
+    ]);
+  };
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
   if (error) {
@@ -394,7 +400,7 @@ export default function LenderAccountScreen() {
         </View>
 
         {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={confirmSignOut}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
