@@ -213,7 +213,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingVertical: Spacing.md,
     },
     headerTitle: { ...typography.h3, color: Colors.white },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     subtitle: {
       ...typography.body,
       color: Colors.textSecondary,

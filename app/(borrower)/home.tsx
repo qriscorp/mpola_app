@@ -245,7 +245,7 @@ export default function BorrowerHomeScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 136 },
     header: {
       flexDirection: "row",
       alignItems: "center",

@@ -622,7 +622,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     stepLabel: { ...typography.caption, color: Colors.textMuted },
     stepLabelActive: { color: Colors.teal, fontWeight: "600" },
     body: { flex: 1 },
-    bodyContent: { padding: Spacing.lg, paddingBottom: 40 },
+    bodyContent: { padding: Spacing.lg, paddingBottom: 136 },
     sectionLabel: {
       ...typography.caption,
       color: Colors.textMuted,

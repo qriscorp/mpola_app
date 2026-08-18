@@ -224,7 +224,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     },
     unreadText: { ...typography.caption, color: Colors.white, fontWeight: "700" },
     markAllText: { ...typography.smallMedium, color: Colors.gold },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     notifCard: {
       flexDirection: "row",
       backgroundColor: Colors.surface,

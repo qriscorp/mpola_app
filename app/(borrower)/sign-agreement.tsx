@@ -312,7 +312,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingVertical: Spacing.md,
     },
     headerTitle: { ...typography.h3, color: Colors.white },
-    scroll: { padding: Spacing.lg, paddingBottom: 40, gap: Spacing.md },
+    scroll: { padding: Spacing.lg, paddingBottom: 136, gap: Spacing.md },
     emptyState: { flex: 1, alignItems: "center", justifyContent: "center" },
     emptyText: { ...typography.body, color: Colors.textMuted },
     summaryCard: { gap: 2 },

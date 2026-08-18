@@ -268,7 +268,7 @@ export default function LenderWalletScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     headerRow: {
       flexDirection: "row",
       justifyContent: "space-between",

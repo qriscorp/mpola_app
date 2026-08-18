@@ -332,7 +332,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       textAlign: "center",
       marginTop: Spacing.xxl,
     },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     summaryTitle: { ...typography.h4, color: Colors.textPrimary, marginBottom: Spacing.md },
     summaryGrid: {
       flexDirection: "row",

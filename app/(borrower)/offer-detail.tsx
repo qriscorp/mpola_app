@@ -284,7 +284,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingVertical: Spacing.lg,
     },
     headerTitle: { ...typography.h3, color: Colors.white },
-    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 136 },
     emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.xl },
     emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center" },
     lenderCard: {

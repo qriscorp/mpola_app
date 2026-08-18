@@ -220,7 +220,7 @@ export default function ProfileScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    scroll: { padding: Spacing.lg, paddingBottom: 48 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     header: {
       flexDirection: "row",
       alignItems: "center",

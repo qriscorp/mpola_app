@@ -42,7 +42,7 @@ export default function LenderApprovalsScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     title: { ...typography.h2, color: Colors.white, marginBottom: Spacing.xs },
     subtitle: { ...typography.small, color: Colors.textMuted },
   });

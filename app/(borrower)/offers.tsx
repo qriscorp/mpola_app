@@ -324,7 +324,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     guarantorWarningText: { ...typography.small, color: Colors.warning },
     emptyState: { flex: 1, alignItems: "center", justifyContent: "center", padding: Spacing.xl },
     emptyText: { ...typography.body, color: Colors.textMuted, textAlign: "center" },
-    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 40 },
+    scroll: { paddingHorizontal: Spacing.lg, paddingBottom: 136 },
     offerCard: {
       backgroundColor: Colors.surface,
       borderRadius: BorderRadius.lg,

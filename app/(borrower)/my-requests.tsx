@@ -730,7 +730,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     tabActive: { backgroundColor: Colors.teal + "25", borderColor: Colors.teal },
     tabText: { ...typography.smallMedium, color: Colors.textSecondary },
     tabTextActive: { color: Colors.teal },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     empty: { alignItems: "center", paddingVertical: Spacing.xxl, gap: Spacing.md },
     emptyText: { ...typography.body, color: Colors.textMuted },
     emptyBtn: { backgroundColor: Colors.teal, paddingHorizontal: Spacing.lg, paddingVertical: Spacing.sm, borderRadius: BorderRadius.full },

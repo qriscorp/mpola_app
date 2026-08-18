@@ -1,7 +1,8 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Colors, BorderRadius } from "../../src/theme";
+import { Colors } from "../../src/theme";
 import { useRealtimeNotifications, usePushRegistration } from "../../src/services";
+import { NativeGlassTabBar } from "../../src/components";
 
 export default function BorrowerTabLayout() {
   useRealtimeNotifications();
@@ -9,6 +10,13 @@ export default function BorrowerTabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => (
+        <NativeGlassTabBar
+          {...props}
+          accentColor="#38D6BF"
+          visibleRoutes={["home", "apply", "loans", "wallet"]}
+        />
+      )}
       screenOptions={{
         headerShown: false,
         // Without this, the area behind the tab bar defaults to white —
@@ -17,28 +25,14 @@ export default function BorrowerTabLayout() {
         sceneStyle: { backgroundColor: Colors.background },
         tabBarActiveTintColor: Colors.teal,
         tabBarInactiveTintColor: Colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: Colors.border,
-          borderTopLeftRadius: BorderRadius.xl,
-          borderTopRightRadius: BorderRadius.xl,
-          height: 64,
-          paddingBottom: 10,
-          paddingTop: 6,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-        },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -46,8 +40,8 @@ export default function BorrowerTabLayout() {
         name="apply"
         options={{
           title: "Apply",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="document-text-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "document-text" : "document-text-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -55,8 +49,8 @@ export default function BorrowerTabLayout() {
         name="loans"
         options={{
           title: "My Loans",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="wallet-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "wallet" : "wallet-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -64,8 +58,8 @@ export default function BorrowerTabLayout() {
         name="wallet"
         options={{
           title: "Wallet",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "card" : "card-outline"} size={size} color={color} />
           ),
         }}
       />

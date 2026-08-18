@@ -126,7 +126,7 @@ export default function ApplicationSentScreen() {
 function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
   return StyleSheet.create({
     container: { flex: 1, backgroundColor: Colors.background },
-    scroll: { padding: Spacing.xl, paddingBottom: 48 },
+    scroll: { padding: Spacing.xl, paddingBottom: 136 },
     logoRow: {
       flexDirection: "row",
       alignItems: "center",

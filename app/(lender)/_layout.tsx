@@ -1,13 +1,14 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Colors, BorderRadius } from "../../src/theme";
+import { Colors } from "../../src/theme";
 import {
   useRealtimeNotifications,
   usePushRegistration,
   fetchMarketplace,
   fetchPortfolio,
 } from "../../src/services";
+import { NativeGlassTabBar } from "../../src/components";
 
 export default function LenderTabLayout() {
   useRealtimeNotifications();
@@ -24,6 +25,13 @@ export default function LenderTabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => (
+        <NativeGlassTabBar
+          {...props}
+          accentColor="#E2C56F"
+          visibleRoutes={["home", "applications", "portfolio", "wallet"]}
+        />
+      )}
       screenOptions={{
         headerShown: false,
         // Without this, the area behind the tab bar defaults to white —
@@ -32,28 +40,14 @@ export default function LenderTabLayout() {
         sceneStyle: { backgroundColor: Colors.background },
         tabBarActiveTintColor: Colors.gold,
         tabBarInactiveTintColor: Colors.textMuted,
-        tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopWidth: 1,
-          borderTopColor: Colors.border,
-          borderTopLeftRadius: BorderRadius.xl,
-          borderTopRightRadius: BorderRadius.xl,
-          height: 64,
-          paddingBottom: 10,
-          paddingTop: 6,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-        },
       }}
     >
       <Tabs.Screen
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -62,8 +56,8 @@ export default function LenderTabLayout() {
         options={{
           title: "Applications",
           tabBarBadge: marketplace?.total || undefined,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="file-tray-full-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "file-tray-full" : "file-tray-full-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -72,8 +66,8 @@ export default function LenderTabLayout() {
         options={{
           title: "Portfolio",
           tabBarBadge: awaitingDisbursement || undefined,
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="briefcase-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "briefcase" : "briefcase-outline"} size={size} color={color} />
           ),
         }}
       />
@@ -81,8 +75,8 @@ export default function LenderTabLayout() {
         name="wallet"
         options={{
           title: "Wallet",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="card-outline" size={size} color={color} />
+          tabBarIcon: ({ focused, color, size }) => (
+            <Ionicons name={focused ? "card" : "card-outline"} size={size} color={color} />
           ),
         }}
       />

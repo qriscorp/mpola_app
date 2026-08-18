@@ -247,7 +247,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     chipActive: { backgroundColor: Colors.gold, borderColor: Colors.gold },
     chipText: { ...typography.smallMedium, color: Colors.textSecondary },
     chipTextActive: { color: Colors.white },
-    scroll: { padding: Spacing.lg, paddingBottom: 40 },
+    scroll: { padding: Spacing.lg, paddingBottom: 136 },
     borrowerCard: {
       backgroundColor: Colors.surface,
       borderRadius: BorderRadius.lg,
