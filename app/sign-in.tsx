@@ -15,6 +15,7 @@ import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme
 import { Button, Input, PhoneInput, Logo } from "../src/components";
 import { useAuthViewModel } from "../src/viewmodels";
 import { isBiometricSupported, isBiometricLoginEnabled, tryBiometricSignIn } from "../src/services/biometrics";
+import { enterAuthenticatedApp } from "../src/services/auth";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -36,11 +37,7 @@ export default function SignInScreen() {
     })();
   }, []);
 
-  const routeForRole = (user: { role?: string; must_change_password?: boolean }) => {
-    const isLender = user.role === "lender";
-    const home = isLender ? "/(lender)/home" : "/(borrower)/home";
-    const settings = isLender ? "/(lender)/settings" : "/(borrower)/settings";
-
+  const routeForRole = (user: { role: string; must_change_password?: boolean }) => {
     // Set by an admin restoring a deactivated account — the account is
     // currently on a server-generated temp password until they change it.
     if (user.must_change_password) {
@@ -48,14 +45,24 @@ export default function SignInScreen() {
         "Temporary password",
         "You're signed in with a temporary password. For your security, set a new one now.",
         [
-          { text: "Later", style: "cancel", onPress: () => router.replace(home) },
-          { text: "Change Password", onPress: () => router.replace(settings) },
+          {
+            text: "Later",
+            style: "cancel",
+            onPress: () => enterAuthenticatedApp(user),
+          },
+          {
+            text: "Change Password",
+            // Same full history reset as a normal login, but landing on the
+            // role's settings screen instead of home — the auth stack must not
+            // linger behind either destination.
+            onPress: () => enterAuthenticatedApp(user, "settings"),
+          },
         ],
       );
       return;
     }
 
-    router.replace(home);
+    enterAuthenticatedApp(user);
   };
 
   const handleSignIn = async () => {

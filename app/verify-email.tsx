@@ -16,6 +16,7 @@ import {
   apiSendSignupEmailOtp,
   apiVerifySignupEmailOtp,
   clearSignupDraft,
+  enterAuthenticatedApp,
   getSignupDraftNextStep,
   type SignupDraftState,
 } from "../src/services/auth";
@@ -104,9 +105,10 @@ export default function VerifyEmailScreen() {
       if (response.account_created) {
         await clearSignupDraft();
         if (response.user) {
-          router.replace(
-            response.user.role === "lender" ? "/(lender)/home" : "/(borrower)/home",
-          );
+          // This is a login as far as navigation is concerned — reset the
+          // whole auth stack so the signup/verify screens can't be revealed
+          // by a back gesture from the home screen.
+          enterAuthenticatedApp(response.user);
         } else {
           // Tokens weren't issued for some reason — fall back to asking
           // the user to sign in manually rather than leaving them stuck.

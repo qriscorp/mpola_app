@@ -14,6 +14,7 @@ import { Button, Input } from "../src/components";
 import {
   apiSendLoginPhoneOtp,
   apiVerifyLoginPhoneOtp,
+  enterAuthenticatedApp,
 } from "../src/services/auth";
 
 type Step = "phone" | "otp";
@@ -58,12 +59,7 @@ export default function PhoneOtpSigninScreen() {
     setLoading(true);
     try {
       const user = await apiVerifyLoginPhoneOtp(phone.trim(), code);
-      const role = user.role;
-      if (role === "lender") {
-        router.replace("/(lender)/home");
-      } else {
-        router.replace("/(borrower)/home");
-      }
+      enterAuthenticatedApp(user);
     } catch (e: any) {
       setError(e?.message || "Invalid code. Please try again.");
     } finally {

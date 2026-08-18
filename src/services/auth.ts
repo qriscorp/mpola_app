@@ -17,6 +17,18 @@ const USER_KEY = "lf_user";
 const SIGNUP_DRAFT_KEY = "lf_signup_draft";
 const SIGNUP_FORM_DRAFT_KEY = "lf_signup_form_draft";
 
+type AuthStateListener = (user: AuthUser | null) => void;
+const authStateListeners = new Set<AuthStateListener>();
+
+function notifyAuthState(user: AuthUser | null) {
+  authStateListeners.forEach((listener) => listener(user));
+}
+
+export function subscribeToAuthState(listener: AuthStateListener) {
+  authStateListeners.add(listener);
+  return () => authStateListeners.delete(listener);
+}
+
 // ─── Token Management ────────────────────────────────────
 
 export async function getAccessToken(): Promise<string | null> {
@@ -39,12 +51,54 @@ async function storeTokens(access: string, refresh: string) {
 
 async function storeUser(user: AuthUser) {
   await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+  notifyAuthState(user);
 }
 
 export async function clearAuth() {
   await SecureStore.deleteItemAsync(TOKEN_KEY);
   await SecureStore.deleteItemAsync(REFRESH_KEY);
   await SecureStore.deleteItemAsync(USER_KEY);
+  notifyAuthState(null);
+}
+
+export function authenticatedHomeFor(user: Pick<AuthUser, "role">) {
+  return user.role === "lender" ? "/(lender)/home" : "/(borrower)/home";
+}
+
+/** Route that becomes the root after a successful login — home by default,
+ * or the role's settings screen when a temporary password still needs to be
+ * changed (see sign-in's must_change_password flow). */
+export function authenticatedRootFor(
+  user: Pick<AuthUser, "role">,
+  screen: "home" | "settings" = "home",
+) {
+  if (user.role === "lender") {
+    return screen === "settings" ? "/(lender)/settings" : "/(lender)/home";
+  }
+  return screen === "settings" ? "/(borrower)/settings" : "/(borrower)/home";
+}
+
+/**
+ * Makes the authenticated app the current root instead of leaving auth
+ * screens behind it. Every login path (password, biometric, phone OTP, 2FA,
+ * and signup completion) must go through here so the logged-in home becomes
+ * the ONLY screen in the native navigation history — otherwise iOS's edge
+ * swipe / Android's hardware back can reveal a login screen that used to sit
+ * underneath the app group.
+ *
+ * router.dismissAll() pops the whole auth stack back to its first screen,
+ * then router.replace() swaps that screen for the borrower/lender root. After
+ * both run the stack contains a single screen and there is nothing behind the
+ * app to navigate back to. (The root-level AuthGate in app/_layout.tsx and
+ * gestureEnabled: false on the (borrower)/(lender) screens are the second and
+ * third lines of defense if any auth screen ever slips through anyway.)
+ */
+export function enterAuthenticatedApp(
+  user: Pick<AuthUser, "role">,
+  screen: "home" | "settings" = "home",
+) {
+  router.dismissAll();
+  router.replace(authenticatedRootFor(user, screen));
 }
 
 export interface SignupDraftState {
@@ -235,6 +289,10 @@ async function apiGet<T>(path: string): Promise<T> {
 
 async function handleUnauthorized() {
   await clearAuth();
+  // Pop the whole app stack back to its first screen, then replace it with
+  // sign-in so a session expiry can't leave app screens lurking underneath
+  // the login screen either.
+  router.dismissAll();
   router.replace("/sign-in");
 }
 
