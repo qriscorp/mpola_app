@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
+import { Logo } from "../src/components";
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -14,9 +15,7 @@ export default function WelcomeScreen() {
       <View style={styles.content}>
         {/* Logo */}
         <View style={styles.logoArea}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <Logo size={72} style={{ marginBottom: Spacing.lg }} />
           <Text style={styles.appName}>Mpola</Text>
           <Text style={styles.tagline}>Lend me, grow together</Text>
         </View>
@@ -68,16 +67,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingHorizontal: Spacing.xxl,
     },
     logoArea: { alignItems: "center", marginBottom: Spacing.section },
-    logoBox: {
-      width: 72,
-      height: 72,
-      borderRadius: 18,
-      backgroundColor: Colors.teal,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: Spacing.lg,
-    },
-    logoLetter: { fontSize: 36, fontWeight: "700", color: Colors.white },
     appName: {
       fontSize: 36,
       fontWeight: "700",

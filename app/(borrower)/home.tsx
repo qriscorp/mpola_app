@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { InfoTip, ProgressBar, SkeletonHero, SkeletonStatRow } from "../../src/components";
+import { InfoTip, ProgressBar, SkeletonHero, SkeletonStatRow, Logo } from "../../src/components";
 import { formatCompactUGX } from "../../src/services/currency";
 import {
   useBorrowerDashboardViewModel,
@@ -47,9 +47,7 @@ export default function BorrowerHomeScreen() {
           contentContainerStyle={styles.scroll}
         >
           <View style={styles.header}>
-            <View style={styles.logoBox}>
-              <Text style={styles.logoLetter}>M</Text>
-            </View>
+            <Logo size={34} style={{ marginRight: Spacing.sm }} />
             <Text style={styles.greeting}>Hi</Text>
           </View>
           <View style={{ marginBottom: Spacing.xl }}>
@@ -71,9 +69,7 @@ export default function BorrowerHomeScreen() {
       >
         {/* Top header */}
         <View style={styles.header}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <Logo size={34} style={{ marginRight: Spacing.sm }} />
           <Text style={styles.greeting}>
             Hi, <Text style={styles.greetingName}>{user.firstName}</Text>
           </Text>
@@ -255,16 +251,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       alignItems: "center",
       paddingVertical: Spacing.lg,
     },
-    logoBox: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.teal,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: Spacing.sm,
-    },
-    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
     greeting: { ...typography.h4, color: Colors.textSecondary, flex: 1 },
     greetingName: { color: Colors.teal },
     headerRight: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },

@@ -11,7 +11,7 @@ import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Badge, SkeletonHero, SkeletonStatRow, SkeletonList } from "../../src/components";
+import { Badge, SkeletonHero, SkeletonStatRow, SkeletonList, Logo } from "../../src/components";
 import {
   useLenderDashboardViewModel,
   useNotificationsViewModel,
@@ -62,9 +62,7 @@ export default function LenderHomeScreen() {
       >
         {/* Top Nav */}
         <View style={styles.topNav}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <Logo size={34} />
           <Text style={styles.logoText}>Mpola</Text>
           <View style={{ flex: 1 }} />
           <TouchableOpacity
@@ -260,15 +258,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       marginBottom: Spacing.lg,
       gap: Spacing.sm,
     },
-    logoBox: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.gold,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
     logoText: { ...typography.h3, color: Colors.white },
     bellBtn: {
       width: 36,

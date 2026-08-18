@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
+import { Logo } from "../../src/components";
 
 const steps = [
   { label: "Application Submitted", done: true },
@@ -43,9 +44,7 @@ export default function ApplicationSentScreen() {
           >
             <Ionicons name="arrow-back" size={24} color={Colors.white} />
           </TouchableOpacity>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <Logo size={34} />
           <Text style={styles.logoText}>Mpola</Text>
         </View>
 
@@ -135,15 +134,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       marginBottom: Spacing.xxl,
     },
     backBtn: { marginRight: Spacing.xs },
-    logoBox: {
-      width: 34,
-      height: 34,
-      borderRadius: 8,
-      backgroundColor: Colors.teal,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    logoLetter: { fontSize: 16, fontWeight: "700", color: Colors.white },
     logoText: { ...typography.h3, color: Colors.white },
     checkCircle: {
       width: 80,

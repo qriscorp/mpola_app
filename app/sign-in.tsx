@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
-import { Button, Input, PhoneInput } from "../src/components";
+import { Button, Input, PhoneInput, Logo } from "../src/components";
 import { useAuthViewModel } from "../src/viewmodels";
 import { isBiometricSupported, isBiometricLoginEnabled, tryBiometricSignIn } from "../src/services/biometrics";
 
@@ -102,9 +102,7 @@ export default function SignInScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoBox}>
-            <Text style={styles.logoLetter}>M</Text>
-          </View>
+          <Logo size={36} style={{ marginRight: Spacing.sm }} />
           <Text style={styles.appName}>Mpola</Text>
         </View>
 
@@ -258,16 +256,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       alignItems: "center",
       marginBottom: Spacing.section,
     },
-    logoBox: {
-      width: 36,
-      height: 36,
-      borderRadius: 9,
-      backgroundColor: Colors.teal,
-      alignItems: "center",
-      justifyContent: "center",
-      marginRight: Spacing.sm,
-    },
-    logoLetter: { fontSize: 18, fontWeight: "700", color: Colors.white },
     appName: { ...typography.h3, color: Colors.white },
     title: {
       fontSize: 28,

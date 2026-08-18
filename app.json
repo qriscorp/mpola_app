@@ -4,7 +4,7 @@
     "slug": "mpola-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/mpola_logo-3.png",
+    "icon": "./assets/icon.png",
     "scheme": "mpola",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/mpola_logo-3.png",
+        "foregroundImage": "./assets/adaptive-icon-foreground.png",
         "backgroundColor": "#1B2B3A"
       },
       "package": "com.mpola.app"
@@ -27,7 +27,7 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/mpola_logo-3.png"
+      "favicon": "./assets/icon.png"
     },
     "plugins": [
       "expo-router",
