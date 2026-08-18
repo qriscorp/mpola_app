@@ -13,6 +13,7 @@ import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Input } from "./Input";
 import { PhoneInput } from "./PhoneInput";
 import { Button } from "./Button";
+import { ConfirmModal, ConfirmDetailRow } from "./ConfirmModal";
 import type { BankOption } from "../models";
 import {
   calcMobileMoneyWithdrawalCharges,
@@ -71,6 +72,7 @@ export function WalletWithdrawModal({
   const [selectedBank, setSelectedBank] = useState<BankOption | null>(null);
   const [accountNumber, setAccountNumber] = useState("");
   const [beneficiaryName, setBeneficiaryName] = useState("");
+  const [showFinalConfirm, setShowFinalConfirm] = useState(false);
 
   // Auto-fill from the account's saved phone number and auto-select the
   // matching network — same as kumpi. Only runs before the user has typed
@@ -124,11 +126,13 @@ export function WalletWithdrawModal({
         })) as { fee?: number | null } | undefined;
         fee = result?.fee;
       }
+      setShowFinalConfirm(false);
       onClose();
       if (fee != null) {
         Alert.alert("Withdrawal successful", `${formatUgx(fee)} fee charged.`);
       }
     } catch (e) {
+      setShowFinalConfirm(false);
       Alert.alert(
         "Withdrawal failed",
         e instanceof Error ? e.message : "Please try again.",
@@ -302,7 +306,7 @@ export function WalletWithdrawModal({
             />
             <Button
               title="Confirm"
-              onPress={handleSubmit}
+              onPress={() => setShowFinalConfirm(true)}
               loading={isSubmitting}
               disabled={!canSubmit}
               color={accentColor}
@@ -311,6 +315,39 @@ export function WalletWithdrawModal({
           </View>
         </View>
       </View>
+
+      <ConfirmModal
+        visible={showFinalConfirm}
+        icon="cash-outline"
+        title="Confirm withdrawal?"
+        message={
+          method === "mobile_money"
+            ? `This sends money to +256${phone} and can't be undone.`
+            : `This sends money to ${selectedBank?.name ?? "your bank"} and can't be undone.`
+        }
+        confirmLabel="Withdraw"
+        accentColor={accentColor}
+        loading={isSubmitting}
+        onCancel={() => setShowFinalConfirm(false)}
+        onConfirm={handleSubmit}
+      >
+        {charges && (
+          <>
+            <ConfirmDetailRow label="Recipient receives" value={formatUgx(numericAmount)} />
+            <ConfirmDetailRow label="Platform fee (0.5%)" value={formatUgx(charges.platform_fee)} />
+            <ConfirmDetailRow
+              label={method === "mobile_money" ? "Network fee" : "Flutterwave fee (3%)"}
+              value={formatUgx(charges.provider_fee)}
+            />
+            <ConfirmDetailRow
+              label="Total debited from wallet"
+              value={formatUgx(numericAmount + charges.total_fee)}
+              valueColor={accentColor}
+              emphasis
+            />
+          </>
+        )}
+      </ConfirmModal>
     </Modal>
   );
 }

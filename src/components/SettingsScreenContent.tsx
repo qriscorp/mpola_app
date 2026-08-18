@@ -46,6 +46,7 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
   const exportMutation = useMutation({
     mutationFn: exportMyData,
     onSuccess: async (data) => {
+      setShowExportConfirm(false);
       const fileUri = `${FileSystem.cacheDirectory}mpola-my-data-${new Date().toISOString().slice(0, 10)}.json`;
       await FileSystem.writeAsStringAsync(fileUri, JSON.stringify(data, null, 2));
       if (await Sharing.isAvailableAsync()) {
@@ -54,10 +55,14 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
         Alert.alert("Sharing not available", "Sharing isn't supported on this device.");
       }
     },
-    onError: (e: Error) => Alert.alert("Couldn't export data", e.message),
+    onError: (e: Error) => {
+      setShowExportConfirm(false);
+      Alert.alert("Couldn't export data", e.message);
+    },
   });
 
   const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
   const [deactivatePassword, setDeactivatePassword] = useState("");
   const [deactivateReason, setDeactivateReason] = useState("");
   const deactivateMutation = useMutation({
@@ -196,7 +201,7 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
         />
         <Button
           title={exportMutation.isPending ? "Preparing…" : "Export My Data"}
-          onPress={() => exportMutation.mutate()}
+          onPress={() => setShowExportConfirm(true)}
           variant="outline"
           color={Colors.textSecondary}
           disabled={exportMutation.isPending}
@@ -227,6 +232,18 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
           onChangeText={setDeactivateReason}
         />
       </ConfirmModal>
+
+      <ConfirmModal
+        visible={showExportConfirm}
+        icon="download-outline"
+        title="Export your data?"
+        message="This packages your account, loan, and transaction data into a file and opens your device's share sheet so you can save or send it."
+        confirmLabel="Export"
+        accentColor={accentColor}
+        loading={exportMutation.isPending}
+        onCancel={() => setShowExportConfirm(false)}
+        onConfirm={() => exportMutation.mutate()}
+      />
     </View>
   );
 }

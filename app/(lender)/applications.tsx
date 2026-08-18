@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Input, Button, InfoTip, SkeletonList } from "../../src/components";
+import { Input, Button, InfoTip, SkeletonList, ConfirmModal } from "../../src/components";
 import { DOCUMENT_OPTIONS } from "../../src/viewmodels";
 import {
   fetchMarketplace,
@@ -238,6 +238,7 @@ export default function ApplicationsInboxScreen() {
   const styles = useMemo(() => makeStyles(typography), [typography]);
   const [tab, setTab] = useState<Tab>("All");
   const [offerModalApp, setOfferModalApp] = useState<MarketplaceApplication | null>(null);
+  const [skipTarget, setSkipTarget] = useState<MarketplaceApplication | null>(null);
 
   const { data: marketplace, isLoading } = useQuery({
     queryKey: ["lender", "marketplace", "inbox"],
@@ -261,8 +262,13 @@ export default function ApplicationsInboxScreen() {
     mutationFn: skipApplication,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lender", "marketplace"] });
+      setSkipTarget(null);
+      Alert.alert("Hidden", "Hidden from your marketplace — still visible to other lenders.");
     },
-    onError: (e: any) => Alert.alert("Failed to hide request", e?.message || "Please try again."),
+    onError: (e: any) => {
+      setSkipTarget(null);
+      Alert.alert("Failed to hide request", e?.message || "Please try again.");
+    },
   });
 
   return (
@@ -361,12 +367,7 @@ export default function ApplicationsInboxScreen() {
                 <TouchableOpacity
                   style={styles.declineBtn}
                   disabled={skip.isPending}
-                  onPress={() =>
-                    skip.mutate(app.id, {
-                      onSuccess: () =>
-                        Alert.alert("Hidden", "Hidden from your marketplace — still visible to other lenders."),
-                    })
-                  }
+                  onPress={() => setSkipTarget(app)}
                 >
                   <Text style={styles.declineText}>Decline</Text>
                 </TouchableOpacity>
@@ -390,6 +391,18 @@ export default function ApplicationsInboxScreen() {
       {offerModalApp && (
         <OfferModal app={offerModalApp} onClose={() => setOfferModalApp(null)} />
       )}
+
+      <ConfirmModal
+        visible={!!skipTarget}
+        icon="eye-off-outline"
+        title="Decline this request?"
+        message={`This hides ${skipTarget?.borrower?.fullName ?? "this borrower"}'s request from your marketplace — it stays visible to other lenders.`}
+        confirmLabel="Decline"
+        destructive
+        loading={skip.isPending}
+        onCancel={() => setSkipTarget(null)}
+        onConfirm={() => skipTarget && skip.mutate(skipTarget.id)}
+      />
     </SafeAreaView>
   );
 }

@@ -1,10 +1,12 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { fetchGuarantorRequests, respondToGuarantorRequest } from "../services";
 import { formatDuration } from "../services/duration";
+import { ConfirmModal } from "./ConfirmModal";
+import type { GuarantorRequest } from "../models";
 
 /** Everything the current user has been asked to approve — right now just
  * guarantor requests, but the dedicated Approvals tab (not buried inside
@@ -20,11 +22,22 @@ export function ApprovalsList() {
     queryFn: () => fetchGuarantorRequests("pending"),
   });
 
+  const [confirmTarget, setConfirmTarget] = useState<{
+    request: GuarantorRequest;
+    status: "accepted" | "declined";
+  } | null>(null);
+
   const respond = useMutation({
     mutationFn: ({ guarantorId, status }: { guarantorId: string; status: "accepted" | "declined" }) =>
       respondToGuarantorRequest(guarantorId, status),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["guarantor-requests"] }),
-    onError: (e: any) => Alert.alert("Failed", e?.message || "Please try again."),
+    onSuccess: () => {
+      setConfirmTarget(null);
+      qc.invalidateQueries({ queryKey: ["guarantor-requests"] });
+    },
+    onError: (e: any) => {
+      setConfirmTarget(null);
+      Alert.alert("Failed", e?.message || "Please try again.");
+    },
   });
 
   if (isLoading) return null;
@@ -73,20 +86,44 @@ export function ApprovalsList() {
             <TouchableOpacity
               style={styles.declineBtn}
               disabled={respond.isPending}
-              onPress={() => respond.mutate({ guarantorId: r.id, status: "declined" })}
+              onPress={() => setConfirmTarget({ request: r, status: "declined" })}
             >
               <Text style={styles.declineText}>Decline</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.approveBtn}
               disabled={respond.isPending}
-              onPress={() => respond.mutate({ guarantorId: r.id, status: "accepted" })}
+              onPress={() => setConfirmTarget({ request: r, status: "accepted" })}
             >
               <Text style={styles.approveText}>Approve</Text>
             </TouchableOpacity>
           </View>
         </View>
       ))}
+
+      <ConfirmModal
+        visible={!!confirmTarget}
+        icon={confirmTarget?.status === "accepted" ? "checkmark-circle-outline" : "close-circle-outline"}
+        title={
+          confirmTarget?.status === "accepted"
+            ? "Approve as guarantor?"
+            : "Decline this guarantor request?"
+        }
+        message={
+          confirmTarget?.status === "accepted"
+            ? `You're vouching for ${confirmTarget.request.borrowerName ?? "this borrower"} — lenders will see you as one of their two required guarantors.`
+            : `${confirmTarget?.request.borrowerName ?? "This borrower"} will need to find a replacement guarantor.`
+        }
+        confirmLabel={confirmTarget?.status === "accepted" ? "Approve" : "Decline"}
+        destructive={confirmTarget?.status === "declined"}
+        accentColor={Colors.info}
+        loading={respond.isPending}
+        onCancel={() => setConfirmTarget(null)}
+        onConfirm={() =>
+          confirmTarget &&
+          respond.mutate({ guarantorId: confirmTarget.request.id, status: confirmTarget.status })
+        }
+      />
     </View>
   );
 }

@@ -7,6 +7,7 @@ import { Card } from "./Card";
 import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { SkeletonList } from "./Skeleton";
+import { ConfirmModal } from "./ConfirmModal";
 import {
   fetchDispute,
   postDisputeMessage,
@@ -55,6 +56,7 @@ export function DisputeDetailScreenContent({
   const [proposalNote, setProposalNote] = useState("");
   const [settlementAmount, setSettlementAmount] = useState("");
   const [payer, setPayer] = useState<"self" | "other">("self");
+  const [confirmAction, setConfirmAction] = useState<"accept" | "decline" | "escalate" | null>(null);
 
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ["disputes", disputeId] });
@@ -89,19 +91,27 @@ export function DisputeDetailScreenContent({
   const respond = useMutation({
     mutationFn: (accept: boolean) => respondToDisputeProposal(disputeId, accept),
     onSuccess: (d) => {
+      setConfirmAction(null);
       Alert.alert(d.status === "resolved" ? "Resolved" : "Declined", d.status === "resolved" ? "The dispute has been resolved." : "Proposal declined.");
       invalidate();
     },
-    onError: (e: any) => Alert.alert("Failed", e?.message || "Please try again."),
+    onError: (e: any) => {
+      setConfirmAction(null);
+      Alert.alert("Failed", e?.message || "Please try again.");
+    },
   });
 
   const escalate = useMutation({
     mutationFn: () => escalateDispute(disputeId),
     onSuccess: () => {
+      setConfirmAction(null);
       Alert.alert("Escalated", "Mpola support has been notified.");
       invalidate();
     },
-    onError: (e: any) => Alert.alert("Failed to escalate", e?.message || "Please try again."),
+    onError: (e: any) => {
+      setConfirmAction(null);
+      Alert.alert("Failed to escalate", e?.message || "Please try again.");
+    },
   });
 
   if (isLoading || !dispute) {
@@ -162,10 +172,10 @@ export function DisputeDetailScreenContent({
             <Text style={styles.meta}>Waiting for the other party to respond.</Text>
           ) : (
             <View style={{ flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.sm }}>
-              <Button title="Accept" onPress={() => respond.mutate(true)} color={accentColor} disabled={respond.isPending} />
+              <Button title="Accept" onPress={() => setConfirmAction("accept")} color={accentColor} disabled={respond.isPending} />
               <TouchableOpacity
                 style={styles.declineBtn}
-                onPress={() => respond.mutate(false)}
+                onPress={() => setConfirmAction("decline")}
                 disabled={respond.isPending}
               >
                 <Text style={styles.declineText}>Decline</Text>
@@ -291,13 +301,51 @@ export function DisputeDetailScreenContent({
       {!isClosed && dispute.status === "open" && (
         <TouchableOpacity
           style={styles.escalateBtn}
-          onPress={() => escalate.mutate()}
+          onPress={() => setConfirmAction("escalate")}
           disabled={escalate.isPending}
         >
           <Ionicons name="shield-checkmark-outline" size={16} color={Colors.warning} />
           <Text style={styles.escalateText}>Not resolving together? Escalate to Mpola Support</Text>
         </TouchableOpacity>
       )}
+
+      <ConfirmModal
+        visible={confirmAction === "accept"}
+        icon="checkmark-circle-outline"
+        title="Accept this proposal?"
+        message={
+          dispute.proposal?.settlement_amount
+            ? `This resolves the dispute with a settlement of ${formatCurrency(dispute.proposal.settlement_amount)}, paid by ${dispute.proposal.settlement_payer_id === user?.id ? "you" : dispute.proposal.settlement_payer_name ?? "the other party"}. This can't be undone.`
+            : "This resolves the dispute as proposed. This can't be undone."
+        }
+        confirmLabel="Accept"
+        accentColor={accentColor}
+        loading={respond.isPending}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={() => respond.mutate(true)}
+      />
+      <ConfirmModal
+        visible={confirmAction === "decline"}
+        icon="close-circle-outline"
+        title="Decline this proposal?"
+        message="The dispute stays open — you can propose your own resolution or escalate to Mpola support."
+        confirmLabel="Decline"
+        destructive
+        loading={respond.isPending}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={() => respond.mutate(false)}
+      />
+      <ConfirmModal
+        visible={confirmAction === "escalate"}
+        icon="shield-checkmark-outline"
+        title="Escalate to Mpola Support?"
+        message="An admin will step in to review and help resolve this dispute."
+        confirmLabel="Escalate"
+        accentColor={Colors.warning}
+        loading={escalate.isPending}
+        onCancel={() => setConfirmAction(null)}
+        onConfirm={() => escalate.mutate()}
+      />
     </ScrollView>
   );
 }

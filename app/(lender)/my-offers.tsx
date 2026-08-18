@@ -216,6 +216,7 @@ export default function MyOffersScreen() {
   } = useMyOfferTemplatesViewModel();
 
   const [deleteTarget, setDeleteTarget] = useState<OfferTemplate | null>(null);
+  const [freezeTarget, setFreezeTarget] = useState<OfferTemplate | null>(null);
   const [expiryTarget, setExpiryTarget] = useState<{ template: OfferTemplate; days: number | null } | null>(null);
 
   const handleDelete = async () => {
@@ -229,10 +230,13 @@ export default function MyOffersScreen() {
     }
   };
 
-  const handleFreeze = async (t: OfferTemplate) => {
+  const handleFreeze = async () => {
+    if (!freezeTarget) return;
     try {
-      await freezeTemplate(t.id);
+      await freezeTemplate(freezeTarget.id);
+      setFreezeTarget(null);
     } catch (e: any) {
+      setFreezeTarget(null);
       Alert.alert("Failed to freeze", e?.message || "Please try again.");
     }
   };
@@ -360,7 +364,7 @@ export default function MyOffersScreen() {
                     <TouchableOpacity
                       style={styles.outlineBtn}
                       disabled={isMutating}
-                      onPress={() => handleFreeze(t)}
+                      onPress={() => setFreezeTarget(t)}
                     >
                       <Text style={styles.outlineBtnText}>Freeze</Text>
                     </TouchableOpacity>
@@ -427,6 +431,18 @@ export default function MyOffersScreen() {
         loading={isMutating}
         onCancel={() => setDeleteTarget(null)}
         onConfirm={handleDelete}
+      />
+
+      <ConfirmModal
+        visible={!!freezeTarget}
+        icon="snow-outline"
+        title="Freeze this standing offer?"
+        message="It stops auto-matching new borrower requests until you unfreeze it. You can unfreeze any time."
+        confirmLabel="Freeze"
+        accentColor={Colors.gold}
+        loading={isMutating}
+        onCancel={() => setFreezeTarget(null)}
+        onConfirm={handleFreeze}
       />
 
       <ConfirmModal
