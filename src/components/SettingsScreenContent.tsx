@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Modal, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
@@ -9,6 +9,7 @@ import { Colors, Spacing, BorderRadius, useFontScale, useScaledTypography } from
 import { Card } from "./Card";
 import { Button } from "./Button";
 import { Input } from "./Input";
+import { ConfirmModal } from "./ConfirmModal";
 import { useProfileViewModel } from "../viewmodels";
 import { changePassword, exportMyData, deactivateMyAccount } from "../services";
 import { passwordRequirementErrors, PASSWORD_REQUIREMENTS_HINT } from "../validation";
@@ -202,44 +203,30 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
         />
       </Card>
 
-      <Modal visible={showDeactivate} transparent animationType="fade" onRequestClose={() => setShowDeactivate(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <Ionicons name="warning" size={32} color={Colors.danger} style={{ alignSelf: "center", marginBottom: Spacing.sm }} />
-            <Text style={styles.modalTitle}>Deactivate your account?</Text>
-            <Text style={styles.modalDesc}>
-              This permanently deletes your account and wallet — your data is fully purged after
-              30 days. Withdraw your wallet balance and settle any active loan first; this can't
-              be undone.
-            </Text>
-            <Input
-              placeholder="Confirm your password"
-              value={deactivatePassword}
-              onChangeText={setDeactivatePassword}
-              secureTextEntry
-            />
-            <Input
-              placeholder="Reason (optional)"
-              value={deactivateReason}
-              onChangeText={setDeactivateReason}
-            />
-            <Button
-              title={deactivateMutation.isPending ? "Deactivating…" : "Permanently Deactivate"}
-              onPress={() => deactivateMutation.mutate()}
-              variant="danger"
-              disabled={deactivateMutation.isPending || !deactivatePassword}
-              style={{ marginBottom: Spacing.sm }}
-            />
-            <Button
-              title="Cancel"
-              onPress={() => setShowDeactivate(false)}
-              variant="outline"
-              color={Colors.textSecondary}
-              disabled={deactivateMutation.isPending}
-            />
-          </View>
-        </View>
-      </Modal>
+      <ConfirmModal
+        visible={showDeactivate}
+        icon="warning"
+        title="Deactivate your account?"
+        message="This permanently deletes your account and wallet — your data is fully purged after 30 days. Withdraw your wallet balance and settle any active loan first; this can't be undone."
+        confirmLabel="Deactivate"
+        destructive
+        loading={deactivateMutation.isPending}
+        confirmDisabled={!deactivatePassword}
+        onCancel={() => setShowDeactivate(false)}
+        onConfirm={() => deactivateMutation.mutate()}
+      >
+        <Input
+          placeholder="Confirm your password"
+          value={deactivatePassword}
+          onChangeText={setDeactivatePassword}
+          secureTextEntry
+        />
+        <Input
+          placeholder="Reason (optional)"
+          value={deactivateReason}
+          onChangeText={setDeactivateReason}
+        />
+      </ConfirmModal>
     </View>
   );
 }
@@ -255,10 +242,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     fieldLabel: { ...typography.smallMedium, color: Colors.textSecondary, marginBottom: Spacing.sm },
     menuRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: Spacing.sm },
     infoLabel: { ...typography.body, color: Colors.textSecondary },
-    modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.6)", justifyContent: "center", padding: Spacing.lg },
-    modalCard: { backgroundColor: Colors.surface, borderRadius: BorderRadius.lg, padding: Spacing.lg },
-    modalTitle: { ...typography.h4, color: Colors.textPrimary, textAlign: "center", marginBottom: Spacing.xs },
-    modalDesc: { ...typography.small, color: Colors.textSecondary, textAlign: "center", marginBottom: Spacing.md },
     textSizeHeader: { flexDirection: "row", alignItems: "center", marginBottom: Spacing.md },
     textSizePercent: { ...typography.h4 },
     textSizeControls: { flexDirection: "row", alignItems: "center", gap: Spacing.sm },

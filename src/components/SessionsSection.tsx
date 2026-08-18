@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { fetchLoginSessions, signOutEverywhere } from "../services";
 import { SkeletonList } from "./Skeleton";
+import { ConfirmModal } from "./ConfirmModal";
 
 function summarize(ua: string | null): string {
   if (!ua) return "Unknown device";
@@ -17,6 +18,7 @@ export function SessionsSection({ accentColor = Colors.teal }: { accentColor?: s
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
   const qc = useQueryClient();
+  const [confirmVisible, setConfirmVisible] = useState(false);
   const { data: sessions, isLoading } = useQuery({
     queryKey: ["sessions"],
     queryFn: fetchLoginSessions,
@@ -26,26 +28,17 @@ export function SessionsSection({ accentColor = Colors.teal }: { accentColor?: s
     mutationFn: signOutEverywhere,
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
+      setConfirmVisible(false);
       Alert.alert("Done", res.message);
     },
+    onError: () => setConfirmVisible(false),
   });
 
   return (
     <View>
       <View style={styles.headerRow}>
         <Text style={styles.title}>Active Sessions</Text>
-        <TouchableOpacity
-          onPress={() =>
-            Alert.alert(
-              "Sign out everywhere?",
-              "You'll need to sign in again on every device.",
-              [
-                { text: "Cancel", style: "cancel" },
-                { text: "Sign out", style: "destructive", onPress: () => signOutAll.mutate() },
-              ],
-            )
-          }
-        >
+        <TouchableOpacity onPress={() => setConfirmVisible(true)}>
           <Text style={styles.signOutLink}>Sign out everywhere</Text>
         </TouchableOpacity>
       </View>
@@ -72,6 +65,18 @@ export function SessionsSection({ accentColor = Colors.teal }: { accentColor?: s
           </View>
         ))
       )}
+
+      <ConfirmModal
+        visible={confirmVisible}
+        icon="log-out-outline"
+        title="Sign out everywhere?"
+        message="You'll need to sign in again on every device."
+        confirmLabel="Sign Out"
+        destructive
+        loading={signOutAll.isPending}
+        onCancel={() => setConfirmVisible(false)}
+        onConfirm={() => signOutAll.mutate()}
+      />
     </View>
   );
 }

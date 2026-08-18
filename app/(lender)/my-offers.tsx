@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Badge, SkeletonList } from "../../src/components";
+import { Badge, SkeletonList, ConfirmModal } from "../../src/components";
 import {
   useMyOfferTemplatesViewModel,
   useOfferTemplateMatchesViewModel,
@@ -215,25 +215,18 @@ export default function MyOffersScreen() {
     isExtendingExpiry,
   } = useMyOfferTemplatesViewModel();
 
-  const handleDelete = (t: OfferTemplate) => {
-    Alert.alert(
-      "Delete this offer?",
-      "This can't be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteTemplate(t.id);
-            } catch (e: any) {
-              Alert.alert("Failed to delete", e?.message || "Please try again.");
-            }
-          },
-        },
-      ],
-    );
+  const [deleteTarget, setDeleteTarget] = useState<OfferTemplate | null>(null);
+  const [expiryTarget, setExpiryTarget] = useState<{ template: OfferTemplate; days: number | null } | null>(null);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await deleteTemplate(deleteTarget.id);
+      setDeleteTarget(null);
+    } catch (e: any) {
+      setDeleteTarget(null);
+      Alert.alert("Failed to delete", e?.message || "Please try again.");
+    }
   };
 
   const handleFreeze = async (t: OfferTemplate) => {
@@ -252,30 +245,18 @@ export default function MyOffersScreen() {
     }
   };
 
-  const handleExtendExpiry = (t: OfferTemplate, days: number | null) => {
+  const handleExtendExpiry = async () => {
+    if (!expiryTarget) return;
+    const { template, days } = expiryTarget;
     const validUntil =
-      days === null
-        ? null
-        : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
-    Alert.alert(
-      days === null ? "Clear expiry?" : `Extend expiry by ${days} days?`,
-      days === null
-        ? "This offer will no longer have an expiry date."
-        : `This offer will now expire on ${new Date(validUntil!).toLocaleDateString()}.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Confirm",
-          onPress: async () => {
-            try {
-              await extendExpiry({ id: t.id, validUntil });
-            } catch (e: any) {
-              Alert.alert("Failed to update expiry", e?.message || "Please try again.");
-            }
-          },
-        },
-      ],
-    );
+      days === null ? null : new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+    try {
+      await extendExpiry({ id: template.id, validUntil });
+      setExpiryTarget(null);
+    } catch (e: any) {
+      setExpiryTarget(null);
+      Alert.alert("Failed to update expiry", e?.message || "Please try again.");
+    }
   };
 
   return (
@@ -354,7 +335,7 @@ export default function MyOffersScreen() {
                   <TouchableOpacity
                     style={styles.outlineBtn}
                     disabled={isMutating}
-                    onPress={() => handleDelete(t)}
+                    onPress={() => setDeleteTarget(t)}
                   >
                     <Text style={[styles.outlineBtnText, { color: Colors.danger }]}>
                       Delete
@@ -401,21 +382,21 @@ export default function MyOffersScreen() {
                     <TouchableOpacity
                       style={styles.pillBtn}
                       disabled={isExtendingExpiry}
-                      onPress={() => handleExtendExpiry(t, 30)}
+                      onPress={() => setExpiryTarget({ template: t, days: 30 })}
                     >
                       <Text style={styles.pillBtnText}>+30d</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.pillBtn}
                       disabled={isExtendingExpiry}
-                      onPress={() => handleExtendExpiry(t, 90)}
+                      onPress={() => setExpiryTarget({ template: t, days: 90 })}
                     >
                       <Text style={styles.pillBtnText}>+90d</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
                       style={styles.pillBtn}
                       disabled={isExtendingExpiry}
-                      onPress={() => handleExtendExpiry(t, 365)}
+                      onPress={() => setExpiryTarget({ template: t, days: 365 })}
                     >
                       <Text style={styles.pillBtnText}>+1yr</Text>
                     </TouchableOpacity>
@@ -423,7 +404,7 @@ export default function MyOffersScreen() {
                       <TouchableOpacity
                         style={styles.pillBtn}
                         disabled={isExtendingExpiry}
-                        onPress={() => handleExtendExpiry(t, null)}
+                        onPress={() => setExpiryTarget({ template: t, days: null })}
                       >
                         <Text style={[styles.pillBtnText, { color: Colors.danger }]}>Clear</Text>
                       </TouchableOpacity>
@@ -435,6 +416,36 @@ export default function MyOffersScreen() {
           ))
         )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={!!deleteTarget}
+        icon="trash-outline"
+        title="Delete this offer?"
+        message="This can't be undone."
+        confirmLabel="Delete"
+        destructive
+        loading={isMutating}
+        onCancel={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+      />
+
+      <ConfirmModal
+        visible={!!expiryTarget}
+        icon="calendar-outline"
+        title={expiryTarget?.days === null ? "Clear expiry?" : `Extend expiry by ${expiryTarget?.days} days?`}
+        message={
+          expiryTarget?.days === null
+            ? "This offer will no longer have an expiry date."
+            : expiryTarget
+              ? `This offer will now expire on ${new Date(Date.now() + expiryTarget.days! * 24 * 60 * 60 * 1000).toLocaleDateString()}.`
+              : ""
+        }
+        confirmLabel="Confirm"
+        accentColor={Colors.gold}
+        loading={isExtendingExpiry}
+        onCancel={() => setExpiryTarget(null)}
+        onConfirm={handleExtendExpiry}
+      />
     </SafeAreaView>
   );
 }

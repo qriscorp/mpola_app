@@ -18,6 +18,9 @@ interface Props {
   /** Shows a spinner in the confirm button and disables both buttons —
    * for confirms that kick off an async action before this modal closes. */
   loading?: boolean;
+  /** Disables just the confirm button (no spinner) — e.g. a required field
+   * inside `children` hasn't been filled in yet. */
+  confirmDisabled?: boolean;
   /** Optional structured content (e.g. a fee/line-item breakdown) rendered
    * between the message and the action buttons — for confirms that need
    * more than a sentence, without falling back to a wall of plain text. */
@@ -71,6 +74,7 @@ export function ConfirmModal({
   destructive = false,
   accentColor = Colors.teal,
   loading = false,
+  confirmDisabled = false,
   children,
   onConfirm,
   onCancel,
@@ -98,9 +102,13 @@ export function ConfirmModal({
               <Text style={styles.cancelText}>{cancelLabel}</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.confirmBtn, { backgroundColor: tone }, loading && styles.confirmBtnLoading]}
+              style={[
+                styles.confirmBtn,
+                { backgroundColor: tone },
+                (loading || confirmDisabled) && styles.confirmBtnLoading,
+              ]}
               onPress={onConfirm}
-              disabled={loading}
+              disabled={loading || confirmDisabled}
             >
               {loading ? (
                 <ActivityIndicator size="small" color={Colors.white} />
@@ -159,6 +167,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       borderRadius: BorderRadius.md,
       padding: Spacing.md,
       marginBottom: Spacing.lg,
+      gap: Spacing.sm,
     },
     detailRow: {
       flexDirection: "row",
