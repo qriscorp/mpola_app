@@ -1,6 +1,7 @@
 export { Button } from "./Button";
 export { Logo } from "./Logo";
 export { LoadingScreen } from "./LoadingScreen";
+export { ConfirmModal, ConfirmDetailRow } from "./ConfirmModal";
 export { Card } from "./Card";
 export { StatCard } from "./StatCard";
 export { Badge } from "./Badge";

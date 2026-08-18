@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import {
   View,
   Text,
@@ -6,14 +6,21 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
-import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
+import {
+  SkeletonHero,
+  SkeletonCard,
+  BiometricToggle,
+  SessionsSection,
+  KYCUploadSection,
+  ConfirmModal,
+  LoadingScreen,
+} from "../../src/components";
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   const typography = useScaledTypography();
@@ -41,13 +48,18 @@ export default function ProfileScreen() {
   const router = useRouter();
   const { profile, isLoading, error, signOut, updateProfile } = useProfileViewModel();
   const typography = useScaledTypography();
-  const confirmSignOut = () => {
-    Alert.alert("Sign out?", "You'll need to sign in again to use Mpola.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: signOut },
-    ]);
-  };
   const styles = useMemo(() => makeStyles(typography), [typography]);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleConfirmSignOut = async () => {
+    setSigningOut(true);
+    await signOut();
+  };
+
+  if (signingOut) {
+    return <LoadingScreen color={Colors.teal} />;
+  }
 
   if (error) {
     return (
@@ -185,11 +197,22 @@ export default function ProfileScreen() {
         </View>
 
         {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={confirmSignOut}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={() => setShowSignOutConfirm(true)}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showSignOutConfirm}
+        icon="log-out-outline"
+        title="Sign out?"
+        message="You'll need to sign in again to use Mpola."
+        confirmLabel="Sign Out"
+        destructive
+        onCancel={() => setShowSignOutConfirm(false)}
+        onConfirm={handleConfirmSignOut}
+      />
     </SafeAreaView>
   );
 }

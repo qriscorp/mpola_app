@@ -1,11 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useOffersViewModel } from "../../src/viewmodels";
-import { SkeletonCard, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
+import { SkeletonCard, InfoTip, RequiredDocumentsChecklist, ConfirmModal } from "../../src/components";
 import { formatDuration } from "../../src/services/duration";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
@@ -56,6 +56,7 @@ export default function OfferDetailScreen() {
   } = useOffersViewModel(applicationId);
 
   const offer = offers.find((o) => o.id === offerId);
+  const [confirmDecline, setConfirmDecline] = useState(false);
 
   const acceptedGuarantors = (application?.guarantors ?? []).filter(
     (g) => g.status === "accepted",
@@ -87,23 +88,15 @@ export default function OfferDetailScreen() {
 
   const handleDecline = () => {
     if (!offer) return;
-    Alert.alert("Decline this offer?", "This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Decline",
-        style: "destructive",
-        onPress: () => {
-          respondToOffer(offer.id, "declined")
-            .then(() => router.back())
-            .catch((e) =>
-              Alert.alert(
-                "Failed to decline offer",
-                e instanceof Error ? e.message : "Please try again.",
-              ),
-            );
-        },
-      },
-    ]);
+    respondToOffer(offer.id, "declined")
+      .then(() => router.back())
+      .catch((e) => {
+        setConfirmDecline(false);
+        Alert.alert(
+          "Failed to decline offer",
+          e instanceof Error ? e.message : "Please try again.",
+        );
+      });
   };
 
   return (
@@ -248,7 +241,7 @@ export default function OfferDetailScreen() {
             <View style={styles.actionsRow}>
               <TouchableOpacity
                 style={styles.declineBtn}
-                onPress={handleDecline}
+                onPress={() => setConfirmDecline(true)}
                 disabled={responding}
               >
                 <Text style={styles.declineBtnText}>Decline</Text>
@@ -264,6 +257,18 @@ export default function OfferDetailScreen() {
           )}
         </ScrollView>
       )}
+
+      <ConfirmModal
+        visible={confirmDecline}
+        icon="close-circle-outline"
+        title="Decline this offer?"
+        message="This can't be undone."
+        confirmLabel="Decline"
+        destructive
+        loading={responding}
+        onCancel={() => setConfirmDecline(false)}
+        onConfirm={handleDecline}
+      />
     </SafeAreaView>
   );
 }

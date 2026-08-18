@@ -18,6 +18,8 @@ import {
   SkeletonStatRow,
   SkeletonList,
   RequiredDocumentsChecklist,
+  ConfirmModal,
+  ConfirmDetailRow,
 } from "../../src/components";
 import { usePortfolioViewModel } from "../../src/viewmodels";
 import { calcPlatformFee } from "../../src/services/fees";
@@ -43,11 +45,24 @@ export default function PortfolioScreen() {
     approvingDisbursement,
   } = usePortfolioViewModel();
 
-  const handleApprove = async (loanId: string) => {
+  const [pendingApproval, setPendingApproval] = useState<{
+    loanId: string;
+    borrowerName: string;
+    amount: number;
+    interestRate: number;
+    duration: number | null;
+    durationDays: number | null;
+    totalRepayable: number;
+  } | null>(null);
+
+  const handleApprove = async () => {
+    if (!pendingApproval) return;
     try {
-      await approveDisbursement(loanId);
+      await approveDisbursement(pendingApproval.loanId);
+      setPendingApproval(null);
       Alert.alert("Disbursed", "Funds have been sent to the borrower's wallet.");
     } catch (e: any) {
+      setPendingApproval(null);
       Alert.alert("Couldn't disburse", e?.message || "Please try again.");
     }
   };
@@ -61,29 +76,7 @@ export default function PortfolioScreen() {
     durationDays: number | null,
     totalRepayable: number,
   ) => {
-    const platformFee = calcPlatformFee(amount);
-    const totalDebit = amount + platformFee;
-    const totalInterest = totalRepayable - amount;
-    Alert.alert(
-      "Approve disbursement?",
-      `This sends UGX ${amount.toLocaleString()} from your wallet to ${borrowerName} right now. This can't be undone.\n\n` +
-        `Loan amount: UGX ${amount.toLocaleString()}\n` +
-        `Platform fee (0.5%): UGX ${platformFee.toLocaleString()}\n` +
-        `Total debited from your wallet: UGX ${totalDebit.toLocaleString()}\n\n` +
-        `WHAT YOU'LL EARN BACK\n` +
-        `Interest rate: ${interestRate}%/month\n` +
-        `Term: ${formatDuration(duration, durationDays)}\n` +
-        `Total interest: UGX ${totalInterest.toLocaleString()}\n` +
-        `Total repayable to you: UGX ${totalRepayable.toLocaleString()}`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Yes, disburse",
-          style: "destructive",
-          onPress: () => handleApprove(loanId),
-        },
-      ],
-    );
+    setPendingApproval({ loanId, borrowerName, amount, interestRate, duration, durationDays, totalRepayable });
   };
 
   if (isLoading) {
@@ -277,6 +270,49 @@ export default function PortfolioScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      <ConfirmModal
+        visible={!!pendingApproval}
+        icon="cash-outline"
+        title="Approve disbursement?"
+        message={
+          pendingApproval
+            ? `This sends UGX ${pendingApproval.amount.toLocaleString()} from your wallet to ${pendingApproval.borrowerName} right now. This can't be undone.`
+            : ""
+        }
+        confirmLabel="Yes, Disburse"
+        accentColor={Colors.gold}
+        loading={approvingDisbursement}
+        onCancel={() => setPendingApproval(null)}
+        onConfirm={handleApprove}
+      >
+        {pendingApproval && (() => {
+          const platformFee = calcPlatformFee(pendingApproval.amount);
+          const totalDebit = pendingApproval.amount + platformFee;
+          const totalInterest = pendingApproval.totalRepayable - pendingApproval.amount;
+          return (
+            <>
+              <ConfirmDetailRow label="Loan amount" value={`UGX ${pendingApproval.amount.toLocaleString()}`} />
+              <ConfirmDetailRow label="Platform fee (0.5%)" value={`UGX ${platformFee.toLocaleString()}`} />
+              <ConfirmDetailRow
+                label="Total debited from your wallet"
+                value={`UGX ${totalDebit.toLocaleString()}`}
+                emphasis
+              />
+              <View style={{ height: Spacing.sm }} />
+              <ConfirmDetailRow label="Interest rate" value={`${pendingApproval.interestRate}%/month`} />
+              <ConfirmDetailRow label="Term" value={formatDuration(pendingApproval.duration, pendingApproval.durationDays)} />
+              <ConfirmDetailRow label="Total interest" value={`UGX ${totalInterest.toLocaleString()}`} />
+              <ConfirmDetailRow
+                label="Total repayable to you"
+                value={`UGX ${pendingApproval.totalRepayable.toLocaleString()}`}
+                valueColor={Colors.gold}
+                emphasis
+              />
+            </>
+          );
+        })()}
+      </ConfirmModal>
     </SafeAreaView>
   );
 }

@@ -13,7 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Badge, Input, PhoneInput, SkeletonList, InfoTip } from "../../src/components";
+import { Badge, Input, PhoneInput, SkeletonList, InfoTip, ConfirmModal } from "../../src/components";
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
 import { formatDuration } from "../../src/services/duration";
@@ -331,47 +331,32 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
   const [editing, setEditing] = useState(false);
+  const [confirmWithdraw, setConfirmWithdraw] = useState(false);
+  const [confirmFreeze, setConfirmFreeze] = useState(false);
 
   // A guarantor's acceptance covers the exact terms they saw — once one has
   // committed, editing is locked (matches the backend guard in
   // PUT /loans/applications/{id}), though freeze/withdraw stay available.
   const editLocked = (app.guarantors ?? []).some((g) => g.status === "accepted");
 
-  const handleWithdraw = () => {
-    Alert.alert("Withdraw this loan request?", "This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Withdraw",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteApplication(app.id);
-          } catch (e: any) {
-            Alert.alert("Failed to withdraw", e?.message || "Please try again.");
-          }
-        },
-      },
-    ]);
+  const handleWithdraw = async () => {
+    try {
+      await deleteApplication(app.id);
+      setConfirmWithdraw(false);
+    } catch (e: any) {
+      setConfirmWithdraw(false);
+      Alert.alert("Failed to withdraw", e?.message || "Please try again.");
+    }
   };
 
-  const handleFreeze = () => {
-    Alert.alert(
-      "Freeze this loan request?",
-      "Lenders won't be able to match or send new offers on it until you unfreeze it. You can unfreeze any time.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Freeze",
-          onPress: async () => {
-            try {
-              await freezeApplication(app.id);
-            } catch (e: any) {
-              Alert.alert("Failed to freeze", e?.message || "Please try again.");
-            }
-          },
-        },
-      ],
-    );
+  const handleFreeze = async () => {
+    try {
+      await freezeApplication(app.id);
+      setConfirmFreeze(false);
+    } catch (e: any) {
+      setConfirmFreeze(false);
+      Alert.alert("Failed to freeze", e?.message || "Please try again.");
+    }
   };
 
   const handleUnfreeze = async () => {
@@ -403,11 +388,11 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
             <Text style={styles.primaryBtnText}>Unfreeze</Text>
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity style={styles.outlineBtn} onPress={handleFreeze} disabled={isFreezing}>
+          <TouchableOpacity style={styles.outlineBtn} onPress={() => setConfirmFreeze(true)} disabled={isFreezing}>
             <Text style={styles.outlineBtnText}>Freeze</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity style={styles.outlineBtnDanger} onPress={handleWithdraw} disabled={isDeleting}>
+        <TouchableOpacity style={styles.outlineBtnDanger} onPress={() => setConfirmWithdraw(true)} disabled={isDeleting}>
           <Text style={styles.outlineBtnDangerText}>Withdraw</Text>
         </TouchableOpacity>
       </View>
@@ -421,6 +406,29 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
           A guarantor has already approved — editing is locked, but you can still freeze or withdraw.
         </Text>
       )}
+
+      <ConfirmModal
+        visible={confirmWithdraw}
+        icon="trash-outline"
+        title="Withdraw this loan request?"
+        message="This can't be undone."
+        confirmLabel="Withdraw"
+        destructive
+        loading={isDeleting}
+        onCancel={() => setConfirmWithdraw(false)}
+        onConfirm={handleWithdraw}
+      />
+      <ConfirmModal
+        visible={confirmFreeze}
+        icon="snow-outline"
+        title="Freeze this loan request?"
+        message="Lenders won't be able to match or send new offers on it until you unfreeze it. You can unfreeze any time."
+        confirmLabel="Freeze"
+        accentColor={Colors.teal}
+        loading={isFreezing}
+        onCancel={() => setConfirmFreeze(false)}
+        onConfirm={handleFreeze}
+      />
     </View>
   );
 }
@@ -480,26 +488,35 @@ function DiscardDraftLink({ applicationId }: { applicationId: string }) {
   const { deleteApplication, isDeleting } = useMyApplicationsViewModel();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
-  const handleDiscard = () => {
-    Alert.alert("Discard this unfinished request?", "This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Discard",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await deleteApplication(applicationId);
-          } catch (e: any) {
-            Alert.alert("Failed to discard", e?.message || "Please try again.");
-          }
-        },
-      },
-    ]);
+  const [confirmVisible, setConfirmVisible] = useState(false);
+
+  const handleDiscard = async () => {
+    try {
+      await deleteApplication(applicationId);
+      setConfirmVisible(false);
+    } catch (e: any) {
+      setConfirmVisible(false);
+      Alert.alert("Failed to discard", e?.message || "Please try again.");
+    }
   };
+
   return (
-    <TouchableOpacity onPress={handleDiscard} disabled={isDeleting} style={{ marginTop: Spacing.sm }}>
-      <Text style={styles.discardDraftText}>Discard draft</Text>
-    </TouchableOpacity>
+    <>
+      <TouchableOpacity onPress={() => setConfirmVisible(true)} disabled={isDeleting} style={{ marginTop: Spacing.sm }}>
+        <Text style={styles.discardDraftText}>Discard draft</Text>
+      </TouchableOpacity>
+      <ConfirmModal
+        visible={confirmVisible}
+        icon="trash-outline"
+        title="Discard this unfinished request?"
+        message="This can't be undone."
+        confirmLabel="Discard"
+        destructive
+        loading={isDeleting}
+        onCancel={() => setConfirmVisible(false)}
+        onConfirm={handleDiscard}
+      />
+    </>
   );
 }
 

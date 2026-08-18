@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
-import { Button, Card, Input, InfoTip, PhoneInput } from "../../src/components";
+import { Button, Card, Input, InfoTip, PhoneInput, ConfirmModal } from "../../src/components";
 import { useApplyViewModel } from "../../src/viewmodels";
 import type { LoanType } from "../../src/models";
 
@@ -45,6 +45,7 @@ export default function ApplyScreen() {
   const [guarantorEmail, setGuarantorEmail] = useState("");
   const [guarantorPhone, setGuarantorPhone] = useState("");
   const [expiryPreset, setExpiryPreset] = useState<string | null>(null);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
 
   const stepLabels = ["Details", "Guarantors", "Review"];
 
@@ -80,21 +81,14 @@ export default function ApplyScreen() {
     }
   };
 
-  const handleDiscard = () => {
-    Alert.alert("Discard this loan request and start over?", "This can't be undone.", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Discard",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await vm.discardDraft();
-          } catch (e: any) {
-            Alert.alert("Failed to discard", e?.message || "Please try again.");
-          }
-        },
-      },
-    ]);
+  const handleDiscard = async () => {
+    try {
+      await vm.discardDraft();
+      setConfirmDiscard(false);
+    } catch (e: any) {
+      setConfirmDiscard(false);
+      Alert.alert("Failed to discard", e?.message || "Please try again.");
+    }
   };
 
   if (vm.resuming || vm.eligibilityLoading) {
@@ -162,7 +156,7 @@ export default function ApplyScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Apply for a Loan</Text>
         {vm.applicationId ? (
-          <TouchableOpacity onPress={handleDiscard} disabled={vm.discardingDraft}>
+          <TouchableOpacity onPress={() => setConfirmDiscard(true)} disabled={vm.discardingDraft}>
             <Text style={styles.discardText}>Discard</Text>
           </TouchableOpacity>
         ) : (
@@ -537,6 +531,18 @@ export default function ApplyScreen() {
           </>
         )}
       </ScrollView>
+
+      <ConfirmModal
+        visible={confirmDiscard}
+        icon="trash-outline"
+        title="Discard this loan request and start over?"
+        message="This can't be undone."
+        confirmLabel="Discard"
+        destructive
+        loading={vm.discardingDraft}
+        onCancel={() => setConfirmDiscard(false)}
+        onConfirm={handleDiscard}
+      />
     </SafeAreaView>
   );
 }

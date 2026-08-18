@@ -14,7 +14,15 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
-import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
+import {
+  SkeletonHero,
+  SkeletonCard,
+  BiometricToggle,
+  SessionsSection,
+  KYCUploadSection,
+  ConfirmModal,
+  LoadingScreen,
+} from "../../src/components";
 
 const MPOLA_WEB_URL = "https://mpola.co";
 
@@ -225,13 +233,18 @@ export default function LenderAccountScreen() {
   const router = useRouter();
   const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement, updateProfile } = useProfileViewModel();
   const typography = useScaledTypography();
-  const confirmSignOut = () => {
-    Alert.alert("Sign out?", "You'll need to sign in again to use Mpola.", [
-      { text: "Cancel", style: "cancel" },
-      { text: "Sign Out", style: "destructive", onPress: signOut },
-    ]);
-  };
   const styles = useMemo(() => makeStyles(typography), [typography]);
+  const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleConfirmSignOut = async () => {
+    setSigningOut(true);
+    await signOut();
+  };
+
+  if (signingOut) {
+    return <LoadingScreen color={Colors.gold} />;
+  }
 
   if (error) {
     return (
@@ -400,11 +413,22 @@ export default function LenderAccountScreen() {
         </View>
 
         {/* Sign out */}
-        <TouchableOpacity style={styles.signOutBtn} onPress={confirmSignOut}>
+        <TouchableOpacity style={styles.signOutBtn} onPress={() => setShowSignOutConfirm(true)}>
           <Ionicons name="log-out-outline" size={18} color={Colors.danger} />
           <Text style={styles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      <ConfirmModal
+        visible={showSignOutConfirm}
+        icon="log-out-outline"
+        title="Sign out?"
+        message="You'll need to sign in again to use Mpola."
+        confirmLabel="Sign Out"
+        destructive
+        onCancel={() => setShowSignOutConfirm(false)}
+        onConfirm={handleConfirmSignOut}
+      />
     </SafeAreaView>
   );
 }
