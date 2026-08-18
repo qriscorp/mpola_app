@@ -27,7 +27,11 @@
         "backgroundColor": "#1B2B3A"
       },
       "package": "com.mpola.app",
-      "backgroundColor": "#0F1B26"
+      "backgroundColor": "#0F1B26",
+      "permissions": [
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -57,6 +61,17 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "expo-navigation-bar": {
+        "backgroundColor": "#1B2B3A",
+        "barStyle": "light"
+      },
+      "eas": {
+        "projectId": "d6277ffa-c218-40b2-9f99-469afcb0f52f"
+      }
+    },
+    "owner": "lumalabrian"
   }
 }

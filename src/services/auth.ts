@@ -5,13 +5,11 @@
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 
-const ENV_API_URL = (
-  globalThis as { process?: { env?: Record<string, string | undefined> } }
-).process?.env?.EXPO_PUBLIC_API_URL;
+const ENV_API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const API_BASE_URL =
   ENV_API_URL ||
-  (__DEV__ ? "http://10.0.2.2:8000" : "https://api.mpola.app");
+  (__DEV__ ? "http://10.0.2.2:8000" : "https://api.welend.qriscorp.com");
 
 const TOKEN_KEY = "lf_access_token";
 const REFRESH_KEY = "lf_refresh_token";
