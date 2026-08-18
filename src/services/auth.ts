@@ -137,6 +137,10 @@ export interface AuthUser {
   is_kyc_verified: boolean;
   kyc_status: string;
   credit_score: number | null;
+  // Set when an admin restored this account — see database's
+  // User.must_change_password. Prompts sign-in to nudge the user to set a
+  // real password before they carry on with a server-generated temp one.
+  must_change_password?: boolean;
 }
 
 interface AuthResponse {

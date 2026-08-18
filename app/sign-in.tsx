@@ -36,12 +36,26 @@ export default function SignInScreen() {
     })();
   }, []);
 
-  const routeForRole = (role: string | undefined) => {
-    if (role === "lender") {
-      router.replace("/(lender)/home");
-    } else {
-      router.replace("/(borrower)/home");
+  const routeForRole = (user: { role?: string; must_change_password?: boolean }) => {
+    const isLender = user.role === "lender";
+    const home = isLender ? "/(lender)/home" : "/(borrower)/home";
+    const settings = isLender ? "/(lender)/settings" : "/(borrower)/settings";
+
+    // Set by an admin restoring a deactivated account — the account is
+    // currently on a server-generated temp password until they change it.
+    if (user.must_change_password) {
+      Alert.alert(
+        "Temporary password",
+        "You're signed in with a temporary password. For your security, set a new one now.",
+        [
+          { text: "Later", style: "cancel", onPress: () => router.replace(home) },
+          { text: "Change Password", onPress: () => router.replace(settings) },
+        ],
+      );
+      return;
     }
+
+    router.replace(home);
   };
 
   const handleSignIn = async () => {
@@ -49,7 +63,7 @@ export default function SignInScreen() {
     // If this account has 2FA enabled, vm.twoFactorUsername is now set and
     // the code-entry step below renders instead of navigating away.
     if (user) {
-      routeForRole(user.role);
+      routeForRole(user);
     }
   };
 
@@ -72,7 +86,7 @@ export default function SignInScreen() {
   const handleVerifyTwoFactor = async () => {
     const user = await vm.verifyTwoFactor(twoFactorCode.join(""));
     if (user) {
-      routeForRole(user.role);
+      routeForRole(user);
     }
   };
 
@@ -81,7 +95,7 @@ export default function SignInScreen() {
     try {
       const user = await tryBiometricSignIn();
       if (user) {
-        routeForRole(user.role);
+        routeForRole(user);
       } else {
         Alert.alert(
           "Biometric sign-in unavailable",
