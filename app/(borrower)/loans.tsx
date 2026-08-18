@@ -87,12 +87,19 @@ function LoanCard({ loan }: { loan: Loan }) {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.viewOffersBtn}
-        onPress={() => router.push("/(borrower)/offers")}
-      >
-        <Text style={styles.viewOffersText}>View Offers</Text>
-      </TouchableOpacity>
+      {loan.applicationId && (
+        <TouchableOpacity
+          style={styles.viewOffersBtn}
+          onPress={() =>
+            router.push({
+              pathname: "/(borrower)/offers",
+              params: { applicationId: loan.applicationId! },
+            })
+          }
+        >
+          <Text style={styles.viewOffersText}>View Loan Offer</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

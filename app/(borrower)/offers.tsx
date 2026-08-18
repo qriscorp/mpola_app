@@ -5,15 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useOffersViewModel, useAllOffersViewModel } from "../../src/viewmodels";
-import { SkeletonList, InfoTip, RequiredDocumentsChecklist } from "../../src/components";
-import type { LoanOffer } from "../../src/models";
+import { SkeletonList, InfoTip } from "../../src/components";
 import { formatDuration } from "../../src/services/duration";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
@@ -22,8 +20,8 @@ const REQUIRED_ACCEPTED_GUARANTORS = 2;
 /** Every offer ever received, across every application — shown when this
  * screen is opened with no specific request selected (e.g. Home's "Browse
  * Offers" quick action). Mirrors mpola_website's /dashboard/offers-received
- * default view. Read-only; "View & Respond" re-opens this same screen
- * scoped to that one request for the real accept/decline/document flow. */
+ * default view. Tapping any offer goes straight to its own offer-detail
+ * screen — the real accept/decline/document flow lives there now. */
 function AllOffersView() {
   const router = useRouter();
   const typography = useScaledTypography();
@@ -64,8 +62,8 @@ function AllOffersView() {
                 style={[styles.offerCard, isBest && styles.offerCardFeatured]}
                 onPress={() =>
                   router.push({
-                    pathname: "/(borrower)/offers",
-                    params: { applicationId: offer.applicationId },
+                    pathname: "/(borrower)/offer-detail",
+                    params: { applicationId: offer.applicationId, offerId: offer.id },
                   })
                 }
               >
@@ -118,9 +116,7 @@ function AllOffersView() {
                 </Text>
                 <View style={styles.offerFooterRow}>
                   <Text style={styles.statusText}>Status: {offer.status}</Text>
-                  <Text style={styles.tapHint}>
-                    {offer.status === "pending" ? "Tap to respond →" : "Tap to view →"}
-                  </Text>
+                  <Text style={styles.tapHint}>View details →</Text>
                 </View>
               </TouchableOpacity>
             );
@@ -131,25 +127,14 @@ function AllOffersView() {
   );
 }
 
-/** One application's offers, with the full accept flow — guarantor
- * readiness, required-document upload, and Review & Accept into the
- * Loan Agreement screen. */
+/** One application's offers, side by side for comparison — tapping any of
+ * them opens offer-detail.tsx for the full picture (lender info, every
+ * term, required documents) and the actual accept/decline actions. */
 function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
   const router = useRouter();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
-  const {
-    application,
-    offers,
-    isLoading,
-    respondToOffer,
-    responding,
-    uploadRequiredDocument,
-    uploadingDocumentType,
-    uploadCustomDocument,
-    saveCustomDocumentText,
-    uploadingCustomLabel,
-  } = useOffersViewModel(applicationId);
+  const { application, offers, isLoading } = useOffersViewModel(applicationId);
 
   const acceptedGuarantors = (application?.guarantors ?? []).filter(
     (g) => g.status === "accepted",
@@ -162,37 +147,6 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
     const best = offers.find((x) => x.id === bestId);
     return best && o.interestRate < best.interestRate ? o.id : bestId;
   }, null);
-
-  const handleAccept = (offer: LoanOffer) => {
-    if (!guarantorsReady) {
-      Alert.alert(
-        "Guarantors needed",
-        `You need ${REQUIRED_ACCEPTED_GUARANTORS} guarantors to confirm before this loan can be disbursed — ${acceptedGuarantors} of ${application?.guarantors?.length ?? 0} confirmed so far.`,
-      );
-      return;
-    }
-    const missingDocs = offer.requiredDocumentsStatus.filter((d) => !d.satisfied);
-    if (missingDocs.length > 0) {
-      Alert.alert(
-        "Documents needed",
-        `This lender requires: ${missingDocs.map((d) => d.label).join(", ")}. Upload or provide them below before accepting.`,
-      );
-      return;
-    }
-    router.push({
-      pathname: "/(borrower)/sign-agreement",
-      params: { offerId: offer.id, applicationId: application?.id ?? "" },
-    });
-  };
-
-  const handleDecline = (offer: LoanOffer) => {
-    respondToOffer(offer.id, "declined").catch((e) =>
-      Alert.alert(
-        "Failed to decline offer",
-        e instanceof Error ? e.message : "Please try again.",
-      ),
-    );
-  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -252,9 +206,15 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
             offers.map((offer) => {
               const isBest = offer.id === bestOfferId;
               return (
-                <View
+                <TouchableOpacity
                   key={offer.id}
                   style={[styles.offerCard, isBest && styles.offerCardFeatured]}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(borrower)/offer-detail",
+                      params: { applicationId, offerId: offer.id },
+                    })
+                  }
                 >
                   {isBest && (
                     <View style={styles.bestRateBadge}>
@@ -308,44 +268,11 @@ function SingleApplicationOffers({ applicationId }: { applicationId: string }) {
                     {(offer.totalRepayable ?? 0).toLocaleString()}
                   </Text>
 
-                  {offer.status === "pending" && offer.requiredDocumentsStatus.length > 0 && (
-                    <View style={styles.docsSection}>
-                      <Text style={styles.docsHeading}>Documents this lender requires</Text>
-                      <RequiredDocumentsChecklist
-                        items={offer.requiredDocumentsStatus}
-                        onUpload={uploadRequiredDocument}
-                        uploadingType={uploadingDocumentType}
-                        onUploadCustom={uploadCustomDocument}
-                        onSaveCustomText={saveCustomDocumentText}
-                        uploadingCustomLabel={uploadingCustomLabel}
-                        onGoToProfile={() => router.push("/(borrower)/profile")}
-                      />
-                    </View>
-                  )}
-
-                  {offer.status === "pending" ? (
-                    <View style={styles.actionsRow}>
-                      <TouchableOpacity
-                        style={styles.declineBtn}
-                        onPress={() => handleDecline(offer)}
-                        disabled={responding}
-                      >
-                        <Text style={styles.declineBtnText}>Decline</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={styles.applyBtn}
-                        onPress={() => handleAccept(offer)}
-                        disabled={responding}
-                      >
-                        <Text style={styles.applyBtnText}>Review & Accept</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <Text style={styles.statusText}>
-                      Status: {offer.status}
-                    </Text>
-                  )}
-                </View>
+                  <View style={styles.offerFooterRow}>
+                    <Text style={styles.statusText}>Status: {offer.status}</Text>
+                    <Text style={styles.tapHint}>View details →</Text>
+                  </View>
+                </TouchableOpacity>
               );
             })
           )}
@@ -461,30 +388,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       color: Colors.textMuted,
       marginBottom: Spacing.md,
     },
-    docsSection: { marginBottom: Spacing.md },
-    docsHeading: {
-      ...typography.smallMedium,
-      color: Colors.textSecondary,
-      marginBottom: Spacing.xs,
-    },
-    actionsRow: { flexDirection: "row", gap: Spacing.sm },
-    applyBtn: {
-      flex: 1,
-      borderRadius: BorderRadius.full,
-      paddingVertical: Spacing.sm,
-      alignItems: "center",
-      backgroundColor: Colors.teal,
-    },
-    declineBtn: {
-      flex: 1,
-      borderRadius: BorderRadius.full,
-      paddingVertical: Spacing.sm,
-      alignItems: "center",
-      borderWidth: 1,
-      borderColor: Colors.border,
-    },
-    applyBtnText: { ...typography.buttonSmall, color: Colors.white },
-    declineBtnText: { ...typography.buttonSmall, color: Colors.textSecondary },
     statusText: { ...typography.smallMedium, color: Colors.textMuted, textTransform: "capitalize" },
     offerFooterRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
     tapHint: { ...typography.caption, color: Colors.teal },

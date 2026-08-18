@@ -12,7 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
-import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection, SettingsScreenContent } from "../../src/components";
+import { SkeletonHero, SkeletonCard, BiometricToggle, SessionsSection, KYCUploadSection } from "../../src/components";
 
 function MenuRow({ icon, label, onPress }: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void }) {
   const typography = useScaledTypography();
@@ -157,10 +157,13 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Support */}
-        <Text style={styles.sectionLabel}>SUPPORT</Text>
+        {/* Support & Settings */}
+        <Text style={styles.sectionLabel}>SUPPORT & SETTINGS</Text>
         <View style={[styles.card, { paddingVertical: 0 }]}>
-          <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(borrower)/referrals")} />
+          <MenuRow icon="settings-outline" label="Settings" onPress={() => router.push("/(borrower)/settings")} />
+          <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
+            <MenuRow icon="gift-outline" label="Invite Friends" onPress={() => router.push("/(borrower)/referrals")} />
+          </View>
           <View style={{ borderTopWidth: 1, borderTopColor: Colors.border }}>
             <MenuRow icon="help-circle-outline" label="Help & Support" onPress={() => router.push("/(borrower)/help")} />
           </View>
@@ -173,9 +176,6 @@ export default function ProfileScreen() {
           <View style={{ height: Spacing.md }} />
           <SessionsSection accentColor={Colors.teal} />
         </View>
-
-        {/* Settings — 2FA, login alerts, password, about, danger zone */}
-        <SettingsScreenContent accentColor={Colors.teal} />
 
         {/* Sign out */}
         <TouchableOpacity style={styles.signOutBtn} onPress={signOut}>

@@ -72,12 +72,14 @@ export default function BorrowerTabLayout() {
       {/* Hidden screens accessible via navigation */}
       {/* Profile — reached via the avatar in Home's header, not a bottom
           tab. Approvals and Disputes are reached via their own buttons on
-          Home's Quick Actions grid. Settings was merged into Profile (see
-          app/(borrower)/profile.tsx), so there's no separate settings
-          route anymore. */}
+          Home's Quick Actions grid. Settings lives on its own screen,
+          reached via the "Settings" row on Profile — same split as the
+          lender side's account.tsx / settings.tsx. */}
       <Tabs.Screen name="profile" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
       <Tabs.Screen name="approvals" options={{ href: null }} />
       <Tabs.Screen name="offers" options={{ href: null }} />
+      <Tabs.Screen name="offer-detail" options={{ href: null }} />
       <Tabs.Screen name="payment" options={{ href: null }} />
       <Tabs.Screen name="payment-success" options={{ href: null }} />
       <Tabs.Screen name="payment-failed" options={{ href: null }} />
