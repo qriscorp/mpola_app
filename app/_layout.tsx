@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { AppState } from "react-native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
@@ -10,7 +12,11 @@ import { FontScaleProvider, Colors } from "../src/theme";
 // default white background would otherwise flash/show through in that
 // area (see the bottom-nav-bar overlap issue). `android.backgroundColor`
 // in app.json covers this permanently once the app is a real native
-// build; this covers the same thing while running in Expo Go.
+// build; this covers the same thing while running in Expo Go — but only
+// for the cold-start moment, since resuming from the background doesn't
+// re-run this module-level code (the JS engine stays alive). The AppState
+// listener in RootLayout below re-applies it on every foreground resume
+// too, since Android can re-negotiate edge-to-edge insets at that point.
 SystemUI.setBackgroundColorAsync(Colors.background);
 
 const queryClient = new QueryClient({
@@ -23,6 +29,15 @@ const queryClient = new QueryClient({
 });
 
 export default function RootLayout() {
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        SystemUI.setBackgroundColorAsync(Colors.background);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
+
   return (
     <FontScaleProvider>
       <QueryClientProvider client={queryClient}>
