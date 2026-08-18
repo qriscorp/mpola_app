@@ -13,6 +13,10 @@
       "resizeMode": "contain",
       "backgroundColor": "#1B2B3A"
     },
+    "androidNavigationBar": {
+      "backgroundColor": "#1B2B3A",
+      "barStyle": "light-content"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.mpola.app"
@@ -22,7 +26,8 @@
         "foregroundImage": "./assets/adaptive-icon-foreground.png",
         "backgroundColor": "#1B2B3A"
       },
-      "package": "com.mpola.app"
+      "package": "com.mpola.app",
+      "backgroundColor": "#0F1B26"
     },
     "web": {
       "bundler": "metro",
@@ -33,6 +38,8 @@
       "expo-router",
       "expo-secure-store",
       "expo-web-browser",
+      "expo-navigation-bar",
+      "expo-system-ui",
       [
         "expo-notifications",
         {

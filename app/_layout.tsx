@@ -1,7 +1,17 @@
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import * as SystemUI from "expo-system-ui";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FontScaleProvider, Colors } from "../src/theme";
+
+// Fired at module load — as early as this JS bundle can possibly run —
+// rather than inside a component effect, to close the gap where Android's
+// edge-to-edge system-bar insets haven't settled yet and the root window's
+// default white background would otherwise flash/show through in that
+// area (see the bottom-nav-bar overlap issue). `android.backgroundColor`
+// in app.json covers this permanently once the app is a real native
+// build; this covers the same thing while running in Expo Go.
+SystemUI.setBackgroundColorAsync(Colors.background);
 
 const queryClient = new QueryClient({
   defaultOptions: {
