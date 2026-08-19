@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
+import { goToTabRoot } from "../../src/services";
 
 export default function LoanApprovedScreen() {
   const router = useRouter();
@@ -20,7 +21,7 @@ export default function LoanApprovedScreen() {
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
         style={styles.backBtn}
-        onPress={() => router.replace("/(borrower)/home")}
+        onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
         accessibilityLabel="Go back"
         accessibilityRole="button"
       >
@@ -76,13 +77,13 @@ export default function LoanApprovedScreen() {
 
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => router.push("/(borrower)/loans")}
+          onPress={() => goToTabRoot("/(borrower)/(tabs)/loans")}
         >
           <Text style={styles.primaryBtnText}>View Repayment Schedule</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.outlineBtn}
-          onPress={() => router.replace("/(borrower)/home")}
+          onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
         >
           <Text style={styles.outlineBtnText}>Back to Dashboard</Text>
         </TouchableOpacity>

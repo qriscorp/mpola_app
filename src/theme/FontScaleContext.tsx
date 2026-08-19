@@ -1,4 +1,12 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import * as SecureStore from "expo-secure-store";
 
 /** In-app text-size control (Profile > Settings > Text Size) — same idea as
@@ -33,18 +41,40 @@ function clamp(value: number): number {
   return Math.round(bounded * 100) / 100;
 }
 
-export function FontScaleProvider({ children }: { children: React.ReactNode }) {
+export function FontScaleProvider({
+  children,
+  onReady,
+}: {
+  children: React.ReactNode;
+  /** Called once the saved preference has been read (or the read failed) —
+   * lets the root layout hold the native splash until this resolves so the
+   * blank frame this provider renders meanwhile never shows through. */
+  onReady?: () => void;
+}) {
   const [scale, setScaleState] = useState(DEFAULT_SCALE);
   const [loaded, setLoaded] = useState(false);
+  const onReadyRef = useRef(onReady);
 
   useEffect(() => {
-    SecureStore.getItemAsync(STORAGE_KEY).then((saved) => {
-      if (saved) {
-        const parsed = parseFloat(saved);
-        if (!Number.isNaN(parsed)) setScaleState(clamp(parsed));
-      }
-      setLoaded(true);
-    });
+    onReadyRef.current = onReady;
+  }, [onReady]);
+
+  useEffect(() => {
+    SecureStore.getItemAsync(STORAGE_KEY)
+      .then((saved) => {
+        if (saved) {
+          const parsed = parseFloat(saved);
+          if (!Number.isNaN(parsed)) setScaleState(clamp(parsed));
+        }
+      })
+      .catch(() => {
+        // A failed read just means the saved preference is unknown — fall
+        // back to the default scale instead of blocking the app forever.
+      })
+      .finally(() => {
+        setLoaded(true);
+        onReadyRef.current?.();
+      });
   }, []);
 
   const persist = useCallback((value: number) => {

@@ -8,6 +8,8 @@ import {
 } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
+import * as SplashScreen from "expo-splash-screen";
+import { Ionicons } from "@expo/vector-icons";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { FontScaleProvider, Colors } from "../src/theme";
 import {
@@ -16,6 +18,19 @@ import {
   subscribeToAuthState,
   type AuthUser,
 } from "../src/services/auth";
+
+// Hold the native splash until the async cold-start bootstrap below is done.
+// Without this the splash auto-hides the moment the root view mounts — long
+// before the SecureStore reads (saved font scale + saved session) resolve —
+// and every intermediate state (blank → flat background → real screen) would
+// flash in sequence on cold start. expo-router's own auto-hide respects this
+// call, so only the explicit hideAsync() in RootLayout dismisses it.
+SplashScreen.preventAutoHideAsync();
+
+// Pre-load the icon font at module scope so glyphs (fingerprint, eye, tab
+// icons, ...) render on the very first frame instead of popping in after the
+// text. The splash stays up until it's loaded — see RootLayout below.
+Ionicons.loadFont().catch(() => {});
 
 // Fired at module load — as early as this JS bundle can possibly run —
 // rather than inside a component effect, to close the gap where Android's
@@ -53,12 +68,20 @@ function useAuthState() {
 
   useEffect(() => {
     let active = true;
-    getStoredUser().then((stored) => {
-      if (active) {
-        setUser(stored);
-        setIsLoading(false);
-      }
-    });
+    getStoredUser()
+      .then((stored) => {
+        if (active) {
+          setUser(stored);
+        }
+      })
+      .catch(() => {
+        // A failed read is treated like no saved session.
+      })
+      .finally(() => {
+        if (active) {
+          setIsLoading(false);
+        }
+      });
     const unsubscribe = subscribeToAuthState((next) => {
       setUser(next);
       setIsLoading(false);
@@ -120,6 +143,49 @@ function AuthGate({
 
 export default function RootLayout() {
   const { user, isLoading } = useAuthState();
+  const [fontReady, setFontReady] = useState(false);
+  const [iconsReady, setIconsReady] = useState(false);
+
+  const segments = useSegments();
+  const navigationReady = useRootNavigationState()?.key != null;
+
+  useEffect(() => {
+    let active = true;
+    Ionicons.loadFont()
+      .catch(() => {})
+      .finally(() => {
+        if (active) setIconsReady(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    // Only drop the splash once the screen the user is meant to see has
+    // actually rendered. The auth screens and the logged-in app sit on
+    // opposite sides of the route tree, so a returning user would otherwise
+    // see the welcome screen flash before AuthGate's redirect to their home
+    // lands — this waits for that redirect too.
+    const booted = fontReady && iconsReady && !isLoading && navigationReady;
+    if (!booted) return;
+
+    const inAppArea =
+      segments[0] === "(borrower)" || segments[0] === "(lender)";
+    const routedCorrectly = (user && inAppArea) || (!user && !inAppArea);
+    if (routedCorrectly) {
+      SplashScreen.hideAsync();
+    }
+  }, [fontReady, iconsReady, isLoading, navigationReady, segments, user]);
+
+  // Safety net: never leave the splash up forever if something above stalls
+  // (e.g. SecureStore hangs) — a brief flash beats a permanently stuck splash.
+  useEffect(() => {
+    const safety = setTimeout(() => {
+      SplashScreen.hideAsync();
+    }, 10000);
+    return () => clearTimeout(safety);
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener("change", (state) => {
@@ -131,7 +197,7 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <FontScaleProvider>
+    <FontScaleProvider onReady={() => setFontReady(true)}>
       <QueryClientProvider client={queryClient}>
         <StatusBar style="light" />
         {isLoading ? (
@@ -170,10 +236,12 @@ export default function RootLayout() {
             {/* gestureEnabled: false at the authenticated group boundary —
                 the final native safeguard against the iOS edge-swipe that
                 would otherwise pop the app group and reveal a login screen
-                sitting underneath it in the root stack. Because every screen
-                inside (borrower)/(lender) lives under this one stack screen,
-                the back gesture is disabled for the whole group while the
-                app's own (button-driven) navigation is untouched. */}
+                sitting underneath it in the root stack. This blocks the swipe
+                only between the app and the auth screens: inside
+                (borrower)/(lender) each group is its own native stack (see
+                those _layout.tsx files), so pushing/popping screens within
+                the app — including its edge-swipe back gesture — is
+                untouched. */}
             <Stack.Screen
               name="(borrower)"
               options={{ gestureEnabled: false }}

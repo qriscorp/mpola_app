@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
+import { goToTabRoot } from "../../src/services";
 
 export default function OfferSentScreen() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function OfferSentScreen() {
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
         style={styles.backBtn}
-        onPress={() => router.replace("/(lender)/home")}
+        onPress={() => goToTabRoot("/(lender)/(tabs)/home")}
         accessibilityLabel="Go back"
         accessibilityRole="button"
       >
@@ -45,7 +46,7 @@ export default function OfferSentScreen() {
 
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => router.replace("/(lender)/portfolio")}
+          onPress={() => goToTabRoot("/(lender)/(tabs)/portfolio")}
         >
           <Text style={styles.primaryBtnText}>View Portfolio</Text>
         </TouchableOpacity>

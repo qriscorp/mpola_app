@@ -5,6 +5,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card } from "../../src/components";
+import { goToTabRoot } from "../../src/services";
 
 const METHOD_LABEL: Record<string, string> = {
   wallet: "Mpola Wallet",
@@ -76,7 +77,7 @@ export default function PaymentFailedScreen() {
         <Button
           title="Dashboard"
           variant="outline"
-          onPress={() => router.replace("/(borrower)/home")}
+          onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
           color={Colors.teal}
         />
       </View>

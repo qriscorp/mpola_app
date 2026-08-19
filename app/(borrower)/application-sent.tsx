@@ -11,6 +11,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Logo } from "../../src/components";
+import { goToTabRoot } from "../../src/services";
 
 const steps = [
   { label: "Application Submitted", done: true },
@@ -37,7 +38,7 @@ export default function ApplicationSentScreen() {
         {/* Header */}
         <View style={styles.logoRow}>
           <TouchableOpacity
-            onPress={() => router.replace("/(borrower)/home")}
+            onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
             accessibilityLabel="Go back"
             accessibilityRole="button"
             style={styles.backBtn}
@@ -114,7 +115,7 @@ export default function ApplicationSentScreen() {
 
         <TouchableOpacity
           style={styles.primaryBtn}
-          onPress={() => router.replace("/(borrower)/home")}
+          onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
         >
           <Text style={styles.primaryBtnText}>Back to Dashboard</Text>
         </TouchableOpacity>

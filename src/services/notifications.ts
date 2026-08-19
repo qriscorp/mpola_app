@@ -6,15 +6,15 @@
 export function notificationHref(type: string | null, isLender: boolean): string | null {
   switch (type) {
     case "loan_pending_disbursement":
-      return "/(lender)/portfolio";
+      return "/(lender)/(tabs)/portfolio";
     case "loan_disbursed":
-      return "/(borrower)/wallet";
+      return "/(borrower)/(tabs)/wallet";
     case "offer_template_expired":
     case "lender_offer_template":
     case "auto_match_cooldown_lifted":
       return "/(lender)/my-offers";
     case "low_wallet_balance":
-      return "/(lender)/wallet";
+      return "/(lender)/(tabs)/wallet";
     case "guarantor_invite_received":
       return isLender ? "/(lender)/approvals" : "/(borrower)/approvals";
     case "guarantor_still_pending":

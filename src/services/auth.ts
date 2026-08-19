@@ -62,7 +62,7 @@ export async function clearAuth() {
 }
 
 export function authenticatedHomeFor(user: Pick<AuthUser, "role">) {
-  return user.role === "lender" ? "/(lender)/home" : "/(borrower)/home";
+  return user.role === "lender" ? "/(lender)/(tabs)/home" : "/(borrower)/(tabs)/home";
 }
 
 /** Route that becomes the root after a successful login — home by default,
@@ -73,9 +73,9 @@ export function authenticatedRootFor(
   screen: "home" | "settings" = "home",
 ) {
   if (user.role === "lender") {
-    return screen === "settings" ? "/(lender)/settings" : "/(lender)/home";
+    return screen === "settings" ? "/(lender)/settings" : "/(lender)/(tabs)/home";
   }
-  return screen === "settings" ? "/(borrower)/settings" : "/(borrower)/home";
+  return screen === "settings" ? "/(borrower)/settings" : "/(borrower)/(tabs)/home";
 }
 
 /**
@@ -97,7 +97,11 @@ export function enterAuthenticatedApp(
   user: Pick<AuthUser, "role">,
   screen: "home" | "settings" = "home",
 ) {
-  router.dismissAll();
+  // Only pop when there's actually a stack to collapse — dismissing an
+  // already-rooted stack dispatches a POP_TO_TOP no navigator can handle.
+  if (router.canDismiss()) {
+    router.dismissAll();
+  }
   router.replace(authenticatedRootFor(user, screen));
 }
 
@@ -292,7 +296,9 @@ async function handleUnauthorized() {
   // Pop the whole app stack back to its first screen, then replace it with
   // sign-in so a session expiry can't leave app screens lurking underneath
   // the login screen either.
-  router.dismissAll();
+  if (router.canDismiss()) {
+    router.dismissAll();
+  }
   router.replace("/sign-in");
 }
 

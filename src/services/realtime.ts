@@ -8,13 +8,14 @@ import { Alert } from "react-native";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAccessToken, API_BASE_URL } from "./auth";
+import { goToTabRoot } from "./navigation";
 
 function wsUrl(token: string): string {
   const base = API_BASE_URL.replace(/^http/, "ws");
   return `${base}/ws?token=${encodeURIComponent(token)}`;
 }
 
-export function useRealtimeNotifications() {
+export function useRealtimeNotifications(portal: "borrower" | "lender") {
   const queryClient = useQueryClient();
   const retryRef = useRef(0);
 
@@ -62,7 +63,7 @@ export function useRealtimeNotifications() {
           if (msg.type === "loan_pending_disbursement" && msg.title) {
             Alert.alert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              { text: "Review", onPress: () => router.push("/(lender)/portfolio") },
+              { text: "Review", onPress: () => goToTabRoot("/(lender)/(tabs)/portfolio") },
             ]);
           } else if (msg.type === "loan_disbursed" && msg.title) {
             Alert.alert(msg.title, msg.message);
@@ -88,17 +89,22 @@ export function useRealtimeNotifications() {
           } else if (msg.type === "low_wallet_balance" && msg.title) {
             Alert.alert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              { text: "Top up", onPress: () => router.push("/(lender)/wallet") },
+              { text: "Top up", onPress: () => goToTabRoot("/(lender)/(tabs)/wallet") },
             ]);
           } else if (msg.type === "guarantor_invite_received" && msg.title) {
-            // Relative push (no leading slash) resolves within whichever
-            // role's Tabs navigator this hook is currently mounted in
-            // (registered separately per layout — see (borrower)/_layout.tsx
-            // and (lender)/_layout.tsx), so this lands on the right
-            // Approvals tab without needing to detect the active role.
+            // Approvals is a pushed stack screen in each portal now (not a
+            // tab), so target it with the full path for the active role — the
+            // hook is registered separately per portal — see
+            // (borrower)/(tabs)/_layout.tsx and (lender)/(tabs)/_layout.tsx.
             Alert.alert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              { text: "Respond", onPress: () => router.push("approvals" as never) },
+              {
+                text: "Respond",
+                onPress: () =>
+                  router.push(
+                    portal === "lender" ? "/(lender)/approvals" : "/(borrower)/approvals",
+                  ),
+              },
             ]);
           } else if (msg.type === "guarantor_response" && msg.title) {
             Alert.alert(msg.title, msg.message);

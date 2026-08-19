@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card } from "../../src/components";
-import { downloadRepaymentReceipt } from "../../src/services";
+import { downloadRepaymentReceipt, goToTabRoot } from "../../src/services";
 
 const METHOD_LABEL: Record<string, string> = {
   wallet: "Mpola Wallet",
@@ -47,7 +47,7 @@ export default function PaymentSuccessScreen() {
     <SafeAreaView style={styles.container}>
       <TouchableOpacity
         style={styles.backBtn}
-        onPress={() => router.replace("/(borrower)/home")}
+        onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
         accessibilityLabel="Go back"
         accessibilityRole="button"
       >
@@ -110,7 +110,7 @@ export default function PaymentSuccessScreen() {
         <View style={{ height: Spacing.md }} />
         <Button
           title="Dashboard"
-          onPress={() => router.replace("/(borrower)/home")}
+          onPress={() => goToTabRoot("/(borrower)/(tabs)/home")}
           color={Colors.teal}
         />
       </View>

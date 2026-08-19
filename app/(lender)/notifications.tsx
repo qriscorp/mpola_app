@@ -14,6 +14,7 @@ import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/th
 import { useNotificationsFeedViewModel } from "../../src/viewmodels";
 import { SkeletonList } from "../../src/components";
 import { notificationHref } from "../../src/services/notifications";
+import { goToTabRoot } from "../../src/services";
 
 const iconMap: Record<string, { name: string; color: string; bg: string }> = {
   loan_offer: {
@@ -145,7 +146,13 @@ export default function NotificationsScreen() {
               key={n.id}
               onPress={() => {
                 if (!n.read) markRead(n.id);
-                if (href) router.push(href as any);
+                if (href) {
+                  if (href.includes("/(tabs)/")) {
+                    goToTabRoot(href as any);
+                  } else {
+                    router.push(href as any);
+                  }
+                }
               }}
               style={[styles.notifCard, !n.read && styles.notifCardUnread]}
             >

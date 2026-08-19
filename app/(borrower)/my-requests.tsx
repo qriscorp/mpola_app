@@ -17,7 +17,7 @@ import { Badge, Input, PhoneInput, SkeletonList, InfoTip, ConfirmModal } from ".
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
 import { formatDuration } from "../../src/services/duration";
-import { fetchApplicationEligibility } from "../../src/services";
+import { fetchApplicationEligibility, goToTabRoot } from "../../src/services";
 import type { LoanApplication, Guarantor } from "../../src/models";
 
 const TABS = ["All", "Pending", "Funded", "Closed"] as const;
@@ -546,7 +546,7 @@ function ApplicationCard({ app }: { app: LoanApplication }) {
         </View>
         <TouchableOpacity
           style={styles.viewOffersBtn}
-          onPress={() => router.push("/(borrower)/apply")}
+          onPress={() => goToTabRoot("/(borrower)/(tabs)/apply")}
         >
           <Text style={styles.viewOffersText}>Continue Application</Text>
         </TouchableOpacity>
@@ -660,7 +660,7 @@ export default function MyRequestsScreen() {
           <Ionicons name="arrow-back" size={24} color={Colors.textPrimary} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Requests</Text>
-        <TouchableOpacity onPress={() => router.push("/(borrower)/apply")}>
+        <TouchableOpacity onPress={() => goToTabRoot("/(borrower)/(tabs)/apply")}>
           <Ionicons name="add" size={26} color={Colors.teal} />
         </TouchableOpacity>
       </View>
@@ -688,7 +688,7 @@ export default function MyRequestsScreen() {
         ) : filtered.length === 0 ? (
           <View style={styles.empty}>
             <Text style={styles.emptyText}>No loan requests here yet.</Text>
-            <TouchableOpacity style={styles.emptyBtn} onPress={() => router.push("/(borrower)/apply")}>
+            <TouchableOpacity style={styles.emptyBtn} onPress={() => goToTabRoot("/(borrower)/(tabs)/apply")}>
               <Text style={styles.emptyBtnText}>New Loan Request</Text>
             </TouchableOpacity>
           </View>
