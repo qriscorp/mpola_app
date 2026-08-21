@@ -18,6 +18,7 @@ import {
   subscribeToAuthState,
   type AuthUser,
 } from "../src/services/auth";
+import { hasSeenOnboarding } from "../src/services/onboarding";
 
 // Hold the native splash until the async cold-start bootstrap below is done.
 // Without this the splash auto-hides the moment the root view mounts — long
@@ -95,6 +96,32 @@ function useAuthState() {
   return { user, isLoading };
 }
 
+/** One-time read of whether this device has already dismissed the
+ * onboarding slides — mirrors useAuthState's own SecureStore-hydrate-once
+ * pattern so it can gate the same "cover the screen until we know where to
+ * route" logic in RootLayout below. */
+function useOnboardingState() {
+  const [seen, setSeen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    hasSeenOnboarding()
+      .then((value) => {
+        if (active) setSeen(value);
+      })
+      .catch(() => {
+        // A failed read shouldn't block every future launch behind a
+        // permanently-stuck onboarding screen — treat it as already seen.
+        if (active) setSeen(true);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  return { onboardingSeen: seen, isLoading: seen === null };
+}
+
 /** Root authentication guard.
  *
  * Redirects any route that doesn't match the current auth state, so:
@@ -112,9 +139,11 @@ function useAuthState() {
 function AuthGate({
   user,
   isLoading,
+  onboardingSeen,
 }: {
   user: AuthUser | null;
   isLoading: boolean;
+  onboardingSeen: boolean | null;
 }) {
   const router = useRouter();
   const segments = useSegments();
@@ -135,14 +164,21 @@ function AuthGate({
     } else if (inAppArea) {
       // Signed-out users belong on the login screen — never in the app.
       router.replace("/sign-in");
+    } else if (onboardingSeen === false && segments[0] !== "onboarding") {
+      // First-ever launch on this device — show the explainer slides before
+      // anything else, once. Every later launch has onboardingSeen === true
+      // (set the moment the slides are skipped/finished) and skips this.
+      router.replace("/onboarding");
     }
-  }, [user, isLoading, navigationReady, segments, router]);
+  }, [user, isLoading, navigationReady, segments, router, onboardingSeen]);
 
   return null;
 }
 
 export default function RootLayout() {
   const { user, isLoading } = useAuthState();
+  const { onboardingSeen, isLoading: onboardingLoading } = useOnboardingState();
+  const bootLoading = isLoading || onboardingLoading;
   const [fontReady, setFontReady] = useState(false);
   const [iconsReady, setIconsReady] = useState(false);
 
@@ -167,16 +203,19 @@ export default function RootLayout() {
     // opposite sides of the route tree, so a returning user would otherwise
     // see the welcome screen flash before AuthGate's redirect to their home
     // lands — this waits for that redirect too.
-    const booted = fontReady && iconsReady && !isLoading && navigationReady;
+    const booted = fontReady && iconsReady && !bootLoading && navigationReady;
     if (!booted) return;
 
     const inAppArea =
       segments[0] === "(borrower)" || segments[0] === "(lender)";
-    const routedCorrectly = (user && inAppArea) || (!user && !inAppArea);
+    const onOnboarding = segments[0] === "onboarding";
+    const routedCorrectly =
+      (user && inAppArea) ||
+      (!user && !inAppArea && (onboardingSeen || onOnboarding));
     if (routedCorrectly) {
       SplashScreen.hideAsync();
     }
-  }, [fontReady, iconsReady, isLoading, navigationReady, segments, user]);
+  }, [fontReady, iconsReady, bootLoading, navigationReady, segments, user, onboardingSeen]);
 
   // Safety net: never leave the splash up forever if something above stalls
   // (e.g. SecureStore hangs) — a brief flash beats a permanently stuck splash.
@@ -200,10 +239,13 @@ export default function RootLayout() {
     <FontScaleProvider onReady={() => setFontReady(true)}>
       <QueryClientProvider client={queryClient}>
         <StatusBar style="light" />
-        {isLoading ? (
+        {bootLoading ? (
           // Keep the screen covered with the app background until we know
-          // whether there's a saved session — otherwise a returning user would
-          // briefly see the welcome screen before the AuthGate redirects them.
+          // whether there's a saved session (and, for a first-ever launch,
+          // whether onboarding still needs to show) — otherwise a returning
+          // user would briefly see the welcome screen before AuthGate
+          // redirects them, or a new user would see it flash before the
+          // onboarding-slides redirect lands.
           <View style={{ flex: 1, backgroundColor: Colors.background }} />
         ) : (
           /* Without contentStyle, every screen's default background is
@@ -226,6 +268,7 @@ export default function RootLayout() {
             }}
           >
             <Stack.Screen name="index" />
+            <Stack.Screen name="onboarding" />
             <Stack.Screen name="sign-in" />
             <Stack.Screen name="register-borrower" />
             <Stack.Screen name="register-lender" />
@@ -252,7 +295,7 @@ export default function RootLayout() {
             />
           </Stack>
         )}
-        <AuthGate user={user} isLoading={isLoading} />
+        <AuthGate user={user} isLoading={bootLoading} onboardingSeen={onboardingSeen} />
       </QueryClientProvider>
     </FontScaleProvider>
   );
