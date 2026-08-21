@@ -18,7 +18,7 @@ import {
 } from "../../../src/viewmodels";
 import { formatDuration } from "../../../src/services/duration";
 import { formatCompactUGX } from "../../../src/services/currency";
-import { fetchGuarantorRequests } from "../../../src/services";
+import { fetchGuarantorRequests, fetchDisbursementQueue } from "../../../src/services";
 
 export default function LenderHomeScreen() {
   const router = useRouter();
@@ -32,6 +32,11 @@ export default function LenderHomeScreen() {
     queryFn: () => fetchGuarantorRequests("pending"),
   });
   const pendingApprovalsCount = pendingApprovals.length;
+  const { data: disbursementQueue } = useQuery({
+    queryKey: ["lender", "disbursement-queue"],
+    queryFn: fetchDisbursementQueue,
+  });
+  const pendingDisbursementCount = disbursementQueue?.pendingCount ?? 0;
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
@@ -240,6 +245,40 @@ export default function LenderHomeScreen() {
             />
             <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
               Disputes
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/disbursement")}
+          >
+            <Ionicons
+              name="paper-plane-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              Disbursement
+            </Text>
+            {pendingDisbursementCount > 0 && (
+              <View style={styles.actionBadge}>
+                <Text style={styles.actionBadgeText}>{pendingDisbursementCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/earnings")}
+          >
+            <Ionicons
+              name="trending-up-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              Earnings
             </Text>
           </TouchableOpacity>
         </View>

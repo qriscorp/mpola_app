@@ -16,6 +16,7 @@ export {
   useMakeOfferViewModel,
 } from "./useLenderBrowseViewModel";
 export { usePortfolioViewModel } from "./usePortfolioViewModel";
+export { useDisbursementViewModel } from "./useDisbursementViewModel";
 export {
   usePostOfferViewModel,
   LOAN_TYPE_OPTIONS,

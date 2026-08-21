@@ -1468,6 +1468,51 @@ export async function approveDisbursement(loanId: string): Promise<void> {
   await apiAuthPost(`/loans/active/${loanId}/approve-disbursement`, {});
 }
 
+export interface DisbursementQueue {
+  pending: (Loan & { borrowerName: string })[];
+  pendingCount: number;
+  pendingTotal: number;
+  disbursedTodayCount: number;
+  disbursedTodayAmount: number;
+  walletBalance: number;
+}
+
+export async function fetchDisbursementQueue(): Promise<DisbursementQueue> {
+  const res = await apiAuthGet<{
+    pending: RawLoan[];
+    pending_count: number;
+    pending_total: number;
+    disbursed_today_count: number;
+    disbursed_today_amount: number;
+    wallet_balance: number;
+  }>("/loans/disbursement-queue");
+  return {
+    pending: res.pending.map(mapLoan).map((l) => ({ ...l, borrowerName: l.borrowerName ?? "Unknown" })),
+    pendingCount: res.pending_count,
+    pendingTotal: res.pending_total,
+    disbursedTodayCount: res.disbursed_today_count,
+    disbursedTodayAmount: res.disbursed_today_amount,
+    walletBalance: res.wallet_balance,
+  };
+}
+
+export interface BatchDisbursementResult {
+  disbursed: string[];
+  failed: { loanId: string; reason: string }[];
+}
+
+export async function batchApproveDisbursement(): Promise<BatchDisbursementResult> {
+  const res = await apiAuthPost<{
+    status: number;
+    disbursed: string[];
+    failed: { loan_id: string; reason: string }[];
+  }>("/loans/disbursement/batch", {});
+  return {
+    disbursed: res.disbursed,
+    failed: res.failed.map((f) => ({ loanId: f.loan_id, reason: f.reason })),
+  };
+}
+
 // ─── Lender Wallet ──────────────────────────────────────
 
 export async function fetchLenderWallet(): Promise<Wallet> {
