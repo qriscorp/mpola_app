@@ -1,14 +1,45 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
+import { Redirect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../src/theme";
 import { Logo } from "../src/components";
+import { hasSeenOnboarding, subscribeToOnboardingState } from "../src/services/onboarding";
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
+
+  // Checked here (not just in _layout.tsx's AuthGate) so a first-ever
+  // launch never actually paints this screen's real content before jumping
+  // to onboarding — AuthGate's own redirect only fires in an effect AFTER
+  // this component has already mounted and rendered once, which is exactly
+  // what caused the one-frame "blink" of the welcome screen. A <Redirect>
+  // resolves during render instead, before anything below it paints.
+  const [onboardingSeen, setOnboardingSeen] = useState<boolean | null>(null);
+  useEffect(() => {
+    let active = true;
+    hasSeenOnboarding()
+      .then((seen) => {
+        if (active) setOnboardingSeen(seen);
+      })
+      .catch(() => {
+        if (active) setOnboardingSeen(true);
+      });
+    const unsubscribe = subscribeToOnboardingState((seen) => setOnboardingSeen(seen));
+    return () => {
+      active = false;
+      unsubscribe();
+    };
+  }, []);
+
+  if (onboardingSeen === null) {
+    return <View style={styles.container} />;
+  }
+  if (onboardingSeen === false) {
+    return <Redirect href="/onboarding" />;
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -52,8 +83,6 @@ export default function WelcomeScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-      <Text style={styles.footer}>Regulated by Bank of Uganda</Text>
     </SafeAreaView>
   );
 }

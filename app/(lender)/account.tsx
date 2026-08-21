@@ -77,7 +77,14 @@ function LicenceCard({
       <View style={licenceStyles.grid}>
         <View style={licenceStyles.cell}>
           <Text style={licenceStyles.cellLabel}>Licence No.</Text>
-          <Text style={licenceStyles.cellValue}>{licenceNumber ?? "—"}</Text>
+          <Text style={licenceStyles.cellValue}>
+            {licenceNumber ??
+              // No real number exists yet to show or hide — the backend no
+              // longer sends one pre-issuance (see repository/user_repo.py's
+              // _lender_licence_info). A masked placeholder rather than "—"
+              // makes clear there WILL be one, just not readable yet.
+              (status === "not_issued" ? "LND-••••-••••" : "—")}
+          </Text>
         </View>
         <View style={licenceStyles.cell}>
           <Text style={licenceStyles.cellLabel}>Valid Until</Text>

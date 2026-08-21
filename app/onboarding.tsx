@@ -31,8 +31,8 @@ const SLIDES = [
   {
     icon: "shield-checkmark-outline" as const,
     color: Colors.success,
-    title: "Safe, verified, regulated",
-    body: "Every borrower is NIN-verified with guarantors on their loan, and Mpola operates under Bank of Uganda oversight.",
+    title: "Safe and verified",
+    body: "Every borrower is NIN-verified with guarantors required on their loan, so you always know exactly who you're lending to.",
   },
 ];
 

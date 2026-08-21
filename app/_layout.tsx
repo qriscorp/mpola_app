@@ -18,7 +18,7 @@ import {
   subscribeToAuthState,
   type AuthUser,
 } from "../src/services/auth";
-import { hasSeenOnboarding } from "../src/services/onboarding";
+import { hasSeenOnboarding, subscribeToOnboardingState } from "../src/services/onboarding";
 
 // Hold the native splash until the async cold-start bootstrap below is done.
 // Without this the splash auto-hides the moment the root view mounts — long
@@ -96,10 +96,13 @@ function useAuthState() {
   return { user, isLoading };
 }
 
-/** One-time read of whether this device has already dismissed the
- * onboarding slides — mirrors useAuthState's own SecureStore-hydrate-once
- * pattern so it can gate the same "cover the screen until we know where to
- * route" logic in RootLayout below. */
+/** Whether this device has already dismissed the onboarding slides —
+ * mirrors useAuthState above exactly: hydrate once from SecureStore, then
+ * stay in sync via subscribeToOnboardingState. Without the subscription
+ * half, markOnboardingSeen() flipping the stored value on Skip/Get Started
+ * would go unnoticed here — AuthGate would still be holding the stale
+ * "not seen" state the instant navigation lands back on "/", and immediately
+ * redirect right back to /onboarding. */
 function useOnboardingState() {
   const [seen, setSeen] = useState<boolean | null>(null);
 
@@ -114,8 +117,10 @@ function useOnboardingState() {
         // permanently-stuck onboarding screen — treat it as already seen.
         if (active) setSeen(true);
       });
+    const unsubscribe = subscribeToOnboardingState((next) => setSeen(next));
     return () => {
       active = false;
+      unsubscribe();
     };
   }, []);
 
