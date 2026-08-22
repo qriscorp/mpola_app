@@ -47,6 +47,10 @@ export function useOffersViewModel(applicationId: string) {
       // A newly-uploaded document can be exactly what this application's
       // offers were waiting on — refresh so each accept-gate re-evaluates.
       queryClient.invalidateQueries({ queryKey: ["application", applicationId] });
+      // It's a reusable, account-level document (not tied to this
+      // application) — it can equally satisfy a still-being-browsed offer
+      // template's own readiness checklist.
+      queryClient.invalidateQueries({ queryKey: ["offer-template-detail"] });
     },
   });
 

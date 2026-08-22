@@ -38,7 +38,16 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
       documentType: KYCDocumentType;
       file: { uri: string; name: string; mimeType?: string };
     }) => uploadKycDocument(documentType, file),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["kyc-documents"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["kyc-documents"] });
+      // A KYC document satisfies an offer's/template's required_documents
+      // exactly like a reusable BorrowerDocument does (see
+      // _required_documents_status in the backend, which checks both
+      // sources) — refresh anywhere that status is shown.
+      qc.invalidateQueries({ queryKey: ["application"] });
+      qc.invalidateQueries({ queryKey: ["borrower", "offers-received"] });
+      qc.invalidateQueries({ queryKey: ["offer-template-detail"] });
+    },
     onError: (e: any) => showAlert("Upload failed", e?.message || "Please try again."),
     onSettled: () => setUploadingType(null),
   });

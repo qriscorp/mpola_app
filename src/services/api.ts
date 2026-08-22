@@ -467,6 +467,7 @@ interface RawLoan {
   required_documents: string[];
   required_documents_status: RawRequiredDocumentStatus[];
   guarantors: RawLoanGuarantor[];
+  borrower_has_active_loan_elsewhere?: boolean;
 }
 
 interface RawRepayment {
@@ -1284,10 +1285,11 @@ export async function fetchMarketplace(
 }
 
 // ─── Browse Lender Offers (Borrower browse, distinct from the above) ────
-// No dedicated authenticated endpoint exists for this — it reuses the same
-// public, unauthenticated marketplace-preview endpoint mpola_website's
-// homepage uses (safe to call while logged in; apiAuthGet just attaches the
-// token if present, the backend doesn't require it here).
+// Authenticated — GET /loans/offer-templates/browse, distinct from the
+// anonymous /public/marketplace-preview the website's homepage uses. This
+// one needs to know WHO is browsing so it can exclude any template the
+// borrower already has a real LoanOffer from (pending/accepted/declined) —
+// otherwise a declined offer would keep reappearing.
 
 interface RawBrowseOffer {
   id: string;
@@ -1326,19 +1328,18 @@ function mapBrowseOffer(raw: RawBrowseOffer): BrowseOffer {
   };
 }
 
-export async function fetchBrowseOffers(filters?: {
+export async function fetchBrowseOfferTemplates(filters?: {
   search?: string;
   rate?: string;
 }): Promise<{ offers: BrowseOffer[]; total: number }> {
   const params = new URLSearchParams();
-  params.set("listing_type", "offers");
   params.set("limit", "20");
   if (filters?.search) params.set("search", filters.search);
   if (filters?.rate) params.set("rate", filters.rate);
-  const res = await apiAuthGet<{ listings: RawBrowseOffer[]; total_offers: number }>(
-    `/public/marketplace-preview?${params.toString()}`,
+  const res = await apiAuthGet<{ listings: RawBrowseOffer[]; total: number }>(
+    `/loans/offer-templates/browse?${params.toString()}`,
   );
-  return { offers: res.listings.map(mapBrowseOffer), total: res.total_offers };
+  return { offers: res.listings.map(mapBrowseOffer), total: res.total };
 }
 
 interface RawOfferTemplateDetail {
@@ -1354,6 +1355,7 @@ interface RawOfferTemplateDetail {
   max_duration_days: number | null;
   accepted_loan_types: string[];
   required_documents: string[];
+  required_documents_status: RawRequiredDocumentStatus[];
   description: string | null;
   valid_until: string | null;
   applications_count: number;
@@ -1376,6 +1378,7 @@ export async function fetchOfferTemplateDetail(templateId: string): Promise<Offe
     maxDurationDays: raw.max_duration_days,
     acceptedLoanTypes: raw.accepted_loan_types,
     requiredDocuments: raw.required_documents,
+    requiredDocumentsStatus: raw.required_documents_status.map(mapRequiredDocumentStatus),
     description: raw.description,
     validUntil: raw.valid_until,
     applicationsCount: raw.applications_count,

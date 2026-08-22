@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useOfferTemplateDetailViewModel } from "../../src/viewmodels";
-import { SkeletonCard } from "../../src/components";
+import { SkeletonCard, RequiredDocumentsChecklist } from "../../src/components";
 import { formatDuration } from "../../src/services/duration";
 
 function formatDate(iso: string | null): string {
@@ -25,7 +25,8 @@ export default function BrowseOfferDetailScreen() {
   const { templateId } = useLocalSearchParams<{ templateId: string }>();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
-  const { offer, isLoading } = useOfferTemplateDetailViewModel(templateId);
+  const { offer, isLoading, error, uploadRequiredDocument, uploadingDocumentType } =
+    useOfferTemplateDetailViewModel(templateId);
 
   const handleApply = () => {
     if (!offer) return;
@@ -59,7 +60,11 @@ export default function BrowseOfferDetailScreen() {
         </View>
       ) : !offer ? (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>This offer is no longer available.</Text>
+          <Text style={styles.emptyText}>
+            {error instanceof Error && error.message
+              ? error.message
+              : "This offer is no longer available."}
+          </Text>
         </View>
       ) : (
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -124,15 +129,20 @@ export default function BrowseOfferDetailScreen() {
             )}
           </View>
 
-          {offer.requiredDocuments.length > 0 && (
+          {offer.requiredDocumentsStatus.length > 0 && (
             <>
               <Text style={styles.sectionLabel}>Required Documents</Text>
-              <View style={styles.chipsRow}>
-                {offer.requiredDocuments.map((d) => (
-                  <View key={d} style={styles.chip}>
-                    <Text style={styles.chipText}>{d.replace(/_/g, " ")}</Text>
-                  </View>
-                ))}
+              <Text style={styles.docsHint}>
+                Get ready before you apply — already-uploaded ones (KYC or a
+                past application) count automatically.
+              </Text>
+              <View style={{ marginBottom: Spacing.lg }}>
+                <RequiredDocumentsChecklist
+                  items={offer.requiredDocumentsStatus}
+                  onUpload={uploadRequiredDocument}
+                  uploadingType={uploadingDocumentType}
+                  onGoToProfile={() => router.push("/(borrower)/profile")}
+                />
               </View>
             </>
           )}
@@ -211,6 +221,7 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       textTransform: "uppercase",
       marginBottom: Spacing.sm,
     },
+    docsHint: { ...typography.caption, color: Colors.textMuted, marginBottom: Spacing.sm },
     chipsRow: { flexDirection: "row", flexWrap: "wrap", gap: Spacing.sm, marginBottom: Spacing.lg },
     chip: {
       backgroundColor: Colors.surfaceAlt,

@@ -1,6 +1,8 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchBrowseOffers, fetchOfferTemplateDetail } from "../services";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import * as DocumentPicker from "expo-document-picker";
+import { fetchBrowseOfferTemplates, fetchOfferTemplateDetail, uploadBorrowerDocument } from "../services";
+import type { BorrowerDocumentType } from "../services";
 
 const RATE_BANDS = [
   { key: "", label: "All Rates" },
@@ -20,7 +22,7 @@ export function useBrowseOffersViewModel() {
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["browse-offers", search, rate],
-    queryFn: () => fetchBrowseOffers({ search: search || undefined, rate: rate || undefined }),
+    queryFn: () => fetchBrowseOfferTemplates({ search: search || undefined, rate: rate || undefined }),
   });
 
   return {
@@ -38,11 +40,53 @@ export function useBrowseOffersViewModel() {
 }
 
 export function useOfferTemplateDetailViewModel(templateId: string) {
+  const queryClient = useQueryClient();
   const { data: offer, isLoading, error, refetch } = useQuery({
     queryKey: ["offer-template-detail", templateId],
     queryFn: () => fetchOfferTemplateDetail(templateId),
     enabled: !!templateId,
   });
 
-  return { offer, isLoading, error, refetch };
+  // Lets a borrower get their documents ready straight from the Offer
+  // Detail screen, before they've even applied — uploadBorrowerDocument is
+  // a reusable, account-level upload (no applicationId involved), the same
+  // one offer-detail.tsx uses at accept-time, so whatever's uploaded here
+  // counts there too.
+  const [uploadingType, setUploadingType] = useState<string | null>(null);
+  const uploadDocMutation = useMutation({
+    mutationFn: (vars: { documentType: BorrowerDocumentType; uri: string; name: string; mimeType?: string }) =>
+      uploadBorrowerDocument(vars.documentType, vars),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["offer-template-detail", templateId] });
+    },
+  });
+
+  const uploadRequiredDocument = async (documentType: BorrowerDocumentType) => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setUploadingType(documentType);
+    try {
+      await uploadDocMutation.mutateAsync({
+        documentType,
+        uri: asset.uri,
+        name: asset.name,
+        mimeType: asset.mimeType,
+      });
+    } finally {
+      setUploadingType(null);
+    }
+  };
+
+  return {
+    offer,
+    isLoading,
+    error,
+    refetch,
+    uploadRequiredDocument,
+    uploadingDocumentType: uploadingType,
+  };
 }

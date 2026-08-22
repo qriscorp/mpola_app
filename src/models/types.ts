@@ -91,6 +91,10 @@ export interface Loan {
   requiredDocuments: string[];
   requiredDocumentsStatus: RequiredDocumentStatus[];
   guarantors: LoanGuarantor[];
+  // Only present on disbursement-queue entries — true when this borrower
+  // already went active with a different lender, so disbursing THIS loan
+  // will be rejected until that one's repaid.
+  borrowerHasActiveLoanElsewhere?: boolean;
 }
 
 export interface LoanRepaymentRecord {
@@ -420,6 +424,7 @@ export interface OfferTemplateDetail {
   maxDurationDays: number | null;
   acceptedLoanTypes: string[];
   requiredDocuments: string[];
+  requiredDocumentsStatus: RequiredDocumentStatus[];
   description: string | null;
   validUntil: string | null;
   applicationsCount: number;
