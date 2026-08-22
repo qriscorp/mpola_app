@@ -515,6 +515,7 @@ function mapLoan(raw: RawLoan): Loan {
       relationshipType: g.relationship_type,
       status: g.status,
     })),
+    borrowerHasActiveLoanElsewhere: raw.borrower_has_active_loan_elsewhere,
   };
 }
 

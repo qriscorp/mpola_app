@@ -61,14 +61,30 @@ export default function DisbursementScreen() {
     try {
       const res = await batchApprove();
       setBatchConfirming(false);
-      if (res.disbursed.length > 0) {
+      // One alert only — showAlert only ever holds a single message at a
+      // time (see AlertHost), so calling it twice back to back would just
+      // have the second call silently overwrite the first before it ever
+      // renders. Combine success + failure into one title/message instead.
+      if (res.failed.length === 0) {
         showAlert(
           "Batch disbursed",
-          `${res.disbursed.length} loan${res.disbursed.length === 1 ? "" : "s"} disbursed` +
-            (res.failed.length > 0 ? `, ${res.failed.length} could not be sent.` : "."),
+          `${res.disbursed.length} loan${res.disbursed.length === 1 ? "" : "s"} disbursed.`,
         );
-      } else if (res.failed.length > 0) {
-        showAlert("Couldn't disburse", res.failed[0]?.reason || "Please try again.");
+      } else {
+        // Always show WHY, not just how many — "insufficient balance" is
+        // self-explanatory, but "this borrower already has an active loan
+        // elsewhere" genuinely needs the reason surfaced.
+        const uniqueReasons = Array.from(new Set(res.failed.map((f) => f.reason)));
+        const reasonText =
+          res.failed.length === 1
+            ? uniqueReasons[0]
+            : `${res.failed.length} loans could not be sent: ${uniqueReasons.join("; ")}`;
+        showAlert(
+          res.disbursed.length > 0 ? "Partially disbursed" : "Couldn't disburse",
+          res.disbursed.length > 0
+            ? `${res.disbursed.length} loan${res.disbursed.length === 1 ? "" : "s"} disbursed. ${reasonText}`
+            : reasonText,
+        );
       }
     } catch (e: any) {
       setBatchConfirming(false);
@@ -168,7 +184,12 @@ export default function DisbursementScreen() {
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.queueName}>{loan.borrowerName}</Text>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+                  <Text style={styles.queueName}>{loan.borrowerName}</Text>
+                  {loan.borrowerHasActiveLoanElsewhere && (
+                    <Ionicons name="warning" size={12} color={Colors.warning} />
+                  )}
+                </View>
                 <Text style={styles.queueMeta}>
                   #{loan.id.slice(0, 8)} · {loan.interestRate}%/mo
                 </Text>
@@ -183,10 +204,26 @@ export default function DisbursementScreen() {
           <View style={styles.detailCard}>
             <View style={styles.detailHeader}>
               <Text style={styles.detailTitle}>Loan #{selected.id.slice(0, 8)}</Text>
-              <View style={styles.readyBadge}>
-                <Text style={styles.readyBadgeText}>Ready to Disburse</Text>
-              </View>
+              {selected.borrowerHasActiveLoanElsewhere ? (
+                <View style={styles.holdBadge}>
+                  <Text style={styles.holdBadgeText}>On Hold</Text>
+                </View>
+              ) : (
+                <View style={styles.readyBadge}>
+                  <Text style={styles.readyBadgeText}>Ready to Disburse</Text>
+                </View>
+              )}
             </View>
+
+            {selected.borrowerHasActiveLoanElsewhere && (
+              <View style={styles.holdBanner}>
+                <Ionicons name="warning" size={16} color={Colors.warning} />
+                <Text style={styles.holdBannerText}>
+                  This borrower already has an active loan with another lender. They can&apos;t be
+                  disbursed a second loan until that one is fully repaid.
+                </Text>
+              </View>
+            )}
 
             {selected.requiredDocumentsStatus.length > 0 && (
               <RequiredDocumentsChecklist items={selected.requiredDocumentsStatus} readOnly />
@@ -219,13 +256,17 @@ export default function DisbursementScreen() {
             </View>
 
             <TouchableOpacity
-              style={styles.disburseBtn}
-              disabled={approving}
+              style={[styles.disburseBtn, selected.borrowerHasActiveLoanElsewhere && styles.disburseBtnDisabled]}
+              disabled={approving || selected.borrowerHasActiveLoanElsewhere}
               onPress={() => setConfirming(true)}
             >
               <Ionicons name="paper-plane-outline" size={16} color={Colors.white} />
               <Text style={styles.disburseBtnText}>
-                {approving && approvingLoanId === selected.id ? "Disbursing…" : "Disburse Now"}
+                {approving && approvingLoanId === selected.id
+                  ? "Disbursing…"
+                  : selected.borrowerHasActiveLoanElsewhere
+                    ? "On Hold"
+                    : "Disburse Now"}
               </Text>
             </TouchableOpacity>
           </View>
@@ -365,6 +406,23 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingVertical: 3,
     },
     readyBadgeText: { ...typography.small, color: Colors.success },
+    holdBadge: {
+      backgroundColor: Colors.warning + "22",
+      borderRadius: BorderRadius.full,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: 3,
+    },
+    holdBadgeText: { ...typography.small, color: Colors.warning },
+    holdBanner: {
+      flexDirection: "row",
+      alignItems: "flex-start",
+      gap: Spacing.sm,
+      backgroundColor: Colors.warningBg,
+      borderRadius: BorderRadius.md,
+      padding: Spacing.md,
+      marginBottom: Spacing.md,
+    },
+    holdBannerText: { ...typography.caption, color: Colors.warning, flex: 1 },
     amtRow: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.md, marginBottom: Spacing.md },
     amtBox: {
       flex: 1,
@@ -406,5 +464,6 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       paddingVertical: Spacing.md,
     },
     disburseBtnText: { ...typography.smallMedium, color: Colors.white },
+    disburseBtnDisabled: { backgroundColor: Colors.surfaceLift },
   });
 }
