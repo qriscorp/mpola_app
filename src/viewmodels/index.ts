@@ -37,3 +37,4 @@ export { useEarningsViewModel } from "./useEarningsViewModel";
 export { useNotificationsViewModel, useNotificationsFeedViewModel } from "./useNotificationsViewModel";
 export { useProfileViewModel } from "./useProfileViewModel";
 export { useReceiptsViewModel } from "./useReceiptsViewModel";
+export { useRepaymentScheduleViewModel } from "./useRepaymentScheduleViewModel";

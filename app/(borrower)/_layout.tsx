@@ -24,6 +24,7 @@ export default function BorrowerLayout() {
       <Stack.Screen name="offer-detail" />
       <Stack.Screen name="browse-offers" />
       <Stack.Screen name="browse-offer-detail" />
+      <Stack.Screen name="repayment-schedule" />
       <Stack.Screen name="payment" />
       <Stack.Screen name="payment-success" />
       <Stack.Screen name="payment-failed" />

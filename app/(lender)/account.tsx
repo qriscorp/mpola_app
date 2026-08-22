@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  TextInput,
   Switch,
   Alert,
 } from "react-native";
@@ -238,11 +239,28 @@ function makeMenuStyles(typography: ReturnType<typeof useScaledTypography>) {
 
 export default function LenderAccountScreen() {
   const router = useRouter();
-  const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement, updateProfile } = useProfileViewModel();
+  const { profile, isLoading, error, signOut, signAgreement, isSigningAgreement, updateProfile, isUpdating } = useProfileViewModel();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
   const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editForm, setEditForm] = useState({ fullName: "", nin: "" });
+
+  const startEditing = () => {
+    if (profile) setEditForm({ fullName: profile.fullName, nin: profile.nin });
+    setEditingProfile(true);
+  };
+
+  const handleSaveProfile = () => {
+    updateProfile(
+      { fullName: editForm.fullName, nin: editForm.nin },
+      {
+        onSuccess: () => setEditingProfile(false),
+        onError: (e: any) => Alert.alert("Failed to save", e?.message || "Please try again."),
+      },
+    );
+  };
 
   const handleConfirmSignOut = async () => {
     setSigningOut(true);
@@ -312,6 +330,63 @@ export default function LenderAccountScreen() {
           </View>
           <Text style={styles.name}>{profile.fullName}</Text>
           <Text style={styles.sub}>{profile.email}</Text>
+        </View>
+
+        {/* Profile details — Phone/Email stay read-only everywhere in Mpola
+            since they're the channels OTP verification relies on (see
+            mpola_website's lender/account page, same restriction); only
+            Full Name and NIN are ever editable. */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={[styles.sectionLabel, { marginTop: 0 }]}>PROFILE DETAILS</Text>
+          <TouchableOpacity onPress={() => (editingProfile ? setEditingProfile(false) : startEditing())}>
+            <Text style={styles.editLink}>{editingProfile ? "Cancel" : "Edit"}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.card}>
+          <View style={styles.fieldRow}>
+            <Text style={styles.fieldLabel}>Full Name</Text>
+            {editingProfile ? (
+              <TextInput
+                style={styles.fieldInput}
+                value={editForm.fullName}
+                onChangeText={(v) => setEditForm((f) => ({ ...f, fullName: v }))}
+                placeholderTextColor={Colors.textMuted}
+              />
+            ) : (
+              <Text style={styles.fieldValue}>{profile.fullName}</Text>
+            )}
+          </View>
+          <View style={[styles.fieldRow, { borderTopWidth: 1, borderTopColor: Colors.border }]}>
+            <Text style={styles.fieldLabel}>Phone</Text>
+            <Text style={[styles.fieldValue, { color: Colors.textMuted }]}>{profile.phone}</Text>
+          </View>
+          <View style={[styles.fieldRow, { borderTopWidth: 1, borderTopColor: Colors.border }]}>
+            <Text style={styles.fieldLabel}>Email</Text>
+            <Text style={[styles.fieldValue, { color: Colors.textMuted }]}>{profile.email}</Text>
+          </View>
+          <View style={[styles.fieldRow, { borderTopWidth: 1, borderTopColor: Colors.border }]}>
+            <Text style={styles.fieldLabel}>NIN</Text>
+            {editingProfile ? (
+              <TextInput
+                style={styles.fieldInput}
+                value={editForm.nin}
+                onChangeText={(v) => setEditForm((f) => ({ ...f, nin: v }))}
+                placeholderTextColor={Colors.textMuted}
+                autoCapitalize="characters"
+              />
+            ) : (
+              <Text style={styles.fieldValue}>{profile.nin || "—"}</Text>
+            )}
+          </View>
+          {editingProfile && (
+            <TouchableOpacity
+              style={[styles.saveBtn, isUpdating && { opacity: 0.6 }]}
+              disabled={isUpdating}
+              onPress={handleSaveProfile}
+            >
+              <Text style={styles.saveBtnText}>{isUpdating ? "Saving…" : "Save Changes"}</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Licence */}
@@ -485,6 +560,39 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       marginBottom: Spacing.sm,
       marginTop: Spacing.lg,
     },
+    sectionHeaderRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      marginTop: Spacing.lg,
+      marginBottom: Spacing.sm,
+    },
+    editLink: { ...typography.smallMedium, color: Colors.gold, fontWeight: "700" },
+    fieldRow: { paddingVertical: Spacing.sm },
+    fieldLabel: {
+      ...typography.caption,
+      color: Colors.textMuted,
+      textTransform: "uppercase",
+      letterSpacing: 0.5,
+      marginBottom: 4,
+    },
+    fieldValue: { ...typography.bodyMedium, color: Colors.textPrimary },
+    fieldInput: {
+      ...typography.bodyMedium,
+      color: Colors.textPrimary,
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.md,
+      paddingVertical: Spacing.sm,
+    },
+    saveBtn: {
+      backgroundColor: Colors.gold,
+      borderRadius: BorderRadius.md,
+      paddingVertical: Spacing.sm,
+      alignItems: "center",
+      marginTop: Spacing.md,
+    },
+    saveBtnText: { ...typography.buttonSmall, color: Colors.navy },
     card: {
       backgroundColor: Colors.surface,
       borderRadius: BorderRadius.lg,

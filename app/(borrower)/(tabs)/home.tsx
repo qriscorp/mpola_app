@@ -183,7 +183,7 @@ export default function BorrowerHomeScreen() {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionCell}
-            onPress={() => router.push("/(borrower)/payment")}
+            onPress={() => router.push("/(borrower)/repayment-schedule")}
           >
             <Ionicons
               name="card-outline"

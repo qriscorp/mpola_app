@@ -65,14 +65,24 @@ export default function PostOfferScreen() {
       if (vm.isEditing) {
         await vm.submitUpdate();
         Alert.alert("Updated", "Offer updated.");
+        router.push("/(lender)/my-offers");
       } else {
-        await vm.submitCreate(false);
-        Alert.alert(
-          "Submitted",
-          "Offer submitted for review. It'll go live once approved.",
-        );
+        const template = await vm.submitCreate(false);
+        router.replace({
+          pathname: "/(lender)/offer-posted",
+          params: {
+            templateId: template.id,
+            minAmount: String(template.minAmount),
+            maxAmount: String(template.maxAmount),
+            interestRate: String(template.interestRate),
+            ...(template.maxDurationDays != null
+              ? { durationDays: String(template.maxDurationDays) }
+              : template.maxDuration != null
+                ? { duration: String(template.maxDuration) }
+                : {}),
+          },
+        });
       }
-      router.push("/(lender)/my-offers");
     } catch (e: any) {
       Alert.alert("Failed to save", e?.message || "Please try again.");
     }

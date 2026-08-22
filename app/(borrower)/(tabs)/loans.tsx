@@ -87,6 +87,14 @@ function LoanCard({ loan }: { loan: Loan }) {
         </View>
       </View>
 
+      {(loan.status === "active" || loan.status === "overdue") && (
+        <TouchableOpacity
+          style={styles.viewOffersBtn}
+          onPress={() => router.push("/(borrower)/repayment-schedule")}
+        >
+          <Text style={styles.viewOffersText}>View Repayment Schedule</Text>
+        </TouchableOpacity>
+      )}
       {loan.applicationId && (
         <TouchableOpacity
           style={styles.viewOffersBtn}
