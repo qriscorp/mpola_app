@@ -160,7 +160,14 @@ export default function BorrowerHomeScreen() {
             style={styles.actionCell}
             onPress={() => router.push("/(borrower)/offers")}
           >
-            <Ionicons name="search-outline" size={22} color={Colors.teal} />
+            <Ionicons name="mail-open-outline" size={22} color={Colors.teal} />
+            <Text style={styles.actionLabel}>My Offers</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCell}
+            onPress={() => router.push("/(borrower)/browse-offers")}
+          >
+            <Ionicons name="search-outline" size={22} color={Colors.textSecondary} />
             <Text style={styles.actionLabel}>Browse Offers</Text>
           </TouchableOpacity>
           <TouchableOpacity

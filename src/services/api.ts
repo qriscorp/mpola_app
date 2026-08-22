@@ -31,6 +31,8 @@ import type {
   OfferTemplate,
   OfferTemplateInput,
   OfferTemplateStatus,
+  BrowseOffer,
+  OfferTemplateDetail,
 } from "../models";
 import {
   apiAuthGet,
@@ -1279,6 +1281,105 @@ export async function fetchMarketplace(
     applications: RawApplication[];
   }>(`/loans/marketplace?${params.toString()}`);
   return { applications: res.applications.map(mapApplication), total: res.total };
+}
+
+// ─── Browse Lender Offers (Borrower browse, distinct from the above) ────
+// No dedicated authenticated endpoint exists for this — it reuses the same
+// public, unauthenticated marketplace-preview endpoint mpola_website's
+// homepage uses (safe to call while logged in; apiAuthGet just attaches the
+// token if present, the backend doesn't require it here).
+
+interface RawBrowseOffer {
+  id: string;
+  lender_name: string;
+  city: string | null;
+  description: string | null;
+  min_amount: number;
+  max_amount: number;
+  interest_rate: number;
+  loan_types: string | null; // JSON-encoded string list
+  max_duration: number | null;
+  max_duration_days: number | null;
+  offer_count: number;
+}
+
+function mapBrowseOffer(raw: RawBrowseOffer): BrowseOffer {
+  let loanTypes: string[] = [];
+  try {
+    const parsed = raw.loan_types ? JSON.parse(raw.loan_types) : [];
+    loanTypes = Array.isArray(parsed) ? parsed : [];
+  } catch {
+    loanTypes = [];
+  }
+  return {
+    id: raw.id,
+    lenderName: raw.lender_name,
+    city: raw.city,
+    description: raw.description,
+    minAmount: raw.min_amount,
+    maxAmount: raw.max_amount,
+    interestRate: raw.interest_rate,
+    loanTypes,
+    maxDuration: raw.max_duration,
+    maxDurationDays: raw.max_duration_days,
+    offerCount: raw.offer_count,
+  };
+}
+
+export async function fetchBrowseOffers(filters?: {
+  search?: string;
+  rate?: string;
+}): Promise<{ offers: BrowseOffer[]; total: number }> {
+  const params = new URLSearchParams();
+  params.set("listing_type", "offers");
+  params.set("limit", "20");
+  if (filters?.search) params.set("search", filters.search);
+  if (filters?.rate) params.set("rate", filters.rate);
+  const res = await apiAuthGet<{ listings: RawBrowseOffer[]; total_offers: number }>(
+    `/public/marketplace-preview?${params.toString()}`,
+  );
+  return { offers: res.listings.map(mapBrowseOffer), total: res.total_offers };
+}
+
+interface RawOfferTemplateDetail {
+  id: string;
+  lender_name: string | null;
+  city: string | null;
+  lender_member_since: string | null;
+  lender_kyc_status: string | null;
+  interest_rate: number;
+  min_amount: number;
+  max_amount: number;
+  max_duration: number | null;
+  max_duration_days: number | null;
+  accepted_loan_types: string[];
+  required_documents: string[];
+  description: string | null;
+  valid_until: string | null;
+  applications_count: number;
+}
+
+export async function fetchOfferTemplateDetail(templateId: string): Promise<OfferTemplateDetail> {
+  const raw = await apiAuthGet<RawOfferTemplateDetail>(
+    `/loans/offer-templates/${templateId}/public-detail`,
+  );
+  return {
+    id: raw.id,
+    lenderName: raw.lender_name,
+    city: raw.city,
+    lenderMemberSince: raw.lender_member_since,
+    lenderKycStatus: raw.lender_kyc_status,
+    interestRate: raw.interest_rate,
+    minAmount: raw.min_amount,
+    maxAmount: raw.max_amount,
+    maxDuration: raw.max_duration,
+    maxDurationDays: raw.max_duration_days,
+    acceptedLoanTypes: raw.accepted_loan_types,
+    requiredDocuments: raw.required_documents,
+    description: raw.description,
+    validUntil: raw.valid_until,
+    applicationsCount: raw.applications_count,
+  };
 }
 
 export async function skipApplication(applicationId: string): Promise<{ status: number; message: string }> {

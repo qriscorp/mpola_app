@@ -383,6 +383,48 @@ export interface OfferTemplate {
   acceptedCount: number;
 }
 
+/** One card in the borrower-facing "Browse Lender Offers" list — sourced
+ * from the same public marketplace-preview endpoint mpola_website's
+ * homepage uses (GET /public/marketplace-preview?listing_type=offers),
+ * filtered to offers. Distinct from OfferTemplate, which is a lender's own
+ * management view of their template. */
+export interface BrowseOffer {
+  id: string;
+  lenderName: string;
+  city: string | null;
+  description: string | null;
+  minAmount: number;
+  maxAmount: number;
+  interestRate: number;
+  loanTypes: string[];
+  maxDuration: number | null;
+  maxDurationDays: number | null;
+  offerCount: number;
+}
+
+/** Full detail behind one lender's standing offer, for the "Offer Detail"
+ * screen reached from Browse Lender Offers — richer than BrowseOffer (adds
+ * required docs, lender KYC status, member-since) but deliberately omits
+ * any licence number. Backed by
+ * GET /loans/offer-templates/{id}/public-detail. */
+export interface OfferTemplateDetail {
+  id: string;
+  lenderName: string | null;
+  city: string | null;
+  lenderMemberSince: string | null;
+  lenderKycStatus: string | null;
+  interestRate: number;
+  minAmount: number;
+  maxAmount: number;
+  maxDuration: number | null;
+  maxDurationDays: number | null;
+  acceptedLoanTypes: string[];
+  requiredDocuments: string[];
+  description: string | null;
+  validUntil: string | null;
+  applicationsCount: number;
+}
+
 export interface OfferTemplateInput {
   maxAmount: number;
   minAmount: number;

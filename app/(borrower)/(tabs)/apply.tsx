@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../../src/theme";
 import { Button, Card, Input, InfoTip, PhoneInput, ConfirmModal } from "../../../src/components";
@@ -38,7 +38,19 @@ function presetToIso(days: number): string {
 
 export default function ApplyScreen() {
   const router = useRouter();
-  const vm = useApplyViewModel();
+  const { loanType: prefillLoanType, maxInterestRate: prefillRate, duration: prefillDuration, durationDays: prefillDurationDays } =
+    useLocalSearchParams<{
+      loanType?: string;
+      maxInterestRate?: string;
+      duration?: string;
+      durationDays?: string;
+    }>();
+  const vm = useApplyViewModel({
+    loanType: prefillLoanType,
+    maxInterestRate: prefillRate,
+    duration: prefillDuration,
+    durationDays: prefillDurationDays,
+  });
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
 

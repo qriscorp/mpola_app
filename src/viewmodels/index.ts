@@ -9,6 +9,10 @@ export {
   usePaymentViewModel,
 } from "./useBorrowerWalletViewModel";
 export { useOffersViewModel, useAllOffersViewModel } from "./useOffersViewModel";
+export {
+  useBrowseOffersViewModel,
+  useOfferTemplateDetailViewModel,
+} from "./useBrowseOffersViewModel";
 export { useLenderDashboardViewModel } from "./useLenderDashboardViewModel";
 export {
   useBrowseBorrowersViewModel,

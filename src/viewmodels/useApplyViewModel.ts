@@ -18,7 +18,14 @@ interface StagedGuarantor {
   username: string;
 }
 
-export function useApplyViewModel() {
+interface ApplyPrefill {
+  loanType?: string;
+  maxInterestRate?: string;
+  duration?: string;
+  durationDays?: string;
+}
+
+export function useApplyViewModel(prefill?: ApplyPrefill) {
   const queryClient = useQueryClient();
   const [step, setStep] = useState<ApplicationStep>(1);
 
@@ -90,8 +97,30 @@ export function useApplyViewModel() {
       setMaxInterestRate(draft.maxInterestRate != null ? String(draft.maxInterestRate) : "");
       setValidUntil(draft.validUntil);
       setStep(2);
+    } else if (prefill) {
+      // No draft to resume — if we arrived from "Apply to This Offer" on a
+      // browsed lender's standing offer (browse-offer-detail.tsx), pre-fill
+      // Step 1 with that offer's terms. Purely a convenience default: this
+      // still submits through the normal broadcast auto-match flow, not a
+      // targeted application to that one lender.
+      const validLoanTypes: LoanType[] = ["personal", "business", "education", "agricultural", "emergency"];
+      if (prefill.loanType && validLoanTypes.includes(prefill.loanType as LoanType)) {
+        setLoanType(prefill.loanType as LoanType);
+      }
+      if (prefill.maxInterestRate) setMaxInterestRate(prefill.maxInterestRate);
+      // durationDays only means anything once loanType is "emergency" (see
+      // isEmergency below, which gates the day-picker UI and the submit
+      // payload) — a lender can independently set day-based duration on a
+      // non-emergency-typed offer, so only trust it here when the browsed
+      // offer's own loan type was itself "emergency".
+      if (prefill.loanType === "emergency" && prefill.durationDays) {
+        setDurationDays(Number(prefill.durationDays));
+      } else if (prefill.duration) {
+        setDuration(Number(prefill.duration));
+      }
     }
     setResuming(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draft, draftLoading]);
 
   const isEmergency = loanType === "emergency";
