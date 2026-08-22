@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -18,6 +17,7 @@ import {
   apiForgotPasswordVerify,
   apiForgotPasswordReset,
 } from "../src/services/auth";
+import { showAlert } from "../src/services/alerts";
 import { passwordRequirementErrors, PASSWORD_REQUIREMENTS_HINT } from "../src/validation";
 
 type Step = "request" | "verify" | "reset";
@@ -98,7 +98,7 @@ export default function ForgotPasswordScreen() {
     setLoading(true);
     try {
       await apiForgotPasswordReset(newPassword, resetToken);
-      Alert.alert(
+      showAlert(
         "Password Reset",
         "Your password has been updated. Please sign in.",
         [{ text: "Sign In", onPress: () => router.replace("/sign-in") }],

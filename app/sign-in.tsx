@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,6 +15,7 @@ import { Button, Input, PhoneInput, Logo } from "../src/components";
 import { useAuthViewModel } from "../src/viewmodels";
 import { isBiometricSupported, isBiometricLoginEnabled, tryBiometricSignIn } from "../src/services/biometrics";
 import { enterAuthenticatedApp } from "../src/services/auth";
+import { showAlert } from "../src/services/alerts";
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -41,7 +41,7 @@ export default function SignInScreen() {
     // Set by an admin restoring a deactivated account — the account is
     // currently on a server-generated temp password until they change it.
     if (user.must_change_password) {
-      Alert.alert(
+      showAlert(
         "Temporary password",
         "You're signed in with a temporary password. For your security, set a new one now.",
         [
@@ -104,7 +104,7 @@ export default function SignInScreen() {
       if (user) {
         routeForRole(user);
       } else {
-        Alert.alert(
+        showAlert(
           "Biometric sign-in unavailable",
           "Please sign in with your password to continue.",
         );

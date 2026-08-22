@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Modal,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -20,6 +19,7 @@ import {
   skipApplication,
   makeOffer,
   fetchLendingLimits,
+  showAlert,
 } from "../../../src/services";
 import type { MarketplaceApplication, LoanOffer } from "../../../src/models";
 import { formatDuration } from "../../../src/services/duration";
@@ -114,7 +114,7 @@ function OfferModal({
       queryClient.invalidateQueries({ queryKey: ["lender", "offers"] });
       onClose();
     },
-    onError: (e: any) => Alert.alert("Failed to send offer", e?.message || "Please try again."),
+    onError: (e: any) => showAlert("Failed to send offer", e?.message || "Please try again."),
   });
 
   return (
@@ -263,11 +263,11 @@ export default function ApplicationsInboxScreen() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["lender", "marketplace"] });
       setSkipTarget(null);
-      Alert.alert("Hidden", "Hidden from your marketplace — still visible to other lenders.");
+      showAlert("Hidden", "Hidden from your marketplace — still visible to other lenders.");
     },
     onError: (e: any) => {
       setSkipTarget(null);
-      Alert.alert("Failed to hide request", e?.message || "Please try again.");
+      showAlert("Failed to hide request", e?.message || "Please try again.");
     },
   });
 

@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, Alert, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card } from "../../src/components";
-import { downloadRepaymentReceipt, goToTabRoot } from "../../src/services";
+import { downloadRepaymentReceipt, goToTabRoot, showAlert } from "../../src/services";
 
 const METHOD_LABEL: Record<string, string> = {
   wallet: "Mpola Wallet",
@@ -95,13 +95,13 @@ export default function PaymentSuccessScreen() {
           title="⬇ Download Receipt"
           onPress={async () => {
             if (!params.repaymentId) {
-              Alert.alert("Receipt unavailable", "This payment has no receipt on file.");
+              showAlert("Receipt unavailable", "This payment has no receipt on file.");
               return;
             }
             try {
               await downloadRepaymentReceipt(params.repaymentId);
             } catch {
-              Alert.alert("Couldn't download the receipt", "Please try again.");
+              showAlert("Couldn't download the receipt", "Please try again.");
             }
           }}
           variant="outline"

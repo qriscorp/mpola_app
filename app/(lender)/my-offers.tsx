@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -17,7 +16,7 @@ import {
   useMyOfferTemplatesViewModel,
   useOfferTemplateMatchesViewModel,
 } from "../../src/viewmodels";
-import { fetchMyOffers } from "../../src/services";
+import { fetchMyOffers, showAlert } from "../../src/services";
 import type { OfferTemplate, LoanOffer } from "../../src/models";
 import { formatDuration } from "../../src/services/duration";
 
@@ -226,7 +225,7 @@ export default function MyOffersScreen() {
       setDeleteTarget(null);
     } catch (e: any) {
       setDeleteTarget(null);
-      Alert.alert("Failed to delete", e?.message || "Please try again.");
+      showAlert("Failed to delete", e?.message || "Please try again.");
     }
   };
 
@@ -237,7 +236,7 @@ export default function MyOffersScreen() {
       setFreezeTarget(null);
     } catch (e: any) {
       setFreezeTarget(null);
-      Alert.alert("Failed to freeze", e?.message || "Please try again.");
+      showAlert("Failed to freeze", e?.message || "Please try again.");
     }
   };
 
@@ -245,7 +244,7 @@ export default function MyOffersScreen() {
     try {
       await unfreezeTemplate(t.id);
     } catch (e: any) {
-      Alert.alert("Failed to unfreeze", e?.message || "Please try again.");
+      showAlert("Failed to unfreeze", e?.message || "Please try again.");
     }
   };
 
@@ -259,7 +258,7 @@ export default function MyOffersScreen() {
       setExpiryTarget(null);
     } catch (e: any) {
       setExpiryTarget(null);
-      Alert.alert("Failed to update expiry", e?.message || "Please try again.");
+      showAlert("Failed to update expiry", e?.message || "Please try again.");
     }
   };
 

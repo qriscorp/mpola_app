@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
-import { fetchLoginSessions, signOutEverywhere } from "../services";
+import { fetchLoginSessions, signOutEverywhere, showAlert } from "../services";
 import { SkeletonList } from "./Skeleton";
 import { ConfirmModal } from "./ConfirmModal";
 
@@ -29,7 +29,7 @@ export function SessionsSection({ accentColor = Colors.teal }: { accentColor?: s
     onSuccess: (res) => {
       qc.invalidateQueries({ queryKey: ["sessions"] });
       setConfirmVisible(false);
-      Alert.alert("Done", res.message);
+      showAlert("Done", res.message);
     },
     onError: () => setConfirmVisible(false),
   });

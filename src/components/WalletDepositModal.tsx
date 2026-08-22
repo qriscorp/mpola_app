@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { Modal, View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Input } from "./Input";
 import { PhoneInput } from "./PhoneInput";
 import { Button } from "./Button";
 import { detectCarrier } from "../services/fees";
-import { fetchProfile } from "../services";
+import { fetchProfile, showAlert } from "../services";
 
 interface Props {
   visible: boolean;
@@ -74,7 +74,7 @@ export function WalletDepositModal({
       }
       onClose();
     } catch (e) {
-      Alert.alert(
+      showAlert(
         "Deposit failed",
         e instanceof Error ? e.message : "Please try again.",
       );

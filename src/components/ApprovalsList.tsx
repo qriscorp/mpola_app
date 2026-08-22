@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
-import { fetchGuarantorRequests, respondToGuarantorRequest } from "../services";
+import { fetchGuarantorRequests, respondToGuarantorRequest, showAlert } from "../services";
 import { formatDuration } from "../services/duration";
 import { ConfirmModal } from "./ConfirmModal";
 import type { GuarantorRequest } from "../models";
@@ -36,7 +36,7 @@ export function ApprovalsList() {
     },
     onError: (e: any) => {
       setConfirmTarget(null);
-      Alert.alert("Failed", e?.message || "Please try again.");
+      showAlert("Failed", e?.message || "Please try again.");
     },
   });
 

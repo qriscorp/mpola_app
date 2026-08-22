@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -20,6 +19,7 @@ import {
   ConfirmDetailRow,
 } from "../../src/components";
 import { useDisbursementViewModel } from "../../src/viewmodels";
+import { showAlert } from "../../src/services/alerts";
 import { calcPlatformFee } from "../../src/services/fees";
 import { formatDuration } from "../../src/services/duration";
 import { formatCompactUGX } from "../../src/services/currency";
@@ -50,10 +50,10 @@ export default function DisbursementScreen() {
     try {
       await approve(selected.id);
       setConfirming(false);
-      Alert.alert("Disbursed", `UGX ${selected.amount.toLocaleString()} sent to ${selected.borrowerName}'s wallet.`);
+      showAlert("Disbursed", `UGX ${selected.amount.toLocaleString()} sent to ${selected.borrowerName}'s wallet.`);
     } catch (e: any) {
       setConfirming(false);
-      Alert.alert("Couldn't disburse", e?.message || "Please try again.");
+      showAlert("Couldn't disburse", e?.message || "Please try again.");
     }
   };
 
@@ -62,17 +62,17 @@ export default function DisbursementScreen() {
       const res = await batchApprove();
       setBatchConfirming(false);
       if (res.disbursed.length > 0) {
-        Alert.alert(
+        showAlert(
           "Batch disbursed",
           `${res.disbursed.length} loan${res.disbursed.length === 1 ? "" : "s"} disbursed` +
             (res.failed.length > 0 ? `, ${res.failed.length} could not be sent.` : "."),
         );
       } else if (res.failed.length > 0) {
-        Alert.alert("Couldn't disburse", res.failed[0]?.reason || "Please try again.");
+        showAlert("Couldn't disburse", res.failed[0]?.reason || "Please try again.");
       }
     } catch (e: any) {
       setBatchConfirming(false);
-      Alert.alert("Batch disbursement failed", e?.message || "Please try again.");
+      showAlert("Batch disbursement failed", e?.message || "Please try again.");
     }
   };
 

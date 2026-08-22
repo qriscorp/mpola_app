@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
-import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { Modal, View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
-import { fetchTransactionDetail, downloadRepaymentReceipt, downloadDisbursementReceipt } from "../services";
+import { fetchTransactionDetail, downloadRepaymentReceipt, downloadDisbursementReceipt, showAlert } from "../services";
 import { formatDuration } from "../services/duration";
 import type { TransactionDetail, TransactionType } from "../models";
 
@@ -93,10 +93,10 @@ async function shareReceipt(tx: TransactionDetail) {
         dialogTitle: "Mpola Receipt",
       });
     } else {
-      Alert.alert("Sharing not available", "Sharing isn't supported on this device.");
+      showAlert("Sharing not available", "Sharing isn't supported on this device.");
     }
   } catch (e) {
-    Alert.alert("Couldn't share receipt", e instanceof Error ? e.message : "Please try again.");
+    showAlert("Couldn't share receipt", e instanceof Error ? e.message : "Please try again.");
   }
 }
 

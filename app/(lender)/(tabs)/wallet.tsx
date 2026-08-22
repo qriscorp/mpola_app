@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../../src/theme";
+import { showAlert } from "../../../src/services/alerts";
 import {
   Card,
   TransactionItem,
@@ -62,7 +62,7 @@ export default function LenderWalletScreen() {
       await setupWallet(pin);
       setSetupVisible(false);
     } catch (e) {
-      Alert.alert(
+      showAlert(
         "Setup failed",
         e instanceof Error ? e.message : "Please try again.",
       );

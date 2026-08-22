@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -13,6 +12,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { SkeletonList } from "../../src/components";
 import { useReceiptsViewModel } from "../../src/viewmodels";
+import { showAlert } from "../../src/services/alerts";
 
 const METHOD_LABEL: Record<string, string> = {
   mobile_money: "Mobile Money",
@@ -47,7 +47,7 @@ export default function ReceiptsScreen() {
     try {
       await vm.download(repaymentId);
     } catch {
-      Alert.alert("Couldn't download the receipt", "Please try again.");
+      showAlert("Couldn't download the receipt", "Please try again.");
     }
   };
 

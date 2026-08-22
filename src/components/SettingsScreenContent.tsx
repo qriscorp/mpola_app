@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Switch, Alert } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Switch } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import * as WebBrowser from "expo-web-browser";
@@ -11,7 +11,7 @@ import { Button } from "./Button";
 import { Input } from "./Input";
 import { ConfirmModal } from "./ConfirmModal";
 import { useProfileViewModel } from "../viewmodels";
-import { changePassword, exportMyData, deactivateMyAccount } from "../services";
+import { changePassword, exportMyData, deactivateMyAccount, showAlert } from "../services";
 import { passwordRequirementErrors, PASSWORD_REQUIREMENTS_HINT } from "../validation";
 
 const MPOLA_WEB_URL = "https://mpola.co";
@@ -27,17 +27,17 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
   const changePasswordMutation = useMutation({
     mutationFn: () => changePassword(oldPassword, newPassword),
     onSuccess: () => {
-      Alert.alert("Password changed", "Use your new password next time you sign in.");
+      showAlert("Password changed", "Use your new password next time you sign in.");
       setOldPassword("");
       setNewPassword("");
     },
-    onError: (e: Error) => Alert.alert("Couldn't change password", e.message),
+    onError: (e: Error) => showAlert("Couldn't change password", e.message),
   });
 
   function handleChangePassword() {
     const errors = passwordRequirementErrors(newPassword);
     if (errors.length) {
-      Alert.alert("Password too weak", `New password needs: ${errors.join(", ").toLowerCase()}`);
+      showAlert("Password too weak", `New password needs: ${errors.join(", ").toLowerCase()}`);
       return;
     }
     changePasswordMutation.mutate();
@@ -52,12 +52,12 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, { mimeType: "application/json", dialogTitle: "My Mpola Data" });
       } else {
-        Alert.alert("Sharing not available", "Sharing isn't supported on this device.");
+        showAlert("Sharing not available", "Sharing isn't supported on this device.");
       }
     },
     onError: (e: Error) => {
       setShowExportConfirm(false);
-      Alert.alert("Couldn't export data", e.message);
+      showAlert("Couldn't export data", e.message);
     },
   });
 
@@ -71,7 +71,7 @@ export function SettingsScreenContent({ accentColor = Colors.teal }: { accentCol
       setShowDeactivate(false);
       signOut();
     },
-    onError: (e: Error) => Alert.alert("Couldn't deactivate account", e.message),
+    onError: (e: Error) => showAlert("Couldn't deactivate account", e.message),
   });
 
   if (!profile) return null;

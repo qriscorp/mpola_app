@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { BorderRadius, Colors, Spacing, useScaledTypography } from "../src/theme";
 import { Button, PhoneInput } from "../src/components";
+import { showAlert } from "../src/services/alerts";
 import {
   apiRefreshSignupDraft,
   apiSendSignupPhoneOtp,
@@ -137,7 +137,7 @@ export default function VerifyPhoneScreen() {
         } else {
           // Tokens weren't issued for some reason — fall back to asking
           // the user to sign in manually rather than leaving them stuck.
-          Alert.alert("Account ready", "Signup complete. Please sign in.", [
+          showAlert("Account ready", "Signup complete. Please sign in.", [
             {
               text: "Sign In",
               onPress: () => router.replace("/sign-in"),
@@ -160,7 +160,7 @@ export default function VerifyPhoneScreen() {
         return;
       }
 
-      Alert.alert("Phone verified", response.message);
+      showAlert("Phone verified", response.message);
     } catch (e: any) {
       setError(e?.message || "Invalid code. Please try again.");
     } finally {

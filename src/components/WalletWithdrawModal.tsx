@@ -6,13 +6,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Alert,
 } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { Input } from "./Input";
 import { PhoneInput } from "./PhoneInput";
 import { Button } from "./Button";
+import { showAlert } from "../services/alerts";
 import { ConfirmModal, ConfirmDetailRow } from "./ConfirmModal";
 import { OtpConfirmModal } from "./OtpConfirmModal";
 import type { BankOption } from "../models";
@@ -127,7 +127,7 @@ export function WalletWithdrawModal({
       setShowFinalConfirm(false);
       setShowOtpModal(true);
     } catch (e) {
-      Alert.alert(
+      showAlert(
         "Couldn't send code",
         e instanceof Error ? e.message : "Please try again.",
       );
@@ -171,7 +171,7 @@ export function WalletWithdrawModal({
       setShowOtpModal(false);
       onClose();
       if (fee != null) {
-        Alert.alert("Withdrawal successful", `${formatUgx(fee)} fee charged.`);
+        showAlert("Withdrawal successful", `${formatUgx(fee)} fee charged.`);
       }
     } catch (e) {
       // Stays open so a wrong/expired code can be retried without redoing

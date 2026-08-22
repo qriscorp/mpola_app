@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
@@ -8,6 +8,7 @@ import { Button } from "./Button";
 import { Badge } from "./Badge";
 import { SkeletonList } from "./Skeleton";
 import { ConfirmModal } from "./ConfirmModal";
+import { showAlert } from "../services/alerts";
 import {
   fetchDispute,
   postDisputeMessage,
@@ -69,7 +70,7 @@ export function DisputeDetailScreenContent({
       setMessageText("");
       invalidate();
     },
-    onError: (e: any) => Alert.alert("Failed to send", e?.message || "Please try again."),
+    onError: (e: any) => showAlert("Failed to send", e?.message || "Please try again."),
   });
 
   const propose = useMutation({
@@ -85,19 +86,19 @@ export function DisputeDetailScreenContent({
       setShowProposeForm(false);
       invalidate();
     },
-    onError: (e: any) => Alert.alert("Failed to propose", e?.message || "Please try again."),
+    onError: (e: any) => showAlert("Failed to propose", e?.message || "Please try again."),
   });
 
   const respond = useMutation({
     mutationFn: (accept: boolean) => respondToDisputeProposal(disputeId, accept),
     onSuccess: (d) => {
       setConfirmAction(null);
-      Alert.alert(d.status === "resolved" ? "Resolved" : "Declined", d.status === "resolved" ? "The dispute has been resolved." : "Proposal declined.");
+      showAlert(d.status === "resolved" ? "Resolved" : "Declined", d.status === "resolved" ? "The dispute has been resolved." : "Proposal declined.");
       invalidate();
     },
     onError: (e: any) => {
       setConfirmAction(null);
-      Alert.alert("Failed", e?.message || "Please try again.");
+      showAlert("Failed", e?.message || "Please try again.");
     },
   });
 
@@ -105,12 +106,12 @@ export function DisputeDetailScreenContent({
     mutationFn: () => escalateDispute(disputeId),
     onSuccess: () => {
       setConfirmAction(null);
-      Alert.alert("Escalated", "Mpola support has been notified.");
+      showAlert("Escalated", "Mpola support has been notified.");
       invalidate();
     },
     onError: (e: any) => {
       setConfirmAction(null);
-      Alert.alert("Failed to escalate", e?.message || "Please try again.");
+      showAlert("Failed to escalate", e?.message || "Please try again.");
     },
   });
 

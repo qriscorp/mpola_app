@@ -19,6 +19,7 @@ import {
   type AuthUser,
 } from "../src/services/auth";
 import { hasSeenOnboarding, subscribeToOnboardingState } from "../src/services/onboarding";
+import { AlertHost } from "../src/components";
 
 // Hold the native splash until the async cold-start bootstrap below is done.
 // Without this the splash auto-hides the moment the root view mounts — long
@@ -301,6 +302,7 @@ export default function RootLayout() {
           </Stack>
         )}
         <AuthGate user={user} isLoading={bootLoading} onboardingSeen={onboardingSeen} />
+        <AlertHost />
       </QueryClientProvider>
     </FontScaleProvider>
   );

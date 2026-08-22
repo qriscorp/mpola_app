@@ -3,6 +3,8 @@ export { Logo } from "./Logo";
 export { LoadingScreen } from "./LoadingScreen";
 export { NativeGlassTabBar } from "./NativeGlassTabBar";
 export { ConfirmModal, ConfirmDetailRow } from "./ConfirmModal";
+export { AlertModal, AlertHost } from "./AlertModal";
+export type { AlertButton, AlertTone } from "./AlertModal";
 export { OtpConfirmModal } from "./OtpConfirmModal";
 export { Card } from "./Card";
 export { StatCard } from "./StatCard";

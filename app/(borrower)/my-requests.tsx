@@ -7,7 +7,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -17,7 +16,7 @@ import { Badge, Input, PhoneInput, SkeletonList, InfoTip, ConfirmModal } from ".
 import { useMyApplicationsViewModel } from "../../src/viewmodels";
 import { applicationStatusLabel, applicationStatusVariant } from "../../src/services/applicationStatus";
 import { formatDuration } from "../../src/services/duration";
-import { fetchApplicationEligibility, goToTabRoot } from "../../src/services";
+import { fetchApplicationEligibility, goToTabRoot, showAlert } from "../../src/services";
 import type { LoanApplication, Guarantor } from "../../src/models";
 
 const TABS = ["All", "Pending", "Funded", "Closed"] as const;
@@ -56,10 +55,10 @@ function ReplaceForm({
     if (!email.trim() || !phone.trim()) return;
     try {
       await replaceGuarantorByContact(applicationId, guarantorId, email.trim(), phone.trim());
-      Alert.alert("Replaced", "Waiting for the new guarantor to respond.");
+      showAlert("Replaced", "Waiting for the new guarantor to respond.");
       onDone();
     } catch (e) {
-      Alert.alert("Failed", e instanceof Error ? e.message : "Please try again.");
+      showAlert("Failed", e instanceof Error ? e.message : "Please try again.");
     }
   };
 
@@ -92,9 +91,9 @@ function GuarantorRow({ applicationId, guarantor }: { applicationId: string; gua
   const handleRemind = async () => {
     try {
       await remindGuarantor(guarantor.id);
-      Alert.alert("Reminder sent");
+      showAlert("Reminder sent");
     } catch (e) {
-      Alert.alert("Failed", e instanceof Error ? e.message : "Please try again.");
+      showAlert("Failed", e instanceof Error ? e.message : "Please try again.");
     }
   };
 
@@ -201,7 +200,7 @@ function EditApplicationForm({ app, onDone }: { app: LoanApplication; onDone: ()
       });
       onDone();
     } catch (e) {
-      Alert.alert("Failed to update", e instanceof Error ? e.message : "Please try again.");
+      showAlert("Failed to update", e instanceof Error ? e.message : "Please try again.");
     }
   };
 
@@ -345,7 +344,7 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
       setConfirmWithdraw(false);
     } catch (e: any) {
       setConfirmWithdraw(false);
-      Alert.alert("Failed to withdraw", e?.message || "Please try again.");
+      showAlert("Failed to withdraw", e?.message || "Please try again.");
     }
   };
 
@@ -355,7 +354,7 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
       setConfirmFreeze(false);
     } catch (e: any) {
       setConfirmFreeze(false);
-      Alert.alert("Failed to freeze", e?.message || "Please try again.");
+      showAlert("Failed to freeze", e?.message || "Please try again.");
     }
   };
 
@@ -363,7 +362,7 @@ function ApplicationActions({ app }: { app: LoanApplication }) {
     try {
       await unfreezeApplication(app.id);
     } catch (e: any) {
-      Alert.alert("Failed to unfreeze", e?.message || "Please try again.");
+      showAlert("Failed to unfreeze", e?.message || "Please try again.");
     }
   };
 
@@ -496,7 +495,7 @@ function DiscardDraftLink({ applicationId }: { applicationId: string }) {
       setConfirmVisible(false);
     } catch (e: any) {
       setConfirmVisible(false);
-      Alert.alert("Failed to discard", e?.message || "Please try again.");
+      showAlert("Failed to discard", e?.message || "Please try again.");
     }
   };
 

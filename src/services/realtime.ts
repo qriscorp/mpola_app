@@ -4,11 +4,11 @@
  * browser's, so no extra dependency is needed.
  */
 import { useEffect, useRef } from "react";
-import { Alert } from "react-native";
 import { router } from "expo-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { getAccessToken, API_BASE_URL } from "./auth";
 import { goToTabRoot } from "./navigation";
+import { showAlert } from "./alerts";
 
 function wsUrl(token: string): string {
   const base = API_BASE_URL.replace(/^http/, "ws");
@@ -61,33 +61,33 @@ export function useRealtimeNotifications(portal: "borrower" | "lender") {
           queryClient.invalidateQueries({ queryKey: ["support"] });
 
           if (msg.type === "loan_pending_disbursement" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "Review", onPress: () => goToTabRoot("/(lender)/(tabs)/portfolio") },
             ]);
           } else if (msg.type === "loan_disbursed" && msg.title) {
-            Alert.alert(msg.title, msg.message);
+            showAlert(msg.title, msg.message);
           } else if (msg.type === "offer_template_expired" && msg.title) {
-            Alert.alert(msg.title, msg.message);
+            showAlert(msg.title, msg.message);
           } else if (msg.type === "lender_offer_template" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "View", onPress: () => router.push("/(lender)/my-offers") },
             ]);
           } else if (msg.type === "offer_awaiting_response" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "View", onPress: () => router.push("/(borrower)/offers") },
             ]);
           } else if (msg.type === "auto_match_cooldown_lifted" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "View", onPress: () => router.push("/(lender)/my-offers") },
             ]);
           } else if (msg.type === "offer_expired" && msg.title) {
-            Alert.alert(msg.title, msg.message);
+            showAlert(msg.title, msg.message);
           } else if (msg.type === "low_wallet_balance" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "Top up", onPress: () => goToTabRoot("/(lender)/(tabs)/wallet") },
             ]);
@@ -96,7 +96,7 @@ export function useRealtimeNotifications(portal: "borrower" | "lender") {
             // tab), so target it with the full path for the active role — the
             // hook is registered separately per portal — see
             // (borrower)/(tabs)/_layout.tsx and (lender)/(tabs)/_layout.tsx.
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               {
                 text: "Respond",
@@ -107,23 +107,23 @@ export function useRealtimeNotifications(portal: "borrower" | "lender") {
               },
             ]);
           } else if (msg.type === "guarantor_response" && msg.title) {
-            Alert.alert(msg.title, msg.message);
+            showAlert(msg.title, msg.message);
           } else if (msg.type === "guarantor_still_pending" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "View", onPress: () => router.push("/(borrower)/my-requests") },
             ]);
           } else if (msg.type === "application_expired" && msg.title) {
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "OK", style: "cancel" },
               { text: "View", onPress: () => router.push("/(borrower)/my-requests") },
             ]);
           } else if (msg.type === "guarantor_request_expired" && msg.title) {
-            Alert.alert(msg.title, msg.message);
+            showAlert(msg.title, msg.message);
           } else if (msg.type === "support_reply" && msg.title) {
             // Relative push, same reasoning as guarantor_invite_received above —
             // resolves to whichever role's "help" tab this hook is mounted under.
-            Alert.alert(msg.title, msg.message, [
+            showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "View", onPress: () => router.push("help" as never) },
             ]);

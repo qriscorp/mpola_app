@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -14,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../../src/theme";
 import { Button, Card, Input, InfoTip, PhoneInput, ConfirmModal } from "../../../src/components";
 import { useApplyViewModel } from "../../../src/viewmodels";
+import { showAlert } from "../../../src/services/alerts";
 import type { LoanType } from "../../../src/models";
 
 const loanTypeLabels: Record<LoanType, string> = {
@@ -78,7 +78,7 @@ export default function ApplyScreen() {
         params: { referenceNumber: res.referenceNumber },
       });
     } catch (e) {
-      Alert.alert(
+      showAlert(
         "Submission failed",
         e instanceof Error ? e.message : "Please try again.",
       );
@@ -89,7 +89,7 @@ export default function ApplyScreen() {
     try {
       await vm.nextStep();
     } catch (e) {
-      Alert.alert("Failed to save", e instanceof Error ? e.message : "Please try again.");
+      showAlert("Failed to save", e instanceof Error ? e.message : "Please try again.");
     }
   };
 
@@ -99,7 +99,7 @@ export default function ApplyScreen() {
       setConfirmDiscard(false);
     } catch (e: any) {
       setConfirmDiscard(false);
-      Alert.alert("Failed to discard", e?.message || "Please try again.");
+      showAlert("Failed to discard", e?.message || "Please try again.");
     }
   };
 

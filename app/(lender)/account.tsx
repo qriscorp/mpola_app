@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   TextInput,
   Switch,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +14,7 @@ import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { useProfileViewModel } from "../../src/viewmodels";
+import { showAlert } from "../../src/services/alerts";
 import {
   SkeletonHero,
   SkeletonCard,
@@ -257,7 +257,7 @@ export default function LenderAccountScreen() {
       { fullName: editForm.fullName, nin: editForm.nin },
       {
         onSuccess: () => setEditingProfile(false),
-        onError: (e: any) => Alert.alert("Failed to save", e?.message || "Please try again."),
+        onError: (e: any) => showAlert("Failed to save", e?.message || "Please try again."),
       },
     );
   };
@@ -399,7 +399,7 @@ export default function LenderAccountScreen() {
           onSign={() =>
             signAgreement(undefined, {
               onError: (e: any) =>
-                Alert.alert("Failed to sign", e?.message || "Please try again."),
+                showAlert("Failed to sign", e?.message || "Please try again."),
             })
           }
         />

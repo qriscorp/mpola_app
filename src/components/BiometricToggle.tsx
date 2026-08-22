@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, Switch, StyleSheet, Alert } from "react-native";
+import { View, Text, Switch, StyleSheet } from "react-native";
 import { Colors, Spacing, useScaledTypography } from "../theme";
 import {
   isBiometricSupported,
   isBiometricLoginEnabled,
   setBiometricLoginEnabled,
 } from "../services/biometrics";
+import { showAlert } from "../services/alerts";
 
 export function BiometricToggle({ accentColor = Colors.teal }: { accentColor?: string }) {
   const typography = useScaledTypography();
@@ -30,7 +31,7 @@ export function BiometricToggle({ accentColor = Colors.teal }: { accentColor?: s
     setEnabled(value);
     await setBiometricLoginEnabled(value);
     if (value) {
-      Alert.alert(
+      showAlert(
         "Biometric sign-in enabled",
         "You can now use Face ID or your fingerprint to sign back in quickly.",
       );

@@ -1,7 +1,8 @@
 import React from "react";
-import { TouchableOpacity, Alert } from "react-native";
+import { TouchableOpacity } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "../theme";
+import { showAlert } from "../services/alerts";
 
 /** A small "i" icon that shows a short explainer in an Alert on tap — used
  * next to flow steps that aren't obvious from the UI alone (guarantors,
@@ -9,7 +10,7 @@ import { Colors } from "../theme";
 export function InfoTip({ title = "About this", text }: { title?: string; text: string }) {
   return (
     <TouchableOpacity
-      onPress={() => Alert.alert(title, text)}
+      onPress={() => showAlert(title, text)}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityLabel="More information"
       accessibilityRole="button"

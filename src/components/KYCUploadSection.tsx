@@ -1,10 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
-import { getMyKycDocuments, uploadKycDocument, type KYCDocumentType } from "../services";
+import { getMyKycDocuments, uploadKycDocument, showAlert, type KYCDocumentType } from "../services";
 import { SkeletonList } from "./Skeleton";
 
 const SLOTS: { type: KYCDocumentType; label: string; hint: string }[] = [
@@ -39,7 +39,7 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
       file: { uri: string; name: string; mimeType?: string };
     }) => uploadKycDocument(documentType, file),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["kyc-documents"] }),
-    onError: (e: any) => Alert.alert("Upload failed", e?.message || "Please try again."),
+    onError: (e: any) => showAlert("Upload failed", e?.message || "Please try again."),
     onSettled: () => setUploadingType(null),
   });
 
@@ -47,7 +47,7 @@ export function KYCUploadSection({ accentColor = Colors.teal }: { accentColor?: 
     const existing = documents?.find((d) => d.document_type === type);
     if (existing?.locked_until) {
       const until = new Date(existing.locked_until);
-      Alert.alert(
+      showAlert(
         "Document locked",
         `This document is verified — locked until ${until.toLocaleDateString()}. Contact support if you need to update it sooner.`,
       );

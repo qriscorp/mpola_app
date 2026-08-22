@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -7,6 +7,7 @@ import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/th
 import { useOffersViewModel } from "../../src/viewmodels";
 import { SkeletonCard, InfoTip, RequiredDocumentsChecklist, ConfirmModal } from "../../src/components";
 import { formatDuration } from "../../src/services/duration";
+import { showAlert } from "../../src/services/alerts";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
 const REQUIRED_ACCEPTED_GUARANTORS = 2;
@@ -66,7 +67,7 @@ export default function OfferDetailScreen() {
   const handleAccept = () => {
     if (!offer) return;
     if (!guarantorsReady) {
-      Alert.alert(
+      showAlert(
         "Guarantors needed",
         `You need ${REQUIRED_ACCEPTED_GUARANTORS} guarantors to confirm before this loan can be disbursed — ${acceptedGuarantors} of ${application?.guarantors?.length ?? 0} confirmed so far.`,
       );
@@ -74,7 +75,7 @@ export default function OfferDetailScreen() {
     }
     const missingDocs = offer.requiredDocumentsStatus.filter((d) => !d.satisfied);
     if (missingDocs.length > 0) {
-      Alert.alert(
+      showAlert(
         "Documents needed",
         `This lender requires: ${missingDocs.map((d) => d.label).join(", ")}. Upload or provide them below before accepting.`,
       );
@@ -92,7 +93,7 @@ export default function OfferDetailScreen() {
       .then(() => router.back())
       .catch((e) => {
         setConfirmDecline(false);
-        Alert.alert(
+        showAlert(
           "Failed to decline offer",
           e instanceof Error ? e.message : "Please try again.",
         );

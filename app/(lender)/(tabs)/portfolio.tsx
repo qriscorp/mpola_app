@@ -5,12 +5,12 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../../src/theme";
+import { showAlert } from "../../../src/services/alerts";
 import {
   Badge,
   ProgressBar,
@@ -60,10 +60,10 @@ export default function PortfolioScreen() {
     try {
       await approveDisbursement(pendingApproval.loanId);
       setPendingApproval(null);
-      Alert.alert("Disbursed", "Funds have been sent to the borrower's wallet.");
+      showAlert("Disbursed", "Funds have been sent to the borrower's wallet.");
     } catch (e: any) {
       setPendingApproval(null);
-      Alert.alert("Couldn't disburse", e?.message || "Please try again.");
+      showAlert("Couldn't disburse", e?.message || "Please try again.");
     }
   };
 

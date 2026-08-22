@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
@@ -15,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Card, SkeletonCard, RequiredDocumentsChecklist } from "../../src/components";
 import { useOffersViewModel } from "../../src/viewmodels";
-import { fetchBorrowerWallet, fetchProfile } from "../../src/services";
+import { fetchBorrowerWallet, fetchProfile, showAlert } from "../../src/services";
 import { formatDuration } from "../../src/services/duration";
 
 // Matches mpola_api's REQUIRED_ACCEPTED_GUARANTORS (routers/loans.py).
@@ -83,7 +82,7 @@ export default function SignAgreementScreen() {
         },
       });
     } catch (e) {
-      Alert.alert("Failed to sign agreement", e instanceof Error ? e.message : "Please try again.");
+      showAlert("Failed to sign agreement", e instanceof Error ? e.message : "Please try again.");
     }
   };
 

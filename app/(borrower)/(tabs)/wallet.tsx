@@ -5,11 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../../src/theme";
+import { showAlert } from "../../../src/services/alerts";
 import {
   TransactionItem,
   TransactionDetailModal,
@@ -59,7 +59,7 @@ export default function WalletScreen() {
       await setupWallet(pin);
       setSetupVisible(false);
     } catch (e) {
-      Alert.alert(
+      showAlert(
         "Setup failed",
         e instanceof Error ? e.message : "Please try again.",
       );

@@ -5,13 +5,13 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../../src/theme";
 import { Button, Input } from "../../src/components";
+import { showAlert } from "../../src/services/alerts";
 import {
   usePostOfferViewModel,
   LOAN_TYPE_OPTIONS,
@@ -53,10 +53,10 @@ export default function PostOfferScreen() {
   const handleSaveDraft = async () => {
     try {
       await vm.submitCreate(true);
-      Alert.alert("Saved", "Offer saved as draft.");
+      showAlert("Saved", "Offer saved as draft.");
       router.push("/(lender)/my-offers");
     } catch (e: any) {
-      Alert.alert("Failed to save", e?.message || "Please try again.");
+      showAlert("Failed to save", e?.message || "Please try again.");
     }
   };
 
@@ -64,7 +64,7 @@ export default function PostOfferScreen() {
     try {
       if (vm.isEditing) {
         await vm.submitUpdate();
-        Alert.alert("Updated", "Offer updated.");
+        showAlert("Updated", "Offer updated.");
         router.push("/(lender)/my-offers");
       } else {
         const template = await vm.submitCreate(false);
@@ -84,7 +84,7 @@ export default function PostOfferScreen() {
         });
       }
     } catch (e: any) {
-      Alert.alert("Failed to save", e?.message || "Please try again.");
+      showAlert("Failed to save", e?.message || "Please try again.");
     }
   };
 
