@@ -1,11 +1,25 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Image, Linking } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as DocumentPicker from "expo-document-picker";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { useLoanChatViewModel, useAdminChatViewModel, useProfileViewModel } from "../viewmodels";
+import { ChatAttachment } from "../services";
 import { SkeletonList } from "./Skeleton";
 
-type ThreadMessage = { id: string; senderId: string | null; message: string; createdAt: string };
+type ThreadMessage = {
+  id: string;
+  senderId: string | null;
+  message: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
+  createdAt: string;
+};
+
+function isImageFile(name: string | null): boolean {
+  if (!name) return false;
+  return /\.(jpe?g|png)$/i.test(name);
+}
 
 function ThreadView({
   isLoading,
@@ -15,6 +29,8 @@ function ThreadView({
   accentColor,
   text,
   setText,
+  attachment,
+  setAttachment,
   send,
   sending,
 }: {
@@ -25,6 +41,8 @@ function ThreadView({
   accentColor: string;
   text: string;
   setText: (v: string) => void;
+  attachment: ChatAttachment | null;
+  setAttachment: (a: ChatAttachment | null) => void;
   send: () => void;
   sending: boolean;
 }) {
@@ -47,6 +65,16 @@ function ThreadView({
     );
   }
 
+  const handlePickAttachment = async () => {
+    const result = await DocumentPicker.getDocumentAsync({
+      type: ["application/pdf", "image/*"],
+      copyToCacheDirectory: true,
+    });
+    if (result.canceled || !result.assets?.[0]) return;
+    const asset = result.assets[0];
+    setAttachment({ uri: asset.uri, name: asset.name, mimeType: asset.mimeType });
+  };
+
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -65,7 +93,20 @@ function ThreadView({
                     : { backgroundColor: Colors.surfaceLift, alignSelf: "flex-start" },
                 ]}
               >
-                <Text style={styles.bubbleText}>{m.message}</Text>
+                {m.fileUrl && isImageFile(m.fileName) && (
+                  <TouchableOpacity onPress={() => Linking.openURL(m.fileUrl!)}>
+                    <Image source={{ uri: m.fileUrl }} style={styles.attachmentImage} resizeMode="cover" />
+                  </TouchableOpacity>
+                )}
+                {m.fileUrl && !isImageFile(m.fileName) && (
+                  <TouchableOpacity style={styles.fileChip} onPress={() => Linking.openURL(m.fileUrl!)}>
+                    <Ionicons name="document-text-outline" size={14} color={Colors.white} />
+                    <Text style={styles.fileChipText} numberOfLines={1}>
+                      {m.fileName ?? "Attachment"}
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                {!!m.message && <Text style={styles.bubbleText}>{m.message}</Text>}
                 <Text style={styles.bubbleTime}>{new Date(m.createdAt).toLocaleString()}</Text>
               </View>
             );
@@ -73,7 +114,22 @@ function ThreadView({
         )}
       </ScrollView>
 
+      {attachment && (
+        <View style={styles.pendingChip}>
+          <Ionicons name="attach" size={14} color={Colors.textMuted} />
+          <Text style={styles.pendingChipText} numberOfLines={1}>
+            {attachment.name}
+          </Text>
+          <TouchableOpacity onPress={() => setAttachment(null)}>
+            <Ionicons name="close" size={14} color={Colors.textMuted} />
+          </TouchableOpacity>
+        </View>
+      )}
+
       <View style={styles.inputRow}>
+        <TouchableOpacity style={styles.attachBtn} onPress={handlePickAttachment}>
+          <Ionicons name="attach" size={20} color={Colors.textMuted} />
+        </TouchableOpacity>
         <TextInput
           style={styles.input}
           placeholder="Write a message…"
@@ -85,7 +141,7 @@ function ThreadView({
         <TouchableOpacity
           style={[styles.sendBtn, { backgroundColor: accentColor }]}
           onPress={send}
-          disabled={sending || !text.trim()}
+          disabled={sending || (!text.trim() && !attachment)}
         >
           {sending ? (
             <ActivityIndicator size="small" color={Colors.white} />
@@ -110,7 +166,7 @@ export function ChatThreadScreenContent({
   accentColor?: string;
 }) {
   const { profile } = useProfileViewModel();
-  const { chat, isLoading, text, setText, send, sending } = useLoanChatViewModel(loanId);
+  const { chat, isLoading, text, setText, attachment, setAttachment, send, sending } = useLoanChatViewModel(loanId);
 
   return (
     <ThreadView
@@ -121,6 +177,8 @@ export function ChatThreadScreenContent({
       accentColor={accentColor}
       text={text}
       setText={setText}
+      attachment={attachment}
+      setAttachment={setAttachment}
       send={send}
       sending={sending}
     />
@@ -135,7 +193,7 @@ export function AdminChatThreadScreenContent({
   accentColor?: string;
 }) {
   const { profile } = useProfileViewModel();
-  const { chat, isLoading, text, setText, send, sending } = useAdminChatViewModel();
+  const { chat, isLoading, text, setText, attachment, setAttachment, send, sending } = useAdminChatViewModel();
 
   return (
     <ThreadView
@@ -146,6 +204,8 @@ export function AdminChatThreadScreenContent({
       accentColor={accentColor}
       text={text}
       setText={setText}
+      attachment={attachment}
+      setAttachment={setAttachment}
       send={send}
       sending={sending}
     />
@@ -161,6 +221,31 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     bubble: { maxWidth: "82%", borderRadius: BorderRadius.lg, padding: Spacing.sm, marginBottom: Spacing.sm },
     bubbleText: { ...typography.small, color: Colors.white },
     bubbleTime: { ...typography.caption, color: Colors.white, opacity: 0.7, marginTop: 2 },
+    attachmentImage: {
+      width: 180,
+      height: 130,
+      borderRadius: BorderRadius.md,
+      marginBottom: Spacing.xs,
+    },
+    fileChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      marginBottom: Spacing.xs,
+    },
+    fileChipText: { ...typography.small, color: Colors.white, textDecorationLine: "underline", flexShrink: 1 },
+    pendingChip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: Spacing.xs,
+      marginHorizontal: Spacing.md,
+      marginTop: Spacing.sm,
+      paddingHorizontal: Spacing.sm,
+      paddingVertical: Spacing.xs,
+      backgroundColor: Colors.surfaceLift,
+      borderRadius: BorderRadius.md,
+    },
+    pendingChipText: { ...typography.small, color: Colors.textSecondary, flex: 1 },
     inputRow: {
       flexDirection: "row",
       gap: Spacing.xs,
@@ -168,6 +253,12 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
       borderTopWidth: 1,
       borderTopColor: Colors.border,
       alignItems: "flex-end",
+    },
+    attachBtn: {
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
     },
     input: {
       flex: 1,

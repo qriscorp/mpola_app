@@ -7,6 +7,7 @@ import {
   postLoanChatMessage,
   fetchAdminChat,
   postAdminChatMessage,
+  ChatAttachment,
 } from "../services";
 
 export function useChatConversationsViewModel() {
@@ -32,6 +33,7 @@ export function useChatUnreadCountViewModel() {
 export function useLoanChatViewModel(loanId: string) {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
+  const [attachment, setAttachment] = useState<ChatAttachment | null>(null);
 
   const { data: chat, isLoading, error } = useQuery({
     queryKey: ["chat", "loan", loanId],
@@ -40,9 +42,11 @@ export function useLoanChatViewModel(loanId: string) {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (message: string) => postLoanChatMessage(loanId, message),
+    mutationFn: ({ message, file }: { message: string; file?: ChatAttachment }) =>
+      postLoanChatMessage(loanId, message, file),
     onSuccess: () => {
       setText("");
+      setAttachment(null);
       queryClient.invalidateQueries({ queryKey: ["chat", "loan", loanId] });
       queryClient.invalidateQueries({ queryKey: ["chat", "conversations"] });
     },
@@ -50,8 +54,8 @@ export function useLoanChatViewModel(loanId: string) {
 
   const send = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    sendMutation.mutate(trimmed);
+    if (!trimmed && !attachment) return;
+    sendMutation.mutate({ message: trimmed, file: attachment ?? undefined });
   };
 
   return {
@@ -60,6 +64,8 @@ export function useLoanChatViewModel(loanId: string) {
     error,
     text,
     setText,
+    attachment,
+    setAttachment,
     send,
     sending: sendMutation.isPending,
   };
@@ -68,6 +74,7 @@ export function useLoanChatViewModel(loanId: string) {
 export function useAdminChatViewModel() {
   const queryClient = useQueryClient();
   const [text, setText] = useState("");
+  const [attachment, setAttachment] = useState<ChatAttachment | null>(null);
 
   const { data: chat, isLoading, error } = useQuery({
     queryKey: ["chat", "admin"],
@@ -75,9 +82,11 @@ export function useAdminChatViewModel() {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (message: string) => postAdminChatMessage(message),
+    mutationFn: ({ message, file }: { message: string; file?: ChatAttachment }) =>
+      postAdminChatMessage(message, file),
     onSuccess: () => {
       setText("");
+      setAttachment(null);
       queryClient.invalidateQueries({ queryKey: ["chat", "admin"] });
       queryClient.invalidateQueries({ queryKey: ["chat", "unread-count"] });
     },
@@ -85,8 +94,8 @@ export function useAdminChatViewModel() {
 
   const send = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
-    sendMutation.mutate(trimmed);
+    if (!trimmed && !attachment) return;
+    sendMutation.mutate({ message: trimmed, file: attachment ?? undefined });
   };
 
   return {
@@ -95,6 +104,8 @@ export function useAdminChatViewModel() {
     error,
     text,
     setText,
+    attachment,
+    setAttachment,
     send,
     sending: sendMutation.isPending,
   };

@@ -1908,8 +1908,16 @@ export interface ChatMessage {
   id: string;
   senderId: string | null;
   senderName: string | null;
-  message: string;
+  message: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
   createdAt: string;
+}
+
+export interface ChatAttachment {
+  uri: string;
+  name: string;
+  mimeType?: string;
 }
 
 export interface LoanChat {
@@ -1951,10 +1959,32 @@ export async function fetchChatUnreadCount(): Promise<number> {
   return res.unread_count;
 }
 
+interface RawChatMessage {
+  id: string;
+  sender_id: string | null;
+  sender_name: string | null;
+  message: string | null;
+  file_url: string | null;
+  file_name: string | null;
+  created_at: string;
+}
+
+function mapChatMessage(m: RawChatMessage): ChatMessage {
+  return {
+    id: m.id,
+    senderId: m.sender_id,
+    senderName: m.sender_name,
+    message: m.message,
+    fileUrl: m.file_url,
+    fileName: m.file_name,
+    createdAt: m.created_at,
+  };
+}
+
 export async function fetchLoanChat(loanId: string): Promise<LoanChat> {
   const res = await apiAuthGet<{
     other_party: { id: string | null; name: string | null; kyc_status: string | null };
-    messages: { id: string; sender_id: string | null; sender_name: string | null; message: string; created_at: string }[];
+    messages: RawChatMessage[];
   }>(`/chat/loans/${loanId}`);
   return {
     otherParty: {
@@ -1962,27 +1992,26 @@ export async function fetchLoanChat(loanId: string): Promise<LoanChat> {
       name: res.other_party.name,
       kycStatus: res.other_party.kyc_status,
     },
-    messages: res.messages.map((m) => ({
-      id: m.id,
-      senderId: m.sender_id,
-      senderName: m.sender_name,
-      message: m.message,
-      createdAt: m.created_at,
-    })),
+    messages: res.messages.map(mapChatMessage),
   };
 }
 
-export async function postLoanChatMessage(loanId: string, message: string): Promise<ChatMessage> {
-  const res = await apiAuthPost<{
-    message_data: { id: string; sender_id: string | null; sender_name: string | null; message: string; created_at: string };
-  }>(`/chat/loans/${loanId}`, { message });
-  return {
-    id: res.message_data.id,
-    senderId: res.message_data.sender_id,
-    senderName: res.message_data.sender_name,
-    message: res.message_data.message,
-    createdAt: res.message_data.created_at,
-  };
+export async function postLoanChatMessage(
+  loanId: string,
+  message: string,
+  file?: ChatAttachment,
+): Promise<ChatMessage> {
+  const formData = new FormData();
+  if (message) formData.append("message", message);
+  if (file) {
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name,
+      type: file.mimeType || "application/octet-stream",
+    } as unknown as Blob);
+  }
+  const res = await apiAuthUpload<{ message_data: RawChatMessage }>(`/chat/loans/${loanId}`, formData);
+  return mapChatMessage(res.message_data);
 }
 
 // ─── Chat (live chat with Mpola Support — alongside, not replacing, tickets) ───
@@ -1992,7 +2021,9 @@ export interface AdminChatMessage {
   senderId: string | null;
   senderName: string | null;
   isAdmin: boolean;
-  message: string;
+  message: string | null;
+  fileUrl: string | null;
+  fileName: string | null;
   createdAt: string;
 }
 
@@ -2006,7 +2037,9 @@ function mapAdminChatMessage(m: {
   sender_id: string | null;
   sender_name: string | null;
   is_admin: boolean;
-  message: string;
+  message: string | null;
+  file_url: string | null;
+  file_name: string | null;
   created_at: string;
 }): AdminChatMessage {
   return {
@@ -2015,6 +2048,8 @@ function mapAdminChatMessage(m: {
     senderName: m.sender_name,
     isAdmin: m.is_admin,
     message: m.message,
+    fileUrl: m.file_url,
+    fileName: m.file_name,
     createdAt: m.created_at,
   };
 }
@@ -2030,10 +2065,19 @@ export async function fetchAdminChat(): Promise<AdminChat> {
   };
 }
 
-export async function postAdminChatMessage(message: string): Promise<AdminChatMessage> {
-  const res = await apiAuthPost<{ message_data: Parameters<typeof mapAdminChatMessage>[0] }>(
+export async function postAdminChatMessage(message: string, file?: ChatAttachment): Promise<AdminChatMessage> {
+  const formData = new FormData();
+  if (message) formData.append("message", message);
+  if (file) {
+    formData.append("file", {
+      uri: file.uri,
+      name: file.name,
+      type: file.mimeType || "application/octet-stream",
+    } as unknown as Blob);
+  }
+  const res = await apiAuthUpload<{ message_data: Parameters<typeof mapAdminChatMessage>[0] }>(
     "/chat/admin",
-    { message },
+    formData,
   );
   return mapAdminChatMessage(res.message_data);
 }
