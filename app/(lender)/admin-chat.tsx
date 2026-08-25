@@ -12,8 +12,7 @@ export default function LenderAdminChatScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: Colors.background }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={80}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
       >
         <AdminChatThreadScreenContent onBack={() => router.back()} accentColor={Colors.gold} />
       </KeyboardAvoidingView>
