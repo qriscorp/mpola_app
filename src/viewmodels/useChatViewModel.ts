@@ -11,11 +11,11 @@ import {
 } from "../services";
 
 export function useChatConversationsViewModel() {
-  const { data: conversations, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["chat", "conversations"],
     queryFn: fetchChatConversations,
   });
-  return { conversations: conversations ?? [], isLoading, error, refetch };
+  return { conversations: data?.conversations ?? [], adminChat: data?.adminChat, isLoading, error, refetch };
 }
 
 export function useChatUnreadCountViewModel() {

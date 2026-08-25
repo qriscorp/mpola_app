@@ -26,6 +26,7 @@ function ThreadView({
   found,
   messages,
   myId,
+  readAt,
   accentColor,
   text,
   setText,
@@ -38,6 +39,7 @@ function ThreadView({
   found: boolean;
   messages: ThreadMessage[];
   myId: string | undefined;
+  readAt: string | null | undefined;
   accentColor: string;
   text: string;
   setText: (v: string) => void;
@@ -107,7 +109,17 @@ function ThreadView({
                   </TouchableOpacity>
                 )}
                 {!!m.message && <Text style={styles.bubbleText}>{m.message}</Text>}
-                <Text style={styles.bubbleTime}>{new Date(m.createdAt).toLocaleString()}</Text>
+                <View style={styles.bubbleFooter}>
+                  <Text style={styles.bubbleTime}>{new Date(m.createdAt).toLocaleString()}</Text>
+                  {mine && (
+                    <Ionicons
+                      name={readAt && m.createdAt <= readAt ? "checkmark-done" : "checkmark"}
+                      size={14}
+                      color={Colors.white}
+                      style={{ opacity: readAt && m.createdAt <= readAt ? 0.9 : 0.7 }}
+                    />
+                  )}
+                </View>
               </View>
             );
           })
@@ -174,6 +186,7 @@ export function ChatThreadScreenContent({
       found={!!chat}
       messages={chat?.messages ?? []}
       myId={profile?.id}
+      readAt={chat?.otherPartyReadAt}
       accentColor={accentColor}
       text={text}
       setText={setText}
@@ -201,6 +214,7 @@ export function AdminChatThreadScreenContent({
       found={!!chat}
       messages={chat?.messages ?? []}
       myId={profile?.id}
+      readAt={chat?.adminLastSeenAt}
       accentColor={accentColor}
       text={text}
       setText={setText}
@@ -220,7 +234,8 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     emptyInline: { ...typography.body, color: Colors.textMuted, textAlign: "center", marginTop: Spacing.xl },
     bubble: { maxWidth: "82%", borderRadius: BorderRadius.lg, padding: Spacing.sm, marginBottom: Spacing.sm },
     bubbleText: { ...typography.small, color: Colors.white },
-    bubbleTime: { ...typography.caption, color: Colors.white, opacity: 0.7, marginTop: 2 },
+    bubbleFooter: { flexDirection: "row", alignItems: "center", gap: 3, alignSelf: "flex-end", marginTop: 2 },
+    bubbleTime: { ...typography.caption, color: Colors.white, opacity: 0.7 },
     attachmentImage: {
       width: 180,
       height: 130,

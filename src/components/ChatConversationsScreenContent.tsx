@@ -43,7 +43,7 @@ export function ChatConversationsScreenContent({
   const router = useRouter();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
-  const { conversations, isLoading } = useChatConversationsViewModel();
+  const { conversations, adminChat, isLoading } = useChatConversationsViewModel();
 
   const adminRow = (
     <TouchableOpacity
@@ -54,9 +54,19 @@ export function ChatConversationsScreenContent({
         <Ionicons name="headset-outline" size={20} color={Colors.white} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={styles.name}>Mpola Support</Text>
-        <Text style={styles.preview} numberOfLines={1}>Chat with our team</Text>
+        <View style={styles.rowTop}>
+          <Text style={styles.name}>Mpola Support</Text>
+          {!!adminChat?.lastMessageAt && <Text style={styles.time}>{timeAgo(adminChat.lastMessageAt)}</Text>}
+        </View>
+        <Text style={styles.preview} numberOfLines={1}>
+          {adminChat?.lastMessage ?? "Chat with our team"}
+        </Text>
       </View>
+      {!!adminChat?.unreadCount && (
+        <View style={[styles.unreadBadge, { backgroundColor: accentColor }]}>
+          <Text style={styles.unreadText}>{adminChat.unreadCount}</Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 

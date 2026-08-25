@@ -1922,7 +1922,19 @@ export interface ChatAttachment {
 
 export interface LoanChat {
   otherParty: { id: string | null; name: string | null; kycStatus: string | null };
+  otherPartyReadAt: string | null;
   messages: ChatMessage[];
+}
+
+export interface AdminChatPreview {
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+}
+
+export interface ChatConversationsResult {
+  conversations: ChatConversation[];
+  adminChat: AdminChatPreview;
 }
 
 interface RawChatConversation {
@@ -1949,9 +1961,19 @@ function mapChatConversation(raw: RawChatConversation): ChatConversation {
   };
 }
 
-export async function fetchChatConversations(): Promise<ChatConversation[]> {
-  const res = await apiAuthGet<{ conversations: RawChatConversation[] }>("/chat/conversations");
-  return res.conversations.map(mapChatConversation);
+export async function fetchChatConversations(): Promise<ChatConversationsResult> {
+  const res = await apiAuthGet<{
+    conversations: RawChatConversation[];
+    admin_chat: { last_message: string | null; last_message_at: string | null; unread_count: number };
+  }>("/chat/conversations");
+  return {
+    conversations: res.conversations.map(mapChatConversation),
+    adminChat: {
+      lastMessage: res.admin_chat.last_message,
+      lastMessageAt: res.admin_chat.last_message_at,
+      unreadCount: res.admin_chat.unread_count,
+    },
+  };
 }
 
 export async function fetchChatUnreadCount(): Promise<number> {
@@ -1984,6 +2006,7 @@ function mapChatMessage(m: RawChatMessage): ChatMessage {
 export async function fetchLoanChat(loanId: string): Promise<LoanChat> {
   const res = await apiAuthGet<{
     other_party: { id: string | null; name: string | null; kyc_status: string | null };
+    other_party_read_at: string | null;
     messages: RawChatMessage[];
   }>(`/chat/loans/${loanId}`);
   return {
@@ -1992,6 +2015,7 @@ export async function fetchLoanChat(loanId: string): Promise<LoanChat> {
       name: res.other_party.name,
       kycStatus: res.other_party.kyc_status,
     },
+    otherPartyReadAt: res.other_party_read_at,
     messages: res.messages.map(mapChatMessage),
   };
 }
@@ -2029,6 +2053,7 @@ export interface AdminChatMessage {
 
 export interface AdminChat {
   otherParty: { name: string | null };
+  adminLastSeenAt: string | null;
   messages: AdminChatMessage[];
 }
 
@@ -2057,10 +2082,12 @@ function mapAdminChatMessage(m: {
 export async function fetchAdminChat(): Promise<AdminChat> {
   const res = await apiAuthGet<{
     other_party: { name: string | null };
+    admin_last_seen_at: string | null;
     messages: Parameters<typeof mapAdminChatMessage>[0][];
   }>("/chat/admin");
   return {
     otherParty: { name: res.other_party.name },
+    adminLastSeenAt: res.admin_last_seen_at,
     messages: res.messages.map(mapAdminChatMessage),
   };
 }
