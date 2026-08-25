@@ -30,6 +30,7 @@ export default function LenderLayout() {
       <Stack.Screen name="offer-posted" />
       <Stack.Screen name="messages" />
       <Stack.Screen name="chat" />
+      <Stack.Screen name="admin-chat" />
       <Stack.Screen name="loan-detail" />
       <Stack.Screen name="disbursement" />
       <Stack.Screen name="earnings" />

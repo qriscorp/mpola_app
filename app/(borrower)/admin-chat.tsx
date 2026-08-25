@@ -1,12 +1,12 @@
 import React, { useMemo } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors, Spacing, useScaledTypography } from "../../src/theme";
-import { ChatConversationsScreenContent } from "../../src/components";
+import { AdminChatThreadScreenContent } from "../../src/components";
 
-export default function BorrowerMessagesScreen() {
+export default function BorrowerAdminChatScreen() {
   const router = useRouter();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
@@ -17,14 +17,16 @@ export default function BorrowerMessagesScreen() {
         <TouchableOpacity onPress={() => router.back()} accessibilityLabel="Go back" accessibilityRole="button">
           <Ionicons name="arrow-back" size={24} color={Colors.white} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Messages</Text>
+        <Text style={styles.headerTitle}>Mpola Support</Text>
         <View style={{ width: 24 }} />
       </View>
-      <ChatConversationsScreenContent
-        chatRoute="/(borrower)/chat"
-        adminChatRoute="/(borrower)/admin-chat"
-        accentColor={Colors.teal}
-      />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={80}
+      >
+        <AdminChatThreadScreenContent accentColor={Colors.teal} />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

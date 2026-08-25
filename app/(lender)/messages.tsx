@@ -20,7 +20,11 @@ export default function LenderMessagesScreen() {
         <Text style={styles.headerTitle}>Messages</Text>
         <View style={{ width: 24 }} />
       </View>
-      <ChatConversationsScreenContent chatRoute="/(lender)/chat" accentColor={Colors.gold} />
+      <ChatConversationsScreenContent
+        chatRoute="/(lender)/chat"
+        adminChatRoute="/(lender)/admin-chat"
+        accentColor={Colors.gold}
+      />
     </SafeAreaView>
   );
 }

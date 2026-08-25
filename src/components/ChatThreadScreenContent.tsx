@@ -2,24 +2,34 @@ import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
-import { useLoanChatViewModel, useProfileViewModel } from "../viewmodels";
+import { useLoanChatViewModel, useAdminChatViewModel, useProfileViewModel } from "../viewmodels";
 import { SkeletonList } from "./Skeleton";
 
-/** One loan's message thread between its borrower and lender — deliberately
- * scoped to a Loan, not an open DM system (see routers/chat.py for why).
- * Mirrors DisputeDetailScreenContent's bubble styling, minus the
- * admin/resolution-lock concepts that don't apply to a plain chat. */
-export function ChatThreadScreenContent({
-  loanId,
-  accentColor = Colors.teal,
+type ThreadMessage = { id: string; senderId: string | null; message: string; createdAt: string };
+
+function ThreadView({
+  isLoading,
+  found,
+  messages,
+  myId,
+  accentColor,
+  text,
+  setText,
+  send,
+  sending,
 }: {
-  loanId: string;
-  accentColor?: string;
+  isLoading: boolean;
+  found: boolean;
+  messages: ThreadMessage[];
+  myId: string | undefined;
+  accentColor: string;
+  text: string;
+  setText: (v: string) => void;
+  send: () => void;
+  sending: boolean;
 }) {
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
-  const { profile } = useProfileViewModel();
-  const { chat, isLoading, text, setText, send, sending } = useLoanChatViewModel(loanId);
 
   if (isLoading) {
     return (
@@ -29,7 +39,7 @@ export function ChatThreadScreenContent({
     );
   }
 
-  if (!chat) {
+  if (!found) {
     return (
       <View style={styles.emptyState}>
         <Text style={styles.emptyText}>Conversation not found.</Text>
@@ -40,11 +50,11 @@ export function ChatThreadScreenContent({
   return (
     <View style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
-        {chat.messages.length === 0 ? (
+        {messages.length === 0 ? (
           <Text style={styles.emptyInline}>No messages yet — say hello.</Text>
         ) : (
-          chat.messages.map((m) => {
-            const mine = m.senderId === profile?.id;
+          messages.map((m) => {
+            const mine = m.senderId === myId;
             return (
               <View
                 key={m.id}
@@ -85,6 +95,60 @@ export function ChatThreadScreenContent({
         </TouchableOpacity>
       </View>
     </View>
+  );
+}
+
+/** One loan's message thread between its borrower and lender — deliberately
+ * scoped to a Loan, not an open DM system (see routers/chat.py for why).
+ * Mirrors DisputeDetailScreenContent's bubble styling, minus the
+ * admin/resolution-lock concepts that don't apply to a plain chat. */
+export function ChatThreadScreenContent({
+  loanId,
+  accentColor = Colors.teal,
+}: {
+  loanId: string;
+  accentColor?: string;
+}) {
+  const { profile } = useProfileViewModel();
+  const { chat, isLoading, text, setText, send, sending } = useLoanChatViewModel(loanId);
+
+  return (
+    <ThreadView
+      isLoading={isLoading}
+      found={!!chat}
+      messages={chat?.messages ?? []}
+      myId={profile?.id}
+      accentColor={accentColor}
+      text={text}
+      setText={setText}
+      send={send}
+      sending={sending}
+    />
+  );
+}
+
+/** The user's own conversation with Mpola Support — a persistent thread per
+ * user, not per-loan, alongside (not replacing) the SupportTicket system. */
+export function AdminChatThreadScreenContent({
+  accentColor = Colors.teal,
+}: {
+  accentColor?: string;
+}) {
+  const { profile } = useProfileViewModel();
+  const { chat, isLoading, text, setText, send, sending } = useAdminChatViewModel();
+
+  return (
+    <ThreadView
+      isLoading={isLoading}
+      found={!!chat}
+      messages={chat?.messages ?? []}
+      myId={profile?.id}
+      accentColor={accentColor}
+      text={text}
+      setText={setText}
+      send={send}
+      sending={sending}
+    />
   );
 }
 

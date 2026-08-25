@@ -6,7 +6,7 @@ import { NativeGlassTabBar } from "../../../src/components";
 
 export default function BorrowerTabLayout() {
   useRealtimeNotifications("borrower");
-  usePushRegistration();
+  usePushRegistration("borrower");
 
   return (
     <Tabs

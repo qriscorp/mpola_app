@@ -1985,6 +1985,59 @@ export async function postLoanChatMessage(loanId: string, message: string): Prom
   };
 }
 
+// ─── Chat (live chat with Mpola Support — alongside, not replacing, tickets) ───
+
+export interface AdminChatMessage {
+  id: string;
+  senderId: string | null;
+  senderName: string | null;
+  isAdmin: boolean;
+  message: string;
+  createdAt: string;
+}
+
+export interface AdminChat {
+  otherParty: { name: string | null };
+  messages: AdminChatMessage[];
+}
+
+function mapAdminChatMessage(m: {
+  id: string;
+  sender_id: string | null;
+  sender_name: string | null;
+  is_admin: boolean;
+  message: string;
+  created_at: string;
+}): AdminChatMessage {
+  return {
+    id: m.id,
+    senderId: m.sender_id,
+    senderName: m.sender_name,
+    isAdmin: m.is_admin,
+    message: m.message,
+    createdAt: m.created_at,
+  };
+}
+
+export async function fetchAdminChat(): Promise<AdminChat> {
+  const res = await apiAuthGet<{
+    other_party: { name: string | null };
+    messages: Parameters<typeof mapAdminChatMessage>[0][];
+  }>("/chat/admin");
+  return {
+    otherParty: { name: res.other_party.name },
+    messages: res.messages.map(mapAdminChatMessage),
+  };
+}
+
+export async function postAdminChatMessage(message: string): Promise<AdminChatMessage> {
+  const res = await apiAuthPost<{ message_data: Parameters<typeof mapAdminChatMessage>[0] }>(
+    "/chat/admin",
+    { message },
+  );
+  return mapAdminChatMessage(res.message_data);
+}
+
 // ─── Login sessions ─────────────────────────────────────────
 
 export interface LoginSessionInfo {

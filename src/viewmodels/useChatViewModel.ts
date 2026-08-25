@@ -5,6 +5,8 @@ import {
   fetchChatUnreadCount,
   fetchLoanChat,
   postLoanChatMessage,
+  fetchAdminChat,
+  postAdminChatMessage,
 } from "../services";
 
 export function useChatConversationsViewModel() {
@@ -43,6 +45,41 @@ export function useLoanChatViewModel(loanId: string) {
       setText("");
       queryClient.invalidateQueries({ queryKey: ["chat", "loan", loanId] });
       queryClient.invalidateQueries({ queryKey: ["chat", "conversations"] });
+    },
+  });
+
+  const send = () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    sendMutation.mutate(trimmed);
+  };
+
+  return {
+    chat,
+    isLoading,
+    error,
+    text,
+    setText,
+    send,
+    sending: sendMutation.isPending,
+  };
+}
+
+export function useAdminChatViewModel() {
+  const queryClient = useQueryClient();
+  const [text, setText] = useState("");
+
+  const { data: chat, isLoading, error } = useQuery({
+    queryKey: ["chat", "admin"],
+    queryFn: fetchAdminChat,
+  });
+
+  const sendMutation = useMutation({
+    mutationFn: (message: string) => postAdminChatMessage(message),
+    onSuccess: () => {
+      setText("");
+      queryClient.invalidateQueries({ queryKey: ["chat", "admin"] });
+      queryClient.invalidateQueries({ queryKey: ["chat", "unread-count"] });
     },
   });
 

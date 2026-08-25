@@ -9,6 +9,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getAccessToken, API_BASE_URL } from "./auth";
 import { goToTabRoot } from "./navigation";
 import { showAlert } from "./alerts";
+import { resolveNotificationRoute } from "./notificationRouting";
 
 function wsUrl(token: string): string {
   const base = API_BASE_URL.replace(/^http/, "ws");
@@ -62,21 +63,16 @@ export function useRealtimeNotifications(portal: "borrower" | "lender") {
           queryClient.invalidateQueries({ queryKey: ["chat"] });
 
           if (msg.type === "chat_message" && msg.title) {
-            const loanId = msg.data?.loan_id;
+            const route = resolveNotificationRoute(msg.type, msg.data, portal);
             showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
-              ...(loanId
-                ? [
-                    {
-                      text: "Reply",
-                      onPress: () =>
-                        router.push({
-                          pathname: portal === "lender" ? "/(lender)/chat" : "/(borrower)/chat",
-                          params: { loanId },
-                        }),
-                    },
-                  ]
-                : []),
+              ...(route ? [{ text: "Reply", onPress: () => router.push(route as never) }] : []),
+            ]);
+          } else if (msg.type === "admin_chat_message" && msg.title) {
+            const route = resolveNotificationRoute(msg.type, msg.data, portal);
+            showAlert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              ...(route ? [{ text: "Reply", onPress: () => router.push(route as never) }] : []),
             ]);
           } else if (msg.type === "loan_pending_disbursement" && msg.title) {
             showAlert(msg.title, msg.message, [

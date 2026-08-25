@@ -41,5 +41,6 @@ export {
   useChatConversationsViewModel,
   useChatUnreadCountViewModel,
   useLoanChatViewModel,
+  useAdminChatViewModel,
 } from "./useChatViewModel";
 export { useRepaymentScheduleViewModel } from "./useRepaymentScheduleViewModel";

@@ -9,7 +9,9 @@ import { useEffect } from "react";
 import { Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
+import { router } from "expo-router";
 import { apiAuthPut } from "./auth";
+import { resolveNotificationRoute } from "./notificationRouting";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -77,9 +79,24 @@ export async function clearPushToken(): Promise<void> {
   }
 }
 
-/** Registers this device's push token once, on mount. */
-export function usePushRegistration() {
+/** Registers this device's push token once, on mount, and — since a push
+ * received while the app was closed/backgrounded never reaches the
+ * WebSocket handler in realtime.ts — deep-links a tap on one of those
+ * notifications to the relevant screen, via the same routing table
+ * realtime.ts's in-app alerts use (see notificationRouting.ts). */
+export function usePushRegistration(portal: "borrower" | "lender") {
   useEffect(() => {
     syncPushToken();
   }, []);
+
+  useEffect(() => {
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data as
+        | (Record<string, unknown> & { type?: string })
+        | undefined;
+      const route = resolveNotificationRoute(data?.type, data, portal);
+      if (route) router.push(route as never);
+    });
+    return () => sub.remove();
+  }, [portal]);
 }

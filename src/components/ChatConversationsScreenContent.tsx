@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { Colors, Spacing, BorderRadius, useScaledTypography } from "../theme";
 import { useChatConversationsViewModel } from "../viewmodels";
 import { SkeletonList } from "./Skeleton";
@@ -32,15 +33,32 @@ function initials(name: string | null): string {
  * row opens ChatThreadScreenContent for that specific loan. */
 export function ChatConversationsScreenContent({
   chatRoute,
+  adminChatRoute,
   accentColor = Colors.teal,
 }: {
   chatRoute: string;
+  adminChatRoute: string;
   accentColor?: string;
 }) {
   const router = useRouter();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
   const { conversations, isLoading } = useChatConversationsViewModel();
+
+  const adminRow = (
+    <TouchableOpacity
+      style={styles.row}
+      onPress={() => router.push(adminChatRoute as any)}
+    >
+      <View style={[styles.avatar, { backgroundColor: accentColor }]}>
+        <Ionicons name="headset-outline" size={20} color={Colors.white} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={styles.name}>Mpola Support</Text>
+        <Text style={styles.preview} numberOfLines={1}>Chat with our team</Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   if (isLoading) {
     return (
@@ -52,16 +70,20 @@ export function ChatConversationsScreenContent({
 
   if (conversations.length === 0) {
     return (
-      <View style={styles.emptyState}>
-        <Text style={styles.emptyText}>
-          No conversations yet — once you have a loan with someone, you can message them here.
-        </Text>
-      </View>
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {adminRow}
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyText}>
+            No loan conversations yet — once you have a loan with someone, you can message them here.
+          </Text>
+        </View>
+      </ScrollView>
     );
   }
 
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      {adminRow}
       {conversations.map((c) => (
         <TouchableOpacity
           key={c.loanId}

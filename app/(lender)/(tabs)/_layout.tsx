@@ -12,7 +12,7 @@ import { NativeGlassTabBar } from "../../../src/components";
 
 export default function LenderTabLayout() {
   useRealtimeNotifications("lender");
-  usePushRegistration();
+  usePushRegistration("lender");
   const { data: marketplace } = useQuery({
     queryKey: ["lender", "marketplace", "inbox"],
     queryFn: () => fetchMarketplace(1, 50),
