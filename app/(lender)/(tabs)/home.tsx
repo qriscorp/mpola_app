@@ -188,9 +188,12 @@ export default function LenderHomeScreen() {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.actions}>
+        {/* Wraps so any number of buttons stays evenly two-per-row —
+            fixed-count paired rows used to leave an odd leftover button
+            squeezed into a 3-wide row once Messages was added. */}
+        <View style={styles.actionsWrap}>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/post-offer")}
           >
             <Ionicons
@@ -203,7 +206,7 @@ export default function LenderHomeScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/my-offers")}
           >
             <Ionicons
@@ -215,11 +218,8 @@ export default function LenderHomeScreen() {
               My Standing Offers
             </Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/approvals")}
           >
             <Ionicons
@@ -237,7 +237,7 @@ export default function LenderHomeScreen() {
             )}
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/disputes")}
           >
             <Ionicons
@@ -249,11 +249,8 @@ export default function LenderHomeScreen() {
               Disputes
             </Text>
           </TouchableOpacity>
-        </View>
-
-        <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/disbursement")}
           >
             <Ionicons
@@ -271,7 +268,7 @@ export default function LenderHomeScreen() {
             )}
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/earnings")}
           >
             <Ionicons
@@ -284,7 +281,7 @@ export default function LenderHomeScreen() {
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.actionBtnOutline}
+            style={styles.actionBtnWrap}
             onPress={() => router.push("/(lender)/messages")}
           >
             <Ionicons
@@ -410,6 +407,23 @@ function makeStyles(typography: ReturnType<typeof useScaledTypography>) {
     offerSub: { ...typography.small, color: Colors.textMuted },
     offerMeta: { ...typography.small, color: Colors.textMuted, marginTop: 2 },
     actions: { flexDirection: "row", gap: Spacing.sm, marginTop: Spacing.lg },
+    actionsWrap: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: Spacing.sm,
+      marginTop: Spacing.lg,
+    },
+    actionBtnWrap: {
+      width: "48%",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: Spacing.sm,
+      paddingVertical: Spacing.md,
+      borderRadius: BorderRadius.full,
+      borderWidth: 1,
+      borderColor: Colors.border,
+    },
     actionBtnGold: {
       flex: 1,
       flexDirection: "row",
