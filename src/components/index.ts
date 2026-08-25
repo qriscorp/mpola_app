@@ -30,6 +30,8 @@ export { ReferralScreenContent } from "./ReferralScreenContent";
 export { HelpScreenContent } from "./HelpScreenContent";
 export { DisputesScreenContent } from "./DisputesScreenContent";
 export { DisputeDetailScreenContent } from "./DisputeDetailScreenContent";
+export { ChatConversationsScreenContent } from "./ChatConversationsScreenContent";
+export { ChatThreadScreenContent } from "./ChatThreadScreenContent";
 export { SessionsSection } from "./SessionsSection";
 export { SettingsScreenContent } from "./SettingsScreenContent";
 export { KYCUploadSection } from "./KYCUploadSection";

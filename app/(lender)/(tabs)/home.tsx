@@ -15,6 +15,7 @@ import { Badge, SkeletonHero, SkeletonStatRow, SkeletonList, Logo } from "../../
 import {
   useLenderDashboardViewModel,
   useNotificationsViewModel,
+  useChatUnreadCountViewModel,
 } from "../../../src/viewmodels";
 import { formatDuration } from "../../../src/services/duration";
 import { formatCompactUGX } from "../../../src/services/currency";
@@ -37,6 +38,7 @@ export default function LenderHomeScreen() {
     queryFn: fetchDisbursementQueue,
   });
   const pendingDisbursementCount = disbursementQueue?.pendingCount ?? 0;
+  const { data: unreadChatCount = 0 } = useChatUnreadCountViewModel();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
@@ -280,6 +282,24 @@ export default function LenderHomeScreen() {
             <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
               Earnings
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionBtnOutline}
+            onPress={() => router.push("/(lender)/messages")}
+          >
+            <Ionicons
+              name="chatbubble-ellipses-outline"
+              size={18}
+              color={Colors.textSecondary}
+            />
+            <Text style={[styles.actionText, { color: Colors.textSecondary }]}>
+              Messages
+            </Text>
+            {unreadChatCount > 0 && (
+              <View style={styles.actionBadge}>
+                <Text style={styles.actionBadgeText}>{unreadChatCount}</Text>
+              </View>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

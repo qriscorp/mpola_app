@@ -16,6 +16,7 @@ import { formatCompactUGX } from "../../../src/services/currency";
 import {
   useBorrowerDashboardViewModel,
   useNotificationsViewModel,
+  useChatUnreadCountViewModel,
 } from "../../../src/viewmodels";
 import { fetchGuarantorRequests } from "../../../src/services";
 
@@ -31,6 +32,7 @@ export default function BorrowerHomeScreen() {
     queryFn: () => fetchGuarantorRequests("pending"),
   });
   const pendingApprovalsCount = pendingApprovals.length;
+  const { data: unreadChatCount = 0 } = useChatUnreadCountViewModel();
   const typography = useScaledTypography();
   const styles = useMemo(() => makeStyles(typography), [typography]);
 
@@ -242,6 +244,24 @@ export default function BorrowerHomeScreen() {
               )}
             </View>
             <Text style={styles.actionLabel}>Approvals</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.actionCell}
+            onPress={() => router.push("/(borrower)/messages")}
+          >
+            <View>
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={22}
+                color={Colors.textSecondary}
+              />
+              {unreadChatCount > 0 && (
+                <View style={styles.actionCellBadge}>
+                  <Text style={styles.actionCellBadgeText}>{unreadChatCount}</Text>
+                </View>
+              )}
+            </View>
+            <Text style={styles.actionLabel}>Messages</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -59,8 +59,26 @@ export function useRealtimeNotifications(portal: "borrower" | "lender") {
           queryClient.invalidateQueries({ queryKey: ["application"] });
           queryClient.invalidateQueries({ queryKey: ["guarantor-requests"] });
           queryClient.invalidateQueries({ queryKey: ["support"] });
+          queryClient.invalidateQueries({ queryKey: ["chat"] });
 
-          if (msg.type === "loan_pending_disbursement" && msg.title) {
+          if (msg.type === "chat_message" && msg.title) {
+            const loanId = msg.data?.loan_id;
+            showAlert(msg.title, msg.message, [
+              { text: "Later", style: "cancel" },
+              ...(loanId
+                ? [
+                    {
+                      text: "Reply",
+                      onPress: () =>
+                        router.push({
+                          pathname: portal === "lender" ? "/(lender)/chat" : "/(borrower)/chat",
+                          params: { loanId },
+                        }),
+                    },
+                  ]
+                : []),
+            ]);
+          } else if (msg.type === "loan_pending_disbursement" && msg.title) {
             showAlert(msg.title, msg.message, [
               { text: "Later", style: "cancel" },
               { text: "Review", onPress: () => goToTabRoot("/(lender)/(tabs)/portfolio") },

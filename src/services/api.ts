@@ -1888,6 +1888,103 @@ export async function fetchMyLoansForDispute(): Promise<Loan[]> {
   return res.loans.map(mapLoan);
 }
 
+// ─── Chat (borrower/lender messaging, scoped to one loan) ───────
+// Deliberately scoped to a Loan, not an open DM system — see
+// routers/chat.py for the reasoning (evidence trail, no off-platform
+// circumvention). Mirrors the dispute-message shape above closely.
+
+export interface ChatConversation {
+  loanId: string;
+  otherPartyId: string;
+  otherPartyName: string | null;
+  loanAmount: number;
+  loanStatus: string;
+  lastMessage: string | null;
+  lastMessageAt: string | null;
+  unreadCount: number;
+}
+
+export interface ChatMessage {
+  id: string;
+  senderId: string | null;
+  senderName: string | null;
+  message: string;
+  createdAt: string;
+}
+
+export interface LoanChat {
+  otherParty: { id: string | null; name: string | null; kycStatus: string | null };
+  messages: ChatMessage[];
+}
+
+interface RawChatConversation {
+  loan_id: string;
+  other_party_id: string;
+  other_party_name: string | null;
+  loan_amount: number;
+  loan_status: string;
+  last_message: string | null;
+  last_message_at: string | null;
+  unread_count: number;
+}
+
+function mapChatConversation(raw: RawChatConversation): ChatConversation {
+  return {
+    loanId: raw.loan_id,
+    otherPartyId: raw.other_party_id,
+    otherPartyName: raw.other_party_name,
+    loanAmount: raw.loan_amount,
+    loanStatus: raw.loan_status,
+    lastMessage: raw.last_message,
+    lastMessageAt: raw.last_message_at,
+    unreadCount: raw.unread_count,
+  };
+}
+
+export async function fetchChatConversations(): Promise<ChatConversation[]> {
+  const res = await apiAuthGet<{ conversations: RawChatConversation[] }>("/chat/conversations");
+  return res.conversations.map(mapChatConversation);
+}
+
+export async function fetchChatUnreadCount(): Promise<number> {
+  const res = await apiAuthGet<{ unread_count: number }>("/chat/unread-count");
+  return res.unread_count;
+}
+
+export async function fetchLoanChat(loanId: string): Promise<LoanChat> {
+  const res = await apiAuthGet<{
+    other_party: { id: string | null; name: string | null; kyc_status: string | null };
+    messages: { id: string; sender_id: string | null; sender_name: string | null; message: string; created_at: string }[];
+  }>(`/chat/loans/${loanId}`);
+  return {
+    otherParty: {
+      id: res.other_party.id,
+      name: res.other_party.name,
+      kycStatus: res.other_party.kyc_status,
+    },
+    messages: res.messages.map((m) => ({
+      id: m.id,
+      senderId: m.sender_id,
+      senderName: m.sender_name,
+      message: m.message,
+      createdAt: m.created_at,
+    })),
+  };
+}
+
+export async function postLoanChatMessage(loanId: string, message: string): Promise<ChatMessage> {
+  const res = await apiAuthPost<{
+    message_data: { id: string; sender_id: string | null; sender_name: string | null; message: string; created_at: string };
+  }>(`/chat/loans/${loanId}`, { message });
+  return {
+    id: res.message_data.id,
+    senderId: res.message_data.sender_id,
+    senderName: res.message_data.sender_name,
+    message: res.message_data.message,
+    createdAt: res.message_data.created_at,
+  };
+}
+
 // ─── Login sessions ─────────────────────────────────────────
 
 export interface LoginSessionInfo {

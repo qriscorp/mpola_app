@@ -37,4 +37,9 @@ export { useEarningsViewModel } from "./useEarningsViewModel";
 export { useNotificationsViewModel, useNotificationsFeedViewModel } from "./useNotificationsViewModel";
 export { useProfileViewModel } from "./useProfileViewModel";
 export { useReceiptsViewModel } from "./useReceiptsViewModel";
+export {
+  useChatConversationsViewModel,
+  useChatUnreadCountViewModel,
+  useLoanChatViewModel,
+} from "./useChatViewModel";
 export { useRepaymentScheduleViewModel } from "./useRepaymentScheduleViewModel";
